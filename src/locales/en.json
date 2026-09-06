@@ -1,0 +1,87 @@
+{
+  "common": {
+    "appName": "Cardly NFC",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "active": "Active",
+    "suspended": "Suspended",
+    "error": "An error occurred",
+    "actions": "Actions",
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "nav": {
+    "howItWorks": "How It Works",
+    "pricing": "Pricing",
+    "templates": "Templates",
+    "contact": "Contact Us",
+    "dashboard": "Dashboard",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "marketing": {
+    "heroTitle": "Connect instantly with NFC Digital Business Cards",
+    "heroSubtitle": "Share your contact details, social links, location, and business hours with a single tap. No app required.",
+    "getStarted": "Get Started Now",
+    "viewPricing": "View Pricing",
+    "featuresTitle": "Why Choose Cardly?",
+    "feature1Title": "Tap to Share",
+    "feature1Desc": "No apps needed. Simply tap your physical NFC card to a phone to instantly display your digital card.",
+    "feature2Title": "Visual Profile Editor",
+    "feature2Desc": "Design your card in minutes with custom colors, fonts, links, galleries, and layout structures.",
+    "feature3Title": "Real-time Analytics",
+    "feature3Desc": "Keep track of views, link clicks, contact downloads, and taps mapped by device type and geography."
+  },
+  "auth": {
+    "loginTitle": "Sign in to your account",
+    "registerTitle": "Create your account",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "loginBtn": "Sign In",
+    "registerBtn": "Sign Up",
+    "forgotPassword": "Forgot your password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?"
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "myCards": "My Cards",
+    "myProfiles": "My Profiles",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "subscriptions": "Subscription",
+    "totalCards": "Total Cards",
+    "activeCards": "Active Cards",
+    "totalViews": "Total Views",
+    "viewsThisMonth": "Views This Month",
+    "recentActivity": "Recent Activity",
+    "billingPlan": "Current Plan"
+  },
+  "profile": {
+    "saveContact": "Save Contact",
+    "share": "Share Card",
+    "businessHours": "Business Hours",
+    "closed": "Closed",
+    "website": "Website",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "aboutMe": "About Me",
+    "socialLinks": "Social Links"
+  },
+  "admin": {
+    "dashboard": "Admin Panel",
+    "customers": "Customers",
+    "nfcProvisioning": "NFC Provisioning",
+    "cardBatches": "Card Batches",
+    "orders": "Orders",
+    "products": "Products",
+    "auditLogs": "Audit Logs"
+  }
+}

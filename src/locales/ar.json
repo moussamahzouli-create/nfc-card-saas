@@ -1,0 +1,87 @@
+{
+  "common": {
+    "appName": "كاردلي NFC",
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "active": "نشط",
+    "suspended": "معلق",
+    "error": "حدث خطأ ما",
+    "actions": "الإجراءات",
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "nav": {
+    "howItWorks": "كيف يعمل؟",
+    "pricing": "الأسعار",
+    "templates": "القوالب",
+    "contact": "اتصل بنا",
+    "dashboard": "لوحة التحكم",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج"
+  },
+  "marketing": {
+    "heroTitle": "تواصل فوراً باستخدام بطاقات الأعمال الرقمية NFC",
+    "heroSubtitle": "شارك معلومات الاتصال الخاصة بك، وروابط التواصل الاجتماعي، والموقع، وساعات العمل بنقرة واحدة فقط. لا يلزم وجود تطبيق.",
+    "getStarted": "ابدأ الآن",
+    "viewPricing": "عرض الخطط والأسعار",
+    "featuresTitle": "لماذا تختار كاردلي؟",
+    "feature1Title": "انقر للمشاركة",
+    "feature1Desc": "لا داعي لتطبيقات. ما عليك سوى تقريب بطاقة NFC من الهاتف لعرض ملفك الشخصي على الفور.",
+    "feature2Title": "محرر ملف شخصي مرئي",
+    "feature2Desc": "صمم بطاقتك الرقمية في دقائق باستخدام الألوان المخصصة والخطوط والروابط والمعارض والتخطيطات الفريدة.",
+    "feature3Title": "تحليلات فورية ودقيقة",
+    "feature3Desc": "تتبع المشاهدات، والنقرات على الروابط، وتنزيلات جهات الاتصال، والنقرات مصنفة حسب نوع الجهاز والموقع الجغرافي."
+  },
+  "auth": {
+    "loginTitle": "تسجيل الدخول إلى حسابك",
+    "registerTitle": "إنشاء حساب جديد",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "loginBtn": "دخول",
+    "registerBtn": "تسجيل",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟"
+  },
+  "dashboard": {
+    "overview": "نظرة عامة",
+    "myCards": "بطاقاتي",
+    "myProfiles": "ملفاتي الشخصية",
+    "analytics": "التحليلات",
+    "settings": "الإعدادات",
+    "subscriptions": "الاشتراك",
+    "totalCards": "إجمالي البطاقات",
+    "activeCards": "البطاقات النشطة",
+    "totalViews": "إجمالي المشاهدات",
+    "viewsThisMonth": "مشاهدات هذا الشهر",
+    "recentActivity": "النشاط الأخير",
+    "billingPlan": "الخطة الحالية"
+  },
+  "profile": {
+    "saveContact": "حفظ جهة الاتصال",
+    "share": "مشاركة البطاقة",
+    "businessHours": "ساعات العمل",
+    "closed": "مغلق",
+    "website": "الموقع الإلكتروني",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "aboutMe": "من أنا",
+    "socialLinks": "روابط التواصل الاجتماعي"
+  },
+  "admin": {
+    "dashboard": "لوحة الإدارة",
+    "customers": "العملاء",
+    "nfcProvisioning": "تهيئة بطاقات NFC",
+    "cardBatches": "دفعات البطاقات",
+    "orders": "الطلبات",
+    "products": "المنتجات",
+    "auditLogs": "سجلات التدقيق"
+  }
+}

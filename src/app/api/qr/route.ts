@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionUser } from '@/lib/auth/session';
+import { hasSufficientContrast } from '@/lib/qr/contrast';
+import QRCode from 'qrcode';
+import { z } from 'zod';
+
+const qrRequestSchema = z.object({
+  data: z.string().url(),
+  fgColor: z.string().regex(/^#[0-9A-F]{6}$/i, { message: 'Invalid hex foreground color' }),
+  bgColor: z.string().regex(/^#[0-9A-F]{6}$/i, { message: 'Invalid hex background color' }),
+  format: z.enum(['png', 'svg']).default('png'),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Authenticate user
+    const user = await getSessionUser(req);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const result = qrRequestSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.issues.map(i => i.message).join(', ') }, { status: 400 });
+    }
+
+    const { data, fgColor, bgColor, format } = result.data;
+
+    // 2. Validate contrast
+    if (!hasSufficientContrast(fgColor, bgColor)) {
+      return NextResponse.json({ error: 'QR colors have insufficient contrast' }, { status: 400 });
+    }
+
+    // 3. Generate QR code locally
+    if (format === 'svg') {
+      const svgString = await QRCode.toString(data, {
+        type: 'svg',
+        color: {
+          dark: fgColor,
+          light: bgColor,
+        },
+      });
+      return new NextResponse(svgString, {
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Content-Disposition': 'attachment; filename="profile-qr.svg"',
+        },
+      });
+    } else {
+      const pngBuffer = await QRCode.toBuffer(data, {
+        type: 'png',
+        width: 400,
+        margin: 2,
+        color: {
+          dark: fgColor,
+          light: bgColor,
+        },
+      });
+      return new NextResponse(new Uint8Array(pngBuffer), {
+        headers: {
+          'Content-Type': 'image/png',
+          'Content-Disposition': 'attachment; filename="profile-qr.png"',
+        },
+      });
+    }
+  } catch (error: any) {
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
