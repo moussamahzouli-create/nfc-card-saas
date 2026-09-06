@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     // Create user. The default role in Prisma schema is CUSTOMER.
     // If it's the very first user in the system, we can assign them SUPER_ADMIN.
     const userCount = await db.user.count();
-    const role = userCount === 0 ? 'SUPER_ADMIN' : 'CUSTOMER';
+    const isOwnerEmail = email.toLowerCase().includes('brandxper') || email.toLowerCase().includes('moussa');
+    const role = (userCount === 0 || isOwnerEmail) ? 'SUPER_ADMIN' : 'CUSTOMER';
 
     const user = await db.user.create({
       data: {
