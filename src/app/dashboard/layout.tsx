@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, CreditCard, User, BarChart3, Settings, LogOut, Layers, ShoppingBag, Receipt, QrCode, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, CreditCard, User, BarChart3, Settings, LogOut, Layers, ShoppingBag, Receipt, QrCode, HelpCircle, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -71,6 +71,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{currentUser.role.toLowerCase()}</span>
             </div>
           </div>
+        )}
+
+        {/* Admin Portal Switcher */}
+        {currentUser && (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 hover:from-purple-500 hover:to-indigo-500 transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Admin Portal (لوحة الإدارة)</span>
+            </div>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+              {currentUser.role === 'SUPER_ADMIN' ? 'Owner' : 'Vendor'}
+            </span>
+          </Link>
         )}
 
         <nav className="flex-grow space-y-1">
