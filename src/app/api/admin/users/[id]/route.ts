@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth/session';
+import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
 const updateUserSchema = z.object({
@@ -8,6 +9,7 @@ const updateUserSchema = z.object({
   status: z.enum(['ACTIVE', 'SUSPENDED']).optional(),
   name: z.string().optional(),
   phone: z.string().optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
 });
 
 // PATCH /api/admin/users/[id]
@@ -25,9 +27,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: parsed.error.issues.map(i => i.message).join(', ') }, { status: 400 });
     }
 
+    const updateData: any = { ...parsed.data };
+    if (parsed.data.password) {
+      updateData.passwordHash = await bcrypt.hash(parsed.data.password, 10);
+      delete updateData.password;
+    }
+
     const updatedUser = await db.user.update({
       where: { id },
-      data: parsed.data,
+      data: updateData,
       select: {
         id: true,
         name: true,
