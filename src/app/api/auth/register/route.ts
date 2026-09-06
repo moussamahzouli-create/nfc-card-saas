@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
     setSessionCookie(response, token);
     return response;
   } catch (error: any) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Registration error details:', error);
+    return NextResponse.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
   }
 }
