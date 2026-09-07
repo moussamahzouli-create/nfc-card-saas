@@ -116,7 +116,7 @@ const SOCIAL_MAP: Record<string, SocialConfig> = {
     solidColor: '#25D366',
     svg: (
       <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.62.962 3.21 1.493 4.887 1.495 5.234 0 9.488-4.251 9.49-9.489.002-2.54-1.009-4.928-2.846-6.764C16.284 2.56 13.916 1.5 11.45 1.5 6.213 1.5 1.959 5.751 1.957 10.99c-.001 1.777.472 3.4 1.373 4.908L2.348 20.89l5.3-1.391z"/>
+        <path d="M17.472 14.382c-.301-.15-1.782-.879-2.057-.979-.276-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.076-.301-.15-1.27-.468-2.42-1.493-.895-.798-1.5-1.784-1.675-2.085-.175-.301-.019-.464.132-.614.136-.135.301-.351.451-.527.151-.175.201-.301.301-.501.101-.2.05-.376-.025-.527-.075-.15-.677-1.632-.928-2.233-.244-.585-.492-.506-.677-.515-.175-.008-.376-.01-.576-.01s-.527.075-.803.376c-.276.301-1.053 1.028-1.053 2.508 0 1.48 1.078 2.909 1.229 3.109.15.2 2.122 3.24 5.141 4.544.718.31 1.279.496 1.716.635.722.23 1.38.197 1.9-.12.58-.354 1.782-1.053 2.033-1.68.251-.627.251-1.164.175-1.289-.075-.125-.276-.2-.577-.35zm2.12-10.94C17.405 1.258 14.787.008 12.008.008c-6.615 0-12 5.385-12 12 0 2.112.551 4.172 1.597 5.986L0 24l6.19-1.623c1.751.954 3.737 1.457 5.814 1.457h.005c6.615 0 12-5.385 12-12 0-3.204-1.248-6.216-3.417-8.392zM12.008 21.808h-.004c-1.788 0-3.541-.481-5.068-1.388l-.364-.216-3.766.988 1.005-3.671-.237-.377C2.639 15.617 2.025 13.85 2.025 12.008c0-5.505 4.478-9.983 9.987-9.983 2.668 0 5.176 1.039 7.062 2.925 1.887 1.886 2.926 4.394 2.926 7.062 0 5.505-4.479 9.983-9.988 9.983z"/>
       </svg>
     ),
   },
@@ -269,6 +269,17 @@ const SOCIAL_MAP: Record<string, SocialConfig> = {
       </svg>
     ),
   },
+  pinterest: {
+    id: 'pinterest',
+    label: 'Pinterest',
+    gradient: 'linear-gradient(135deg, #E60023 0%, #ad081b 100%)',
+    solidColor: '#E60023',
+    svg: (
+      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.69 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
+      </svg>
+    ),
+  },
 };
 
 function getSocialInfo(platform: string) {
@@ -278,6 +289,7 @@ function getSocialInfo(platform: string) {
   if (p.includes('mail')) return SOCIAL_MAP.email;
   if (p.includes('web') || p.includes('site')) return SOCIAL_MAP.website;
   if (p.includes('map') || p.includes('location')) return SOCIAL_MAP.location;
+  if (p.includes('pin')) return SOCIAL_MAP.pinterest;
 
   return {
     id: p,
@@ -423,7 +435,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   }).catch(err => console.error('Failed to log analytics event', err));
 
   // 7. Resolve Template & Appearance
-  let appearance = {
+  let appearance: any = {
     background: '#0B0C10',
     surface: '#12141D',
     primary: '#8A509E',
@@ -431,15 +443,19 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     accent: '#A855F7',
     text: '#FFFFFF',
     muted: '#94A3B8',
-    border: 'rgba(255, 255, 255, 0.08)',
+    border: 'rgba(255, 255, 255, 0.1)',
     font: 'Inter',
     headingFont: 'Inter',
     buttonStyle: 'filled',
     cardStyle: 'glass',
-    borderRadius: '32px',
+    borderRadius: '24px',
     headerStyle: 'hero',
     avatarShape: 'circle',
     animation: 'smooth',
+    showMap: true,
+    iconColor: undefined,
+    iconBg: undefined,
+    iconStyle: 'brand',
   };
 
   // Fallback to IndustryTemplate defaults if templateId is set
@@ -489,6 +505,10 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
         headerStyle: parsed.headerStyle || appearance.headerStyle,
         avatarShape: parsed.avatarShape || parsed.profileImageStyle || appearance.avatarShape,
         animation: parsed.animation || appearance.animation,
+        showMap: parsed.showMap !== undefined ? Boolean(parsed.showMap) : true,
+        iconColor: parsed.iconColor || undefined,
+        iconBg: parsed.iconBg || undefined,
+        iconStyle: parsed.iconStyle || 'brand',
       };
 
       if (parsed.socialLinks && Array.isArray(parsed.socialLinks)) {
@@ -582,15 +602,20 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   const emailUrl = formatEmailUrl(profile.email || '');
   const websiteUrl = formatWebsiteUrl(profile.website || '');
 
-  // 11. Location & Google Map Resolution (Displayed in dedicated LocationMapWidget only!)
-  const mapComponent = profile.components?.find(c => c.type.toLowerCase() === 'googlemap' && c.isVisible);
-  let locationAddress = mapComponent?.value || mapComponent?.url || '';
-  if (!locationAddress && profile.locations && profile.locations.length > 0) {
-    locationAddress = profile.locations[0].address;
-  }
-  // Default for brandxpere / Moussa Mahzouli or when address is in bio/company
-  if (!locationAddress && (profile.slug === 'moussa-mahzouli' || profile.company?.toUpperCase().includes('BRANDXPER'))) {
-    locationAddress = 'Marrakech, Maroc';
+  // 11. Location & Google Map Resolution (Strictly respects client's choice to disable/cancel map!)
+  const mapComponent = profile.components?.find(c => c.type.toLowerCase() === 'googlemap');
+  const isMapDisabled = appearance.showMap === false || (mapComponent && mapComponent.isVisible === false);
+
+  let locationAddress = '';
+  if (!isMapDisabled) {
+    locationAddress = (mapComponent && mapComponent.isVisible !== false) ? (mapComponent.value || mapComponent.url || '') : '';
+    if (!locationAddress && profile.locations && profile.locations.length > 0) {
+      locationAddress = profile.locations[0].address;
+    }
+    // Default for brandxpere / Moussa Mahzouli or when address is in bio/company
+    if (!locationAddress && (profile.slug === 'moussa-mahzouli' || profile.company?.toUpperCase().includes('BRANDXPER'))) {
+      locationAddress = 'Marrakech, Maroc';
+    }
   }
 
   // 12. Reviews Resolution (Core Feature)
@@ -797,7 +822,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
+                    style={{
+                      backgroundColor: appearance.iconBg || 'rgba(16, 185, 129, 0.2)',
+                      color: appearance.iconColor || '#34D399',
+                    }}
+                  >
                     <Phone className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px]">{isArabic ? 'اتصال' : 'Call'}</span>
@@ -810,7 +841,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <div className="w-7 h-7 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
+                    style={{
+                      backgroundColor: appearance.iconBg || 'rgba(14, 165, 233, 0.2)',
+                      color: appearance.iconColor || '#38BDF8',
+                    }}
+                  >
                     <Mail className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] truncate max-w-full">{isArabic ? 'إيميل' : 'Email'}</span>
@@ -825,7 +862,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <div className="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
+                    style={{
+                      backgroundColor: appearance.iconBg || 'rgba(168, 85, 247, 0.2)',
+                      color: appearance.iconColor || '#C084FC',
+                    }}
+                  >
                     <Globe className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] truncate max-w-full">{isArabic ? 'الموقع' : 'Website'}</span>
@@ -848,6 +891,19 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
               <div className="grid grid-cols-2 gap-2.5">
                 {activeSocials.map((link) => {
                   const info = getSocialInfo(link.platform);
+
+                  const iconBg = appearance.iconStyle === 'unified' && appearance.iconBg
+                    ? appearance.iconBg
+                    : appearance.iconStyle === 'glass'
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : appearance.iconStyle === 'monochrome'
+                    ? '#1E293B'
+                    : appearance.iconStyle === 'gradient'
+                    ? `linear-gradient(135deg, ${appearance.primary}, ${appearance.accent})`
+                    : info.gradient;
+
+                  const iconColor = appearance.iconColor || '#FFFFFF';
+
                   return (
                     <a
                       key={link.id || link.platform}
@@ -861,8 +917,11 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                       }}
                     >
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md group-hover:scale-110 transition-transform"
-                        style={{ background: info.gradient }}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform"
+                        style={{
+                          background: iconBg,
+                          color: iconColor,
+                        }}
                       >
                         {info.svg}
                       </div>
@@ -882,8 +941,8 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             </div>
           )}
 
-          {/* Core Feature 1: Location & Google Map Widget */}
-          {locationAddress && (
+          {/* Core Feature 1: Location & Google Map Widget (Hidden if user cancelled/disabled map!) */}
+          {!isMapDisabled && locationAddress && (
             <div className="w-full mt-7">
               <LocationMapWidget
                 address={locationAddress}
@@ -948,15 +1007,57 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                 }
 
                 if (compType === 'image') {
-                  const imgUrl = comp.value || comp.url;
-                  if (!imgUrl) return null;
+                  const rawUrl = (comp.value || comp.url || '').trim();
+                  if (!rawUrl) return null;
+
+                  const isPinterest = /pinterest\.|pin\.it/i.test(rawUrl);
+                  const isWebPage = /^(https?:\/\/)?(www\.)?(pinterest\.|pin\.it|instagram\.com|facebook\.com|twitter\.com|x\.com|tiktok\.com|youtube\.com)/i.test(rawUrl);
+
+                  if (isWebPage) {
+                    return (
+                      <a
+                        key={comp.id}
+                        href={rawUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3.5 rounded-2xl flex items-center justify-between border transition-all hover:scale-[1.01] active:scale-[0.99] shadow-sm group"
+                        style={{
+                          borderColor: appearance.border,
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                        }}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md group-hover:scale-105 transition-transform"
+                            style={{ background: isPinterest ? '#E60023' : appearance.primary }}
+                          >
+                            {isPinterest ? SOCIAL_MAP.pinterest.svg : <Globe className="w-5 h-5" />}
+                          </div>
+                          <div className="text-left rtl:text-right min-w-0">
+                            <span className="text-xs font-black block truncate" style={{ color: appearance.text }}>
+                              {comp.title || (isPinterest ? 'Pinterest Showcase' : 'External Link')}
+                            </span>
+                            <span className="text-[10px] font-medium block truncate opacity-60" style={{ color: appearance.muted }}>
+                              {isArabic ? 'مشاهدة الرابط' : 'View Link'}
+                            </span>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 opacity-50 shrink-0 group-hover:opacity-100 transition-opacity" />
+                      </a>
+                    );
+                  }
+
                   return (
                     <div
                       key={comp.id}
                       className="w-full rounded-3xl overflow-hidden border p-2 bg-white/5 shadow-md"
                       style={{ borderColor: appearance.border }}
                     >
-                      <img src={imgUrl} alt={comp.title || 'Image'} className="w-full h-auto rounded-2xl object-cover" />
+                      <img
+                        src={rawUrl}
+                        alt={comp.title || 'Image'}
+                        className="w-full h-auto rounded-2xl object-cover max-h-[450px]"
+                      />
                       {comp.title && (
                         <p className="text-xs font-bold text-center mt-2 opacity-80">{comp.title}</p>
                       )}

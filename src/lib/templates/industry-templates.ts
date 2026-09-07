@@ -28,6 +28,12 @@ export interface IndustryTemplate {
   headerStyle: 'centered' | 'left' | 'hero' | 'cover' | 'minimal' | 'split';
   avatarShape: 'circle' | 'rounded' | 'square';
   animation: 'none' | 'subtle' | 'smooth';
+  // Icon customization
+  iconColor?: string;
+  iconBg?: string;
+  iconStyle?: 'brand' | 'unified' | 'gradient' | 'glass' | 'monochrome';
+  // Map toggle
+  showMap?: boolean;
   // Enabled components (ordered)
   enabledComponents: string[];
   // Locks

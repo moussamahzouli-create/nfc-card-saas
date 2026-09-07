@@ -35,6 +35,7 @@ const SOCIALS = [
   { id: 'googlereviews', label: 'Google Reviews',   color: '#4285F4', letter: 'GR' },
   { id: 'booking',       label: 'Booking.com',      color: '#003580', letter: 'BK' },
   { id: 'behance',       label: 'Behance',          color: '#1769FF', letter: 'BE' },
+  { id: 'pinterest',     label: 'Pinterest',        color: '#E60023', letter: 'PI' },
 ];
 
 function getComponentIcon(type: string) {
@@ -87,6 +88,18 @@ function getSocialSvgIcon(platform: string) {
           <path d="M22.23 0H1.77C.8 0 0 .77 0 1.72v20.56C0 23.23.8 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.2 0 22.23 0zM7.12 20.45H3.56V9h3.56v11.45zM5.34 7.43c-1.14 0-2.06-.92-2.06-2.06 0-1.14.92-2.06 2.06-2.06 1.14 0 2.06.92 2.06 2.06 0 1.14-.92 2.06-2.06 2.06zm15.11 13.02h-3.56v-5.6c0-1.34-.03-3.05-1.86-3.05-1.86 0-2.14 1.45-2.14 2.95v5.7h-3.56V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29z"/>
         </svg>
       );
+    case 'whatsapp':
+      return (
+        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.301-.15-1.782-.879-2.057-.979-.276-.1-.476-.15-.677.15-.2.301-.777.979-.953 1.18-.175.2-.351.226-.652.076-.301-.15-1.27-.468-2.42-1.493-.895-.798-1.5-1.784-1.675-2.085-.175-.301-.019-.464.132-.614.136-.135.301-.351.451-.527.151-.175.201-.301.301-.501.101-.2.05-.376-.025-.527-.075-.15-.677-1.632-.928-2.233-.244-.585-.492-.506-.677-.515-.175-.008-.376-.01-.576-.01s-.527.075-.803.376c-.276.301-1.053 1.028-1.053 2.508 0 1.48 1.078 2.909 1.229 3.109.15.2 2.122 3.24 5.141 4.544.718.31 1.279.496 1.716.635.722.23 1.38.197 1.9-.12.58-.354 1.782-1.053 2.033-1.68.251-.627.251-1.164.175-1.289-.075-.125-.276-.2-.577-.35zm2.12-10.94C17.405 1.258 14.787.008 12.008.008c-6.615 0-12 5.385-12 12 0 2.112.551 4.172 1.597 5.986L0 24l6.19-1.623c1.751.954 3.737 1.457 5.814 1.457h.005c6.615 0 12-5.385 12-12 0-3.204-1.248-6.216-3.417-8.392zM12.008 21.808h-.004c-1.788 0-3.541-.481-5.068-1.388l-.364-.216-3.766.988 1.005-3.671-.237-.377C2.639 15.617 2.025 13.85 2.025 12.008c0-5.505 4.478-9.983 9.987-9.983 2.668 0 5.176 1.039 7.062 2.925 1.887 1.886 2.926 4.394 2.926 7.062 0 5.505-4.479 9.983-9.988 9.983z"/>
+        </svg>
+      );
+    case 'pinterest':
+      return (
+        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.69 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
+        </svg>
+      );
     case 'x':
     case 'twitter':
       return (
@@ -103,7 +116,7 @@ function getSocialSvgIcon(platform: string) {
    PREVIEW SUB-CONTENT
 ═══════════════════════════════ */
 function CardContent({ headerStyle, primary, accent, bg, surface, textColor, muted, border,
-  btnBaseStyle, avatarRadius, initials, profile, font, headingFont, visibleSocials, radius, components }: any) {
+  btnBaseStyle, avatarRadius, initials, profile, font, headingFont, visibleSocials, radius, components, appearance }: any) {
   return (
     <div style={{ background: bg, color: textColor, fontFamily: font }} className="pb-8">
       {/* Cover image/header */}
@@ -183,6 +196,7 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
               const compType = comp.type.toLowerCase();
 
               if (compType === 'googlemap') {
+                if (appearance?.showMap === false) return null;
                 return (
                   <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-2 bg-slate-50/50" style={{ borderColor: border }}>
                     <div className="text-[9px] uppercase tracking-wider block opacity-60 font-semibold mb-1 px-1">{comp.title}</div>
@@ -208,13 +222,19 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
               }
 
               if (compType === 'image') {
-                const imgUrl = comp.value || comp.url;
+                const imgUrl = (comp.value || comp.url || '').trim();
+                const isWebPage = imgUrl && /^(https?:\/\/)?(www\.)?(pinterest\.|pin\.it|instagram\.com|facebook\.com|twitter\.com)/i.test(imgUrl);
                 return (
-                  <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-1 bg-slate-50/50" style={{ borderColor: border }}>
-                    {imgUrl ? (
-                      <img src={imgUrl} className="w-full h-auto object-cover rounded-lg" alt="" />
+                  <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-2 bg-slate-50/50" style={{ borderColor: border }}>
+                    {isWebPage ? (
+                      <div className="p-3 bg-red-50 text-red-600 rounded-lg flex items-center justify-between text-xs font-bold">
+                        <span className="truncate">{comp.title || 'Pinterest Link'}</span>
+                        <ExternalLink className="w-4 h-4 shrink-0" />
+                      </div>
+                    ) : imgUrl ? (
+                      <img src={imgUrl} className="w-full h-auto object-cover rounded-lg max-h-48" alt="" />
                     ) : (
-                      <div className="h-20 bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-semibold">No Image URL Entered</div>
+                      <div className="h-20 bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-semibold">لم يتم رفع صورة بعد</div>
                     )}
                     {comp.title && <p className="text-[9px] text-center mt-1.5 opacity-60 font-semibold">{comp.title}</p>}
                   </div>
@@ -265,12 +285,22 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
           <div className="mt-2">
             <p className="text-[9px] font-bold uppercase tracking-wider text-center opacity-50 mb-2">Social Networks</p>
             <div className="flex flex-wrap justify-center gap-2">
-              {visibleSocials.map((s: any) => (
-                <div key={s.id} className="w-9 h-9 rounded-full flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                  style={{ background: s.color }}>
-                  {getSocialSvgIcon(s.id)}
-                </div>
-              ))}
+              {visibleSocials.map((s: any) => {
+                const sBg = appearance?.iconStyle === 'unified' && appearance?.iconBg
+                  ? appearance.iconBg
+                  : appearance?.iconStyle === 'glass'
+                  ? 'rgba(0, 0, 0, 0.08)'
+                  : appearance?.iconStyle === 'gradient'
+                  ? `linear-gradient(135deg, ${primary}, ${accent})`
+                  : s.color;
+
+                return (
+                  <div key={s.id} className="w-9 h-9 rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform shadow-sm"
+                    style={{ background: sBg, color: appearance?.iconColor || '#FFFFFF' }}>
+                    {getSocialSvgIcon(s.id)}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -338,7 +368,7 @@ function LiveCardPreview({ profile, appearance, deviceView, components }: any) {
               surface={surface} textColor={textColor} muted={muted} border={border}
               btnBaseStyle={btnBaseStyle} avatarRadius={avatarRadius}
               initials={initials} profile={profile} font={font} headingFont={headingFont}
-              visibleSocials={visibleSocials} radius={radius} components={components} />
+              visibleSocials={visibleSocials} radius={radius} components={components} appearance={appearance} />
           </div>
         ) : deviceView === 'tablet' ? (
           <div className="rounded-2xl border-4 border-slate-800 overflow-hidden shadow-2xl" style={{ background: bg }}>
@@ -348,7 +378,7 @@ function LiveCardPreview({ profile, appearance, deviceView, components }: any) {
               surface={surface} textColor={textColor} muted={muted} border={border}
               btnBaseStyle={btnBaseStyle} avatarRadius={avatarRadius}
               initials={initials} profile={profile} font={font} headingFont={headingFont}
-              visibleSocials={visibleSocials} radius={radius} components={components} />
+              visibleSocials={visibleSocials} radius={radius} components={components} appearance={appearance} />
           </div>
         ) : (
           <div className="rounded-2xl overflow-hidden bg-white shadow-xl" style={{ background: bg }}>
@@ -369,7 +399,7 @@ function LiveCardPreview({ profile, appearance, deviceView, components }: any) {
                 surface={surface} textColor={textColor} muted={muted} border={border}
                 btnBaseStyle={btnBaseStyle} avatarRadius={avatarRadius}
                 initials={initials} profile={profile} font={font} headingFont={headingFont}
-                visibleSocials={visibleSocials} radius={radius} components={components} />
+                visibleSocials={visibleSocials} radius={radius} components={components} appearance={appearance} />
             </div>
           </div>
         )}
@@ -395,6 +425,10 @@ export default function PremiumVisualBuilder() {
     headingFont: 'Inter', buttonStyle: 'filled', cardStyle: 'flat',
     borderRadius: '12px', headerStyle: 'centered', avatarShape: 'circle',
     animation: 'subtle',
+    showMap: true,
+    iconColor: '#FFFFFF',
+    iconBg: '#8A509E',
+    iconStyle: 'brand',
   });
   const [components, setComponents] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
@@ -454,6 +488,10 @@ export default function PremiumVisualBuilder() {
               headerStyle: parsed.headerStyle || prev.headerStyle,
               avatarShape: parsed.profileImageStyle || parsed.avatarShape || prev.avatarShape,
               animation: parsed.animation || prev.animation,
+              showMap: parsed.showMap !== undefined ? Boolean(parsed.showMap) : prev.showMap ?? true,
+              iconColor: parsed.iconColor || prev.iconColor || '#FFFFFF',
+              iconBg: parsed.iconBg || prev.iconBg || '#8A509E',
+              iconStyle: parsed.iconStyle || prev.iconStyle || 'brand',
             }));
           } catch {}
         }
@@ -495,6 +533,10 @@ export default function PremiumVisualBuilder() {
     // Save appearance mapping to legacy formats too for backwards compatibility
     const appearanceToSave = {
       ...appearance,
+      showMap: appearance.showMap !== false,
+      iconColor: appearance.iconColor || '#FFFFFF',
+      iconBg: appearance.iconBg || '#8A509E',
+      iconStyle: appearance.iconStyle || 'brand',
       backgroundColor: appearance.background,
       surfaceColor: appearance.surface,
       primaryColor: appearance.primary,
@@ -855,6 +897,97 @@ export default function PremiumVisualBuilder() {
                     placeholder={placeholder} value={draft[key] || ''} onChange={e => setDraft((p: any) => ({ ...p, [key]: e.target.value }))} />
                 </div>
               ))}
+
+              {/* GOOGLE MAPS CONTROLLER WITH CANCEL / DISABLE BUTTON */}
+              <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3 mt-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${appearance.showMap !== false ? 'bg-red-500/10 text-red-500' : 'bg-slate-200 text-slate-400'}`}>
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 block">Google Maps (خريطة الموقع)</span>
+                      <span className="text-[10px] text-slate-400 font-medium block">
+                        {appearance.showMap !== false ? 'مفعلة وتظهر في بطاقتك' : 'تم إلغاء وتعطيل الخريطة'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* CANCEL / ENABLE BUTTON */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = appearance.showMap === false ? true : false;
+                      setAppearance(p => ({ ...p, showMap: next }));
+                      const mapComp = components.find(c => c.type.toLowerCase() === 'googlemap');
+                      if (mapComp) {
+                        updateComponent(mapComp.id, { isVisible: next });
+                      } else if (next) {
+                        addComponent('GoogleMap', 'Location Map');
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      appearance.showMap === false
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-200'
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'
+                    }`}
+                  >
+                    {appearance.showMap === false ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-red-500" />
+                        <span>الخريطة ملغاة (إعادة التفعيل)</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                        <span>مفعلة (إلغاء الخريطة)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {appearance.showMap !== false && (
+                  <div className="space-y-1.5 pt-2 border-t border-slate-200">
+                    <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">عنوان أو رابط الخريطة</label>
+                    <input
+                      type="text"
+                      placeholder="مثال: Marrakech, Maroc أو رابط خرائط Google"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                      value={(() => {
+                        const mc = components.find(c => c.type.toLowerCase() === 'googlemap');
+                        return mc?.value || draft.location || '';
+                      })()}
+                      onChange={e => {
+                        const val = e.target.value;
+                        const mapComp = components.find(c => c.type.toLowerCase() === 'googlemap');
+                        if (mapComp) {
+                          const list = [...components];
+                          const idx = list.findIndex(c => c.id === mapComp.id);
+                          if (idx !== -1) {
+                            list[idx].value = val;
+                            setComponents(list);
+                          }
+                        }
+                      }}
+                      onBlur={e => {
+                        const val = e.target.value;
+                        const mapComp = components.find(c => c.type.toLowerCase() === 'googlemap');
+                        if (mapComp) {
+                          updateComponent(mapComp.id, { value: val });
+                        } else if (val) {
+                          fetch(`/api/profiles/${id}/components`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ type: 'GoogleMap', title: 'Location Map', icon: 'map-pin', value: val, url: val }),
+                          }).then(res => res.json()).then(newComp => {
+                            if (newComp?.id) setComponents(prev => [...prev, newComp]);
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </>)}
 
             {/* 3. SOCIAL LINKS */}
@@ -922,14 +1055,42 @@ export default function PremiumVisualBuilder() {
                   { key: 'surface',    label: 'Card Surface' },
                   { key: 'primary',    label: 'Primary Accent' },
                   { key: 'text',       label: 'Body Text' },
+                  { key: 'iconColor',  label: 'Icon Color (لون الأيقونات)' },
+                  { key: 'iconBg',     label: 'Icon Background (خلفية الأيقونات)' },
                 ].map(({ key, label }) => (
                   <div key={key} className="flex items-center justify-between text-xs">
                     <span className="text-slate-600 font-semibold">{label}</span>
-                    <input type="color" value={(appearance as any)[key] || '#000000'}
+                    <input type="color" value={(appearance as any)[key] || (key === 'iconColor' ? '#FFFFFF' : key === 'iconBg' ? '#8A509E' : '#000000')}
                       onChange={e => setAppearance(p => ({ ...p, [key]: e.target.value }))}
                       className="w-7 h-7 rounded border border-slate-200 cursor-pointer" />
                   </div>
                 ))}
+              </div>
+
+              {/* Icon Style Selector */}
+              <div className="space-y-2 pt-3 border-t border-slate-100">
+                <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Icon Style (نمط الأيقونات)</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { id: 'brand',      label: 'Brand Colors (ألوان التطبيقات)' },
+                    { id: 'unified',    label: 'Custom Color (لون موحد مخصص)' },
+                    { id: 'gradient',   label: 'Brand Gradient (تدرج بنفسجي)' },
+                    { id: 'glass',      label: 'Glassmorphism (زجاجي شفاف)' },
+                  ].map(styleOpt => (
+                    <button
+                      key={styleOpt.id}
+                      type="button"
+                      onClick={() => setAppearance(p => ({ ...p, iconStyle: styleOpt.id as any }))}
+                      className={`py-2 px-2 rounded-lg text-[10px] font-bold border transition-all cursor-pointer text-center ${
+                        (appearance.iconStyle || 'brand') === styleOpt.id
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'
+                      }`}
+                    >
+                      {styleOpt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Layout styles */}
@@ -1031,12 +1192,80 @@ export default function PremiumVisualBuilder() {
                             }}
                             onBlur={e => updateComponent(comp.id, { title: e.target.value })}
                           />
-                          {comp.type.toLowerCase() !== 'googlereview' && (
+                          {comp.type.toLowerCase() === 'image' ? (
+                            <div className="space-y-2 pt-1">
+                              {comp.value && (
+                                <div className="relative w-full h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                                  <img src={comp.value} alt="Preview" className="w-full h-full object-cover" />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const list = [...components];
+                                      list[idx].value = '';
+                                      setComponents(list);
+                                      updateComponent(comp.id, { value: '' });
+                                    }}
+                                    className="absolute top-1.5 right-1.5 p-1 bg-black/70 hover:bg-black text-white rounded-lg text-xs"
+                                    title="حذف الصورة"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
+                              <label className="flex items-center justify-center gap-2 py-2 px-3 bg-white border-2 border-dashed border-slate-300 hover:border-slate-500 rounded-xl text-xs font-bold text-slate-700 cursor-pointer transition-all">
+                                <Camera className="w-4 h-4 text-[#8A509E]" />
+                                <span>رفع صورة من الجهاز (Upload Photo)</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                      const { dataUrl, blob } = await compressImage(file, 1200, 1200, 0.85);
+                                      const list = [...components];
+                                      list[idx].value = dataUrl;
+                                      setComponents(list);
+
+                                      const formData = new FormData();
+                                      formData.append('file', blob, file.name);
+                                      formData.append('type', 'photo');
+
+                                      const res = await fetch(`/api/profiles/${id}/upload`, {
+                                        method: 'POST',
+                                        body: formData,
+                                      });
+                                      const data = await res.json();
+                                      if (res.ok && data.url) {
+                                        list[idx].value = data.url;
+                                        setComponents([...list]);
+                                        updateComponent(comp.id, { value: data.url });
+                                      }
+                                    } catch (err) {
+                                      console.error(err);
+                                    }
+                                  }}
+                                />
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="أو رابط ويب / Pinterest / صورة مباشرة..."
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-slate-450"
+                                value={comp.value || ''}
+                                onChange={e => {
+                                  const list = [...components];
+                                  list[idx].value = e.target.value;
+                                  setComponents(list);
+                                }}
+                                onBlur={e => updateComponent(comp.id, { value: e.target.value })}
+                              />
+                            </div>
+                          ) : comp.type.toLowerCase() !== 'googlereview' && (
                             <input
                               type="text"
                               placeholder={
                                 comp.type.toLowerCase() === 'googlemap' ? 'Address (e.g. London, UK)' :
-                                comp.type.toLowerCase() === 'image' ? 'Image Web URL' :
                                 comp.type.toLowerCase() === 'video' ? 'YouTube Video URL' :
                                 'Value or Link'
                               }
