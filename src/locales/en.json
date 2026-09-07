@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Cardly NFC",
+    "appName": "brandxpere",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -28,7 +28,7 @@
     "heroSubtitle": "Share your contact details, social links, location, and business hours with a single tap. No app required.",
     "getStarted": "Get Started Now",
     "viewPricing": "View Pricing",
-    "featuresTitle": "Why Choose Cardly?",
+    "featuresTitle": "Why Choose brandxpere?",
     "feature1Title": "Tap to Share",
     "feature1Desc": "No apps needed. Simply tap your physical NFC card to a phone to instantly display your digital card.",
     "feature2Title": "Visual Profile Editor",

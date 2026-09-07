@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { HelpCircle, BookOpen, Settings, Shield, PhoneCall, ArrowLeft, MessageCircle, Mail, MapPin, Sparkles } from 'lucide-react';
+import { InstagramIcon } from '@/components/BrandLogo';
 
 export default function HelpPage() {
   const categories = [
@@ -17,19 +18,36 @@ export default function HelpPage() {
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Top Bar Navigation */}
         <div className="flex items-center justify-between">
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 shadow-sm transition-all"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Home / العودة للرئيسية</span>
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+            <img
+              src="/brandxpere-icon.png"
+              alt="brandxpere logo"
+              className="w-8 h-8 object-contain group-hover:scale-105 transition-transform"
+            />
+            <span className="text-xl font-black tracking-tight font-sans text-slate-900 dark:text-white leading-none">
+              <span>brand</span>
+              <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+              <span>pere</span>
+            </span>
           </Link>
-          <Link
-            href="/contact"
-            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Contact Support &rarr;
-          </Link>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.instagram.com/brandxpere/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold text-pink-500 hover:text-pink-400 flex items-center gap-1.5"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+              <span>@brandxpere</span>
+            </a>
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 shadow-sm transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Home</span>
+            </Link>
+          </div>
         </div>
 
         {/* Title */}
@@ -79,7 +97,16 @@ export default function HelpPage() {
 
           <div className="flex flex-wrap gap-3 flex-shrink-0">
             <a
-              href="https://wa.me/212606034080?text=Hello%20BrandXper%20Support"
+              href="https://www.instagram.com/brandxpere/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold text-xs shadow-md shadow-pink-600/20 flex items-center gap-2 transition-all"
+            >
+              <InstagramIcon className="w-4 h-4" />
+              <span>Instagram @brandxpere</span>
+            </a>
+            <a
+              href="https://wa.me/212606034080?text=Hello%20brandxpere%20Support"
               target="_blank"
               rel="noopener noreferrer"
               className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-2 transition-all"

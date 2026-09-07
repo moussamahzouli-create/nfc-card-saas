@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrandXper - NFC Digital Business Cards | البطاقات الذكية",
-  description: "Create your premium digital business profile and connect it to physical NFC cards. Marrakech, Maroc. Tel & WhatsApp: +212 606-034080",
+  title: "brandxpere - NFC Digital Business Cards | بطاقات الأعمال الذكية",
+  description: "Create your premium digital business profile and connect it to physical NFC cards. Marrakech, Maroc. Tel & WhatsApp: +212 606-034080. Instagram: @brandxpere",
+  icons: {
+    icon: '/brandxpere-icon.png',
+    shortcut: '/brandxpere-icon.png',
+    apple: '/brandxpere-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

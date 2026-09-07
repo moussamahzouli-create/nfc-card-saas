@@ -68,15 +68,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-full md:w-64 bg-slate-900/60 border-b md:border-b-0 md:border-r border-slate-800 p-6 flex flex-col justify-between backdrop-blur-xl">
         <div className="space-y-8">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Layers className="w-5 h-5 text-white" />
-            </div>
+          <Link href="/admin" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+            <img
+              src="/brandxpere-icon.png"
+              alt="brandxpere logo"
+              className="w-10 h-10 object-contain group-hover:scale-105 transition-transform flex-shrink-0"
+            />
             <div>
-              <span className="font-extrabold tracking-tight text-white block">Cardly Admin</span>
-              <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">NFC SaaS</span>
+              <div className="text-lg font-black tracking-tight font-sans text-white leading-none">
+                <span>brand</span>
+                <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+                <span>pere</span>
+              </div>
+              <span className="text-[10px] text-purple-400 font-bold uppercase tracking-widest mt-1 block">Admin Portal</span>
             </div>
-          </div>
+          </Link>
 
           {/* Navigation Links */}
           <nav className="space-y-1">

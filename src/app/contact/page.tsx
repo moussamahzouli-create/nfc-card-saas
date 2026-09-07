@@ -15,6 +15,7 @@ import {
   Sparkles,
   ShieldCheck
 } from 'lucide-react';
+import { InstagramIcon } from '@/components/BrandLogo';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -65,6 +66,18 @@ export default function ContactPage() {
 
       {/* Top Bar Navigation */}
       <div className="max-w-6xl mx-auto mb-8 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+          <img
+            src="/brandxpere-icon.png"
+            alt="brandxpere logo"
+            className="w-8 h-8 object-contain group-hover:scale-105 transition-transform"
+          />
+          <span className="text-xl font-black tracking-tight font-sans text-slate-900 dark:text-white leading-none">
+            <span>brand</span>
+            <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+            <span>pere</span>
+          </span>
+        </Link>
         <Link 
           href="/" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 shadow-sm transition-all"
@@ -72,17 +85,13 @@ export default function ContactPage() {
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home / العودة للرئيسية</span>
         </Link>
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Live Support Available</span>
-        </div>
       </div>
 
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-xs font-bold">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 text-xs font-bold">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Get in Touch with BrandXper</span>
+          <span>Get in Touch with brandxpere</span>
         </div>
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
           We&apos;re Here to Help
@@ -97,6 +106,37 @@ export default function ContactPage() {
         
         {/* Contact Info Cards (5 Cols) */}
         <div className="lg:col-span-5 space-y-6">
+
+          {/* Instagram Official Card */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-pink-500/10 via-purple-500/5 to-transparent border border-pink-500/20 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 flex-shrink-0">
+                <InstagramIcon className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-pink-600 dark:text-pink-400 uppercase tracking-wider block">
+                  Official Instagram / انستغرام الرسمي
+                </span>
+                <h2 className="text-base font-bold">@brandxpere</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  تابعنا لمشاهدة تصاميم البطاقات وتحديثات المنتجات
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <a 
+                href="https://www.instagram.com/brandxpere/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white text-xs font-bold shadow-md shadow-pink-500/20 transition-all active:scale-[0.98]"
+              >
+                <InstagramIcon className="w-4 h-4" />
+                <span>Visit Instagram @brandxpere</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+          </div>
 
           {/* WhatsApp & Phone Primary Card */}
           <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden">
@@ -117,7 +157,7 @@ export default function ContactPage() {
 
             <div className="mt-5 grid grid-cols-2 gap-2.5">
               <a 
-                href="https://wa.me/212606034080?text=Hello%20BrandXper%20Team" 
+                href="https://wa.me/212606034080?text=Hello%20brandxpere%20Team" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all active:scale-[0.98]"

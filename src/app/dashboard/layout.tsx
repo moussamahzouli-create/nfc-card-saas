@@ -51,14 +51,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row" dir={dir}>
       {/* Sidebar Navigation */}
       <aside className="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col p-6 space-y-8">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
-            C
-          </div>
-          <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-            {t('common.appName')}
+        <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+          <img
+            src="/brandxpere-icon.png"
+            alt="brandxpere logo"
+            className="w-9 h-9 object-contain group-hover:scale-105 transition-transform flex-shrink-0"
+          />
+          <span className="text-xl font-black tracking-tight font-sans text-slate-900 dark:text-white leading-none">
+            <span>brand</span>
+            <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+            <span>pere</span>
           </span>
-        </div>
+        </Link>
 
         {/* User Card */}
         {currentUser && (

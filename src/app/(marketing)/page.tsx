@@ -9,6 +9,7 @@ import {
   ArrowRight, Play, MapPin, Clock,
   Sparkles, Award, TrendingUp, MessageCircle
 } from 'lucide-react';
+import { InstagramIcon } from '@/components/BrandLogo';
 
 const FEATURES = [
   {
@@ -126,19 +127,34 @@ export default function MarketingPage() {
       ═══════════════════════════════════════ */}
       <header className="fixed top-0 w-full z-50 glass-dark border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 font-extrabold text-sm animate-glow">
-              C
-            </div>
-            <span className="text-lg font-extrabold tracking-tight shimmer-text">ConnectCard</span>
-          </div>
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+            <img
+              src="/brandxpere-icon.png"
+              alt="brandxpere logo"
+              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
+            />
+            <span className="text-xl font-black tracking-tight font-sans text-white leading-none">
+              <span>brand</span>
+              <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+              <span>pere</span>
+            </span>
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-400">
             {['Features', 'Templates', 'Pricing', 'Contact'].map((item) => (
               <Link key={item} href={`/${item.toLowerCase()}`} className="hover:text-white transition-colors hover:text-shadow-glow">
                 {item}
               </Link>
             ))}
+            <a
+              href="https://www.instagram.com/brandxpere/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 hover:text-pink-300 hover:bg-pink-500/20 transition-all text-xs font-semibold"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+              <span>Instagram</span>
+            </a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -514,7 +530,7 @@ export default function MarketingPage() {
             Start Your Digital Journey Today
           </h2>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Join 50,000+ professionals using ConnectCard to make unforgettable first impressions.
+            Join 50,000+ professionals using brandxpere to make unforgettable first impressions.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/auth/register" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-base shadow-2xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300">
@@ -535,20 +551,35 @@ export default function MarketingPage() {
             
             {/* Brand Column (2 cols on lg) */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center font-extrabold text-sm shadow-lg shadow-indigo-500/30">
-                  B
-                </div>
-                <span className="font-extrabold text-lg shimmer-text">BrandXper</span>
-              </div>
+              <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+                <img
+                  src="/brandxpere-icon.png"
+                  alt="brandxpere logo"
+                  className="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
+                />
+                <span className="text-2xl font-black tracking-tight font-sans text-white leading-none">
+                  <span>brand</span>
+                  <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+                  <span>pere</span>
+                </span>
+              </Link>
               <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
                 The premier digital business card and NFC solutions platform. Share contacts, showcase portfolios, and boost conversions effortlessly.
               </p>
               
               {/* Contact Snapshot */}
-              <div className="space-y-2 pt-2 text-xs text-slate-300">
+              <div className="space-y-2.5 pt-2 text-xs text-slate-300">
                 <a 
-                  href="https://wa.me/212606034080?text=Hello%20BrandXper" 
+                  href="https://www.instagram.com/brandxpere/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-pink-400 hover:text-pink-300 transition-colors font-mono"
+                >
+                  <InstagramIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>@brandxpere (Instagram)</span>
+                </a>
+                <a 
+                  href="https://wa.me/212606034080?text=Hello%20brandxpere" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors font-mono"

@@ -84,8 +84,17 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-tr from-blue-600 to-indigo-700 items-center justify-center p-12 text-white relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-950/40 via-transparent to-transparent pointer-events-none" />
         <div className="max-w-md space-y-6 relative z-10">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 font-bold text-2xl">
-            C
+          <div className="flex items-center gap-3">
+            <img
+              src="/brandxpere-icon.png"
+              alt="brandxpere logo"
+              className="w-14 h-14 object-contain drop-shadow-md"
+            />
+            <div className="text-3xl font-black tracking-tight font-sans text-white leading-none">
+              <span>brand</span>
+              <span className="text-[#c084fc] font-extrabold">x</span>
+              <span>pere</span>
+            </div>
           </div>
           <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
             Create cards. Share profiles. Track views.
@@ -142,6 +151,18 @@ export default function RegisterPage() {
           ) : (
             <>
               <div className="space-y-2">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <img
+                    src="/brandxpere-icon.png"
+                    alt="brandxpere logo"
+                    className="w-8 h-8 object-contain"
+                  />
+                  <span className="text-xl font-black tracking-tight font-sans text-slate-900 dark:text-white leading-none">
+                    <span>brand</span>
+                    <span className="text-[#8A509E] dark:text-purple-400 font-extrabold">x</span>
+                    <span>pere</span>
+                  </span>
+                </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                   {t('auth.registerTitle')}
                 </h1>
