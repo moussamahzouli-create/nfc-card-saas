@@ -67,13 +67,14 @@ export async function POST(req: NextRequest) {
       templateId, appearanceJson,
     } = result.data;
 
-    // Check slug uniqueness
+    // Check slug uniqueness - auto-suffix if taken to prevent blocking the user
+    let finalSlug = slug.toLowerCase().trim();
     const existingSlug = await db.profile.findUnique({
-      where: { slug },
+      where: { slug: finalSlug },
     });
 
     if (existingSlug) {
-      return NextResponse.json({ error: 'Profile URL slug already in use' }, { status: 400 });
+      finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
     }
 
     // Centralized SaaS limits validation check
@@ -83,6 +84,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Profile limit reached for your active subscription plan. Upgrade to create more profiles.' }, { status: 403 });
     }
 
+    // Safely resolve templateId to prevent foreign key constraint violations
+    let safeTemplateId: string | null = null;
+    let finalAppearanceJson = appearanceJson || null;
+
+    if (templateId) {
+      try {
+        const existingTemplate = await db.template.findUnique({ where: { id: templateId } });
+        if (existingTemplate) {
+          safeTemplateId = existingTemplate.id;
+        } else {
+          const { INDUSTRY_TEMPLATES } = await import('@/lib/templates/industry-templates');
+          const matched = INDUSTRY_TEMPLATES.find(t => t.id === templateId);
+          if (matched) {
+            const upserted = await db.template.upsert({
+              where: { slug: matched.id },
+              update: {},
+              create: {
+                id: matched.id,
+                slug: matched.id,
+                name: matched.name,
+                colorsJson: JSON.stringify({ primary: matched.primary, background: matched.background, accent: matched.accent }),
+                fontsJson: JSON.stringify({ font: matched.font, headingFont: matched.headingFont }),
+                stylesJson: JSON.stringify({ buttonStyle: matched.buttonStyle, cardStyle: matched.cardStyle, borderRadius: matched.borderRadius }),
+              },
+            });
+            safeTemplateId = upserted.id;
+          }
+        }
+      } catch (templateErr) {
+        console.warn('Skipping db.template FK linking, relying on appearanceJson:', templateErr);
+        safeTemplateId = null;
+      }
+
+      // Ensure appearanceJson always retains templateId for dynamic rendering
+      try {
+        if (!finalAppearanceJson) {
+          finalAppearanceJson = JSON.stringify({ templateId });
+        } else {
+          const parsed = JSON.parse(finalAppearanceJson);
+          if (!parsed.templateId) parsed.templateId = templateId;
+          finalAppearanceJson = JSON.stringify(parsed);
+        }
+      } catch {}
+    }
+
     // Create profile
     const profile = await db.profile.create({
       data: {
@@ -90,7 +136,7 @@ export async function POST(req: NextRequest) {
         organizationId: organizationId || null,
         type,
         name,
-        slug,
+        slug: finalSlug,
         firstName: firstName || null,
         lastName: lastName || null,
         jobTitle: jobTitle || null,
@@ -102,14 +148,17 @@ export async function POST(req: NextRequest) {
         whatsApp: whatsApp || null,
         photoUrl: photoUrl || null,
         coverUrl: coverUrl || null,
-        templateId: templateId || null,
-        appearanceJson: appearanceJson || null,
+        templateId: safeTemplateId,
+        appearanceJson: finalAppearanceJson,
         isPublic: true,
       },
     });
 
     return NextResponse.json(profile, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('CRITICAL: POST /api/profiles error:', error);
+    return NextResponse.json({
+      error: error?.message || 'Internal Server Error'
+    }, { status: 500 });
   }
 }

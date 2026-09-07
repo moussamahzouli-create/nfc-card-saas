@@ -120,6 +120,40 @@ export async function PUT(req: NextRequest, { params }: Params) {
         updateData.website = `https://${trimmed}`;
       }
     }
+    // Safely resolve templateId to prevent foreign key errors
+    if (updateData.templateId !== undefined) {
+      if (!updateData.templateId) {
+        updateData.templateId = null;
+      } else {
+        try {
+          const existing = await db.template.findUnique({ where: { id: updateData.templateId } });
+          if (!existing) {
+            const { INDUSTRY_TEMPLATES } = await import('@/lib/templates/industry-templates');
+            const matched = INDUSTRY_TEMPLATES.find(t => t.id === updateData.templateId);
+            if (matched) {
+              const upserted = await db.template.upsert({
+                where: { slug: matched.id },
+                update: {},
+                create: {
+                  id: matched.id,
+                  slug: matched.id,
+                  name: matched.name,
+                  colorsJson: JSON.stringify({ primary: matched.primary, background: matched.background, accent: matched.accent }),
+                  fontsJson: JSON.stringify({ font: matched.font, headingFont: matched.headingFont }),
+                  stylesJson: JSON.stringify({ buttonStyle: matched.buttonStyle, cardStyle: matched.cardStyle, borderRadius: matched.borderRadius }),
+                },
+              });
+              updateData.templateId = upserted.id;
+            } else {
+              updateData.templateId = null;
+            }
+          }
+        } catch (err) {
+          console.warn('Template foreign key resolution skipped in PUT:', err);
+          updateData.templateId = null;
+        }
+      }
+    }
 
     // Update base profile fields
     const updated = await db.profile.update({
@@ -165,9 +199,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
     });
 
     return NextResponse.json(refreshed);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating profile:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Internal Server Error' }, { status: 500 });
   }
 }
 

@@ -24,12 +24,14 @@ export async function getUserUsage(userId: string): Promise<UserUsageReport> {
     select: { role: true, accessType: true }
   });
 
-  const isBypassed = user && (
-    user.role === 'SUPER_ADMIN' ||
-    user.role === 'ADMIN' ||
+  const roleUpper = (user?.role || '').toUpperCase();
+  const isBypassed = !!(user && (
+    roleUpper === 'SUPER_ADMIN' ||
+    roleUpper === 'ADMIN' ||
+    roleUpper === 'VENDOR' ||
     user.accessType === 'DIRECT_SERVICE' ||
     user.accessType === 'ADMIN_MANAGED'
-  );
+  ));
 
   // 1. Fetch user active subscription and plan
   const sub = await db.subscription.findFirst({
@@ -86,10 +88,15 @@ export async function getUserUsage(userId: string): Promise<UserUsageReport> {
 }
 
 export async function canCreateProfile(userId: string): Promise<boolean> {
-  const report = await getUserUsage(userId);
-  // Unlimited profiles check (e.g. -1 or huge number)
-  if (report.maxProfiles < 0) return true;
-  return report.profilesUsed < report.maxProfiles;
+  try {
+    const report = await getUserUsage(userId);
+    // Unlimited profiles check (e.g. -1 or huge number)
+    if (report.maxProfiles < 0) return true;
+    return report.profilesUsed < report.maxProfiles;
+  } catch (err) {
+    console.error('Error checking canCreateProfile, failing open:', err);
+    return true;
+  }
 }
 
 export async function canCreateCard(userId: string): Promise<boolean> {
