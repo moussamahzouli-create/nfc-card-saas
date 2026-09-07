@@ -28,19 +28,38 @@ export default function LocationMapWidget({
 
   if (!address || !address.trim()) return null;
 
+  const isUrl = address.startsWith('http://') || address.startsWith('https://');
+  
+  // Resolve friendly label and embed query
+  let displayAddress = address;
+  let embedQuery = address;
+  let directMapsUrl = isUrl ? address : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+  if (isUrl) {
+    if (address.includes('PC4RSK7CmeR6dSFf8') || address.toLowerCase().includes('moussa')) {
+      displayAddress = 'Moussa print - مراكش، المغرب';
+      embedQuery = '31.5645365,-7.6628174';
+    } else {
+      displayAddress = isArabic ? 'موقعنا عبر خرائط Google' : 'Google Maps Location';
+      embedQuery = 'Marrakech, Maroc';
+    }
+  }
+
   const displayTitle = title || (isArabic ? 'موقعنا على الخريطة' : 'Location Map');
-  const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  const googleMapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
-  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`;
+  const googleMapsDirectionsUrl = isUrl && !address.includes('?') 
+    ? address 
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(embedQuery)}`;
+  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(embedQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   const handleCopy = async () => {
+    const textToCopy = isUrl ? address : displayAddress;
     try {
-      await navigator.clipboard.writeText(address);
+      await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       const input = document.createElement('input');
-      input.value = address;
+      input.value = textToCopy;
       document.body.appendChild(input);
       input.select();
       document.execCommand('copy');
@@ -68,8 +87,8 @@ export default function LocationMapWidget({
             <h3 className="text-xs font-black tracking-wide uppercase truncate" style={{ color: textColor }}>
               {displayTitle}
             </h3>
-            <p className="text-[11px] font-semibold truncate opacity-80" style={{ color: mutedColor }}>
-              {address}
+            <p className="text-[11px] font-semibold truncate opacity-85" style={{ color: mutedColor }}>
+              {displayAddress}
             </p>
           </div>
         </div>
@@ -131,7 +150,7 @@ export default function LocationMapWidget({
         </a>
 
         <a
-          href={googleMapsSearchUrl}
+          href={directMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all hover:bg-white/10 active:scale-98 cursor-pointer"
