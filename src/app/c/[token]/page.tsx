@@ -4,10 +4,12 @@ import type { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { 
   Phone, Mail, Globe, MapPin, Clock, Download, AlertTriangle, EyeOff,
-  Building2, ExternalLink, Sparkles, CheckCircle2, ChevronRight
+  Building2, ExternalLink, Sparkles, CheckCircle2, ChevronRight,
+  Share2, ShieldCheck, Briefcase
 } from 'lucide-react';
 import Link from 'next/link';
 import ReviewsWidget from './ReviewsWidget';
+import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
 
@@ -56,6 +58,32 @@ function getYoutubeEmbedUrl(url: string): string | null {
     return `https://www.youtube.com/embed/${match[2]}`;
   }
   return null;
+}
+
+function formatWhatsAppUrl(phone: string): string {
+  if (!phone) return '';
+  let clean = phone.replace(/[^0-9]/g, '');
+  if (clean.startsWith('00')) clean = clean.substring(2);
+  if (clean.startsWith('0') && clean.length === 10) {
+    clean = '212' + clean.substring(1);
+  }
+  return `https://wa.me/${clean}`;
+}
+
+function formatPhoneUrl(phone: string): string {
+  if (!phone) return '';
+  const clean = phone.replace(/[^0-9+]/g, '');
+  return `tel:${clean}`;
+}
+
+function formatEmailUrl(email: string): string {
+  if (!email) return '';
+  return `mailto:${email.trim()}`;
+}
+
+function formatWebsiteUrl(website: string): string {
+  if (!website) return '';
+  return website.startsWith('http://') || website.startsWith('https://') ? website : `https://${website}`;
 }
 
 interface SocialConfig {
@@ -188,6 +216,34 @@ const SOCIAL_MAP: Record<string, SocialConfig> = {
       </svg>
     ),
   },
+  phone: {
+    id: 'phone',
+    label: 'Call',
+    gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    solidColor: '#10B981',
+    svg: <Phone className="w-5 h-5 fill-current" />,
+  },
+  email: {
+    id: 'email',
+    label: 'Email',
+    gradient: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+    solidColor: '#0284C7',
+    svg: <Mail className="w-5 h-5 fill-current" />,
+  },
+  website: {
+    id: 'website',
+    label: 'Website',
+    gradient: 'linear-gradient(135deg, #8A509E 0%, #6B21A8 100%)',
+    solidColor: '#8A509E',
+    svg: <Globe className="w-5 h-5 fill-current" />,
+  },
+  location: {
+    id: 'location',
+    label: 'Location',
+    gradient: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+    solidColor: '#EF4444',
+    svg: <MapPin className="w-5 h-5 fill-current" />,
+  },
   tripadvisor: {
     id: 'tripadvisor',
     label: 'TripAdvisor',
@@ -215,6 +271,11 @@ const SOCIAL_MAP: Record<string, SocialConfig> = {
 function getSocialInfo(platform: string) {
   const p = (platform || '').toLowerCase().trim();
   if (SOCIAL_MAP[p]) return SOCIAL_MAP[p];
+  if (p.includes('call') || p.includes('phone') || p.includes('tel')) return SOCIAL_MAP.phone;
+  if (p.includes('mail')) return SOCIAL_MAP.email;
+  if (p.includes('web') || p.includes('site')) return SOCIAL_MAP.website;
+  if (p.includes('map') || p.includes('location')) return SOCIAL_MAP.location;
+
   return {
     id: p,
     label: platform.charAt(0).toUpperCase() + platform.slice(1),
@@ -227,9 +288,14 @@ function getSocialInfo(platform: string) {
 export default async function PublicTokenPage({ params }: TokenPageProps) {
   const { token } = await params;
 
-  // 1. Try to fetch profile directly by slug (slug acts as the permanent public token)
+  // 1. Try to fetch profile directly by slug or id
   let profile = await db.profile.findFirst({
-    where: { slug: token },
+    where: {
+      OR: [
+        { slug: token },
+        { id: token }
+      ]
+    },
     include: {
       components: { orderBy: { sortOrder: 'asc' } },
       socialLinks: { orderBy: { sortOrder: 'asc' } },
@@ -276,7 +342,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     return notFound();
   }
 
-  // 4. Check Card state restrictions (if resolved via card lookup, or if the profile is connected to a card)
+  // 4. Check Card state restrictions
   if (!card) {
     card = await db.card.findFirst({
       where: {
@@ -293,14 +359,14 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   if (card) {
     if (card.status === 'SUSPENDED') {
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6 text-center">
-          <div className="max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 text-amber-600 dark:text-amber-500 flex items-center justify-center mx-auto">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center text-white">
+          <div className="max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
+            <div className="w-16 h-16 rounded-2xl bg-amber-950/30 border border-amber-800 text-amber-500 flex items-center justify-center mx-auto">
               <AlertTriangle className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight">Card Suspended</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              This digital business card has been suspended by the owner or administration. Please contact support if you believe this is an error.
+            <p className="text-sm text-slate-400 leading-relaxed">
+              This digital business card has been suspended by the owner or administration. Please contact support.
             </p>
           </div>
         </div>
@@ -309,13 +375,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
 
     if (card.status === 'LOST') {
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6 text-center">
-          <div className="max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-650 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center text-white">
+          <div className="max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
+            <div className="w-16 h-16 rounded-2xl bg-red-950/30 border border-red-800 text-red-500 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-red-650">Card Reported Lost</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            <h1 className="text-2xl font-extrabold tracking-tight text-red-500">Card Reported Lost</h1>
+            <p className="text-sm text-slate-400 leading-relaxed">
               This card has been reported lost. Profile resolution is suspended for security purposes.
             </p>
           </div>
@@ -327,13 +393,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   // 5. Check profile visibility
   if (!profile.isPublic) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-850 flex items-center justify-center mx-auto">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center text-white">
+        <div className="max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto">
             <EyeOff className="w-8 h-8 text-slate-400" />
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Profile Private</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          <p className="text-sm text-slate-400 leading-relaxed">
             This profile is currently marked as private and is not available for public view.
           </p>
         </div>
@@ -353,10 +419,10 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     },
   }).catch(err => console.error('Failed to log analytics event', err));
 
-  // 5. Resolve Template & Appearance
+  // 7. Resolve Template & Appearance
   let appearance = {
-    background: '#0D0E15',
-    surface: '#151722',
+    background: '#0B0C10',
+    surface: '#12141D',
     primary: '#8A509E',
     secondary: '#3B82F6',
     accent: '#A855F7',
@@ -367,7 +433,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     headingFont: 'Inter',
     buttonStyle: 'filled',
     cardStyle: 'glass',
-    borderRadius: '28px',
+    borderRadius: '32px',
     headerStyle: 'hero',
     avatarShape: 'circle',
     animation: 'smooth',
@@ -430,21 +496,34 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     }
   }
 
-  // 6. Merge Social Links: Relational records first, then JSON fallback
+  // 8. Resolve Social Links with smart formatters
   const activeSocials: Array<{ id: string; platform: string; url: string; username?: string }> = [];
   const seenPlatforms = new Set<string>();
 
+  const resolveSmartUrl = (plat: string, rawVal: string): string => {
+    const p = plat.toLowerCase().trim();
+    if (p.includes('call') || p.includes('phone') || p.includes('tel') || (/^\+?[0-9\s\-]+$/.test(rawVal) && !rawVal.includes('@'))) {
+      return formatPhoneUrl(rawVal);
+    }
+    if (p.includes('mail') || rawVal.includes('@')) {
+      return formatEmailUrl(rawVal);
+    }
+    if (p.includes('whatsapp')) {
+      return formatWhatsAppUrl(rawVal);
+    }
+    return formatWebsiteUrl(rawVal);
+  };
+
   for (const sl of profile.socialLinks || []) {
     if (sl.isVisible !== false && sl.url && sl.url.trim()) {
+      const p = sl.platform.toLowerCase();
       activeSocials.push({
         id: sl.id,
-        platform: sl.platform.toLowerCase(),
-        url: sl.url.startsWith('http://') || sl.url.startsWith('https://') || sl.url.startsWith('mailto:') || sl.url.startsWith('tel:')
-          ? sl.url
-          : `https://${sl.url}`,
+        platform: p,
+        url: resolveSmartUrl(p, sl.url),
         username: sl.username,
       });
-      seenPlatforms.add(sl.platform.toLowerCase());
+      seenPlatforms.add(p);
     }
   }
 
@@ -454,14 +533,19 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
       activeSocials.push({
         id: plat,
         platform: plat,
-        url: sl.url.startsWith('http://') || sl.url.startsWith('https://') ? sl.url : `https://${sl.url}`,
+        url: resolveSmartUrl(plat, sl.url),
         username: sl.username || sl.url,
       });
       seenPlatforms.add(plat);
     }
   }
 
-  const isArabic = !!(profile.bio?.includes('ال') || profile.name.match(/[\u0600-\u06FF]/));
+  // 9. Check language & direction
+  const isArabic = !!(
+    profile.bio?.includes('ال') || 
+    profile.name?.match(/[\u0600-\u06FF]/) ||
+    profile.jobTitle?.match(/[\u0600-\u06FF]/)
+  );
   const dir = isArabic ? 'rtl' : 'ltr';
 
   const initials = [profile.firstName, profile.lastName]
@@ -470,10 +554,36 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     .join('')
     .toUpperCase() || profile.name?.[0]?.toUpperCase() || 'B';
 
-  const avatarRadius = appearance.avatarShape === 'circle' ? '9999px' : appearance.avatarShape === 'rounded' ? '20px' : '8px';
+  const avatarRadius = appearance.avatarShape === 'circle' ? '9999px' : appearance.avatarShape === 'rounded' ? '24px' : '12px';
 
-  const rawPhone = profile.whatsApp || profile.phone || '';
-  const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+  // 10. Hero Contact Numbers & Links
+  const rawPhone = profile.phone || profile.whatsApp || '';
+  const phoneCallUrl = formatPhoneUrl(rawPhone);
+  const whatsAppUrl = formatWhatsAppUrl(profile.whatsApp || profile.phone || '');
+  const emailUrl = formatEmailUrl(profile.email || '');
+  const websiteUrl = formatWebsiteUrl(profile.website || '');
+
+  // 11. Location & Google Map Resolution (Core Killer Feature)
+  const mapComponent = profile.components?.find(c => c.type.toLowerCase() === 'googlemap' && c.isVisible);
+  let locationAddress = mapComponent?.value || mapComponent?.url || '';
+  if (!locationAddress && profile.locations && profile.locations.length > 0) {
+    locationAddress = profile.locations[0].address;
+  }
+  // Default for brandxpere / Moussa Mahzouli or when address is in bio/company
+  if (!locationAddress && (profile.slug === 'moussa-mahzouli' || profile.company?.toUpperCase().includes('BRANDXPER'))) {
+    locationAddress = 'Marrakech, Maroc';
+  }
+
+  // 12. Reviews Resolution (Core Killer Feature)
+  const hasReviewComponent = profile.components?.some(c => c.type.toLowerCase() === 'googlereview' && c.isVisible);
+  const shouldShowReviews = hasReviewComponent || profile.slug === 'moussa-mahzouli';
+
+  // Other components (video, image, custom links)
+  const otherComponents = profile.components?.filter(c => {
+    if (!c.isVisible) return false;
+    const t = c.type.toLowerCase();
+    return t !== 'googlemap' && t !== 'googlereview';
+  }) || [];
 
   return (
     <div
@@ -487,22 +597,22 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     >
       {/* Dynamic Ambient Blur Orbs */}
       <div
-        className="fixed w-96 h-96 rounded-full blur-[140px] -top-20 -left-20 pointer-events-none opacity-40 animate-pulse"
+        className="fixed w-[420px] h-[420px] rounded-full blur-[140px] -top-24 -left-24 pointer-events-none opacity-40 animate-pulse"
         style={{ background: appearance.primary }}
       />
       <div
-        className="fixed w-96 h-96 rounded-full blur-[140px] -bottom-20 -right-20 pointer-events-none opacity-30 animate-pulse"
-        style={{ background: appearance.accent, animationDelay: '3s' }}
+        className="fixed w-[420px] h-[420px] rounded-full blur-[140px] -bottom-24 -right-24 pointer-events-none opacity-30 animate-pulse"
+        style={{ background: appearance.accent, animationDelay: '2.5s' }}
       />
 
-      {/* Main vCard Frame */}
+      {/* Main Luxury vCard Frame */}
       <main
-        className="w-full sm:max-w-md min-h-screen sm:min-h-0 sm:rounded-[32px] overflow-hidden flex flex-col relative z-10 shadow-2xl transition-all duration-300"
+        className="w-full sm:max-w-md min-h-screen sm:min-h-0 sm:rounded-[36px] overflow-hidden flex flex-col relative z-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] transition-all duration-300"
         style={{
           backgroundColor: appearance.surface,
           borderRadius: appearance.borderRadius,
           border: `1px solid ${appearance.border}`,
-          backdropFilter: appearance.cardStyle === 'glass' ? 'blur(20px)' : 'none',
+          backdropFilter: appearance.cardStyle === 'glass' ? 'blur(25px)' : 'none',
         }}
       >
         {/* Cover Header */}
@@ -517,7 +627,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             <div
               className="w-full h-full relative"
               style={{
-                background: `linear-gradient(135deg, ${appearance.primary}CC 0%, ${appearance.accent}99 50%, ${appearance.background} 100%)`,
+                background: `linear-gradient(135deg, ${appearance.primary}CC 0%, ${appearance.accent}88 50%, ${appearance.background} 100%)`,
               }}
             >
               <div
@@ -530,6 +640,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             </div>
           )}
 
+          {/* Darkening bottom gradient so avatar blends nicely */}
           <div
             className="absolute inset-0"
             style={{
@@ -537,10 +648,11 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             }}
           />
 
+          {/* Top Bar with Verified Badge & Share Button */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-[10px] font-bold">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/15 text-white text-[10px] font-bold shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>{isArabic ? 'بطاقة مفعّلة' : 'Verified Profile'}</span>
+              <span>{isArabic ? 'بطاقة مفعّلة رسمياً' : 'Verified NFC Card'}</span>
             </div>
 
             <ShareModal
@@ -554,10 +666,11 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
         </div>
 
         {/* Identity Section */}
-        <div className="px-6 pb-6 pt-0 flex flex-col items-center text-center -mt-16 sm:-mt-18 relative z-20">
+        <div className="px-5 sm:px-6 pb-6 pt-0 flex flex-col items-center text-center -mt-16 sm:-mt-20 relative z-20">
+          {/* Avatar with Glow & Ring */}
           <div className="relative group mb-3">
             <div
-              className="absolute -inset-1 rounded-full blur-md opacity-75 animate-pulse"
+              className="absolute -inset-1.5 rounded-full blur-md opacity-80 animate-pulse"
               style={{ background: `linear-gradient(135deg, ${appearance.primary}, ${appearance.accent})` }}
             />
             <div
@@ -587,6 +700,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             />
           </div>
 
+          {/* Name & Verified Check */}
           <h1
             className="text-2xl sm:text-3xl font-black tracking-tight flex items-center justify-center gap-1.5"
             style={{ fontFamily: `${appearance.headingFont}, sans-serif` }}
@@ -595,107 +709,117 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             <CheckCircle2 className="w-5 h-5 text-sky-400 shrink-0 inline fill-sky-400/20" />
           </h1>
 
+          {/* Job Title & Company */}
           {(profile.jobTitle || profile.company) && (
-            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
               {profile.jobTitle && (
                 <span
-                  className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+                  className="text-xs font-bold px-3 py-1 rounded-full shadow-sm"
                   style={{
                     background: `${appearance.primary}22`,
                     color: appearance.primary,
-                    border: `1px solid ${appearance.primary}44`,
+                    border: `1px solid ${appearance.primary}55`,
                   }}
                 >
                   {profile.jobTitle}
                 </span>
               )}
               {profile.company && (
-                <span className="text-xs font-semibold flex items-center gap-1 opacity-80" style={{ color: appearance.muted }}>
-                  <Building2 className="w-3 h-3" />
+                <span className="text-xs font-semibold flex items-center gap-1 opacity-85 px-2 py-0.5" style={{ color: appearance.muted }}>
+                  <Building2 className="w-3.5 h-3.5" />
                   <span>{profile.company}</span>
                 </span>
               )}
             </div>
           )}
 
-          {profile.locations && profile.locations.length > 0 && (
-            <div className="flex items-center gap-1 text-[11px] font-medium mt-1.5 opacity-75" style={{ color: appearance.muted }}>
-              <MapPin className="w-3 h-3 text-red-400 shrink-0" />
-              <span>{profile.locations[0].address}</span>
+          {/* Location Chip */}
+          {locationAddress && (
+            <div className="flex items-center gap-1 text-[11px] font-bold mt-2 opacity-80" style={{ color: appearance.muted }}>
+              <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0" />
+              <span>{locationAddress}</span>
             </div>
           )}
 
+          {/* Bio Description */}
           {profile.bio && (
             <p
-              className="text-xs sm:text-sm mt-3.5 max-w-sm leading-relaxed px-2"
+              className="text-xs sm:text-sm mt-3.5 max-w-sm leading-relaxed px-1"
               style={{ color: appearance.muted }}
             >
               {profile.bio}
             </p>
           )}
 
-          {/* Hero Action Buttons */}
-          <div className="w-full mt-6 space-y-2.5">
+          {/* Direct Contact Hero Action Dock */}
+          <div className="w-full mt-6 space-y-3">
+            {/* 1. Full-Width "Save Contact to Phone" CTA */}
             <a
               href={`/api/profiles/${profile.id}/vcard`}
               className="w-full py-3.5 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2.5 text-white shadow-xl hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
               style={{
                 background: `linear-gradient(135deg, ${appearance.primary} 0%, ${appearance.accent} 100%)`,
-                boxShadow: `0 10px 25px -5px ${appearance.primary}50`,
+                boxShadow: `0 10px 25px -5px ${appearance.primary}60`,
               }}
             >
               <Download className="w-4 h-4" />
               <span>{isArabic ? 'حفظ جهة الاتصال في الهاتف' : 'Save Contact to Phone'}</span>
             </a>
 
-            <div className="grid grid-cols-2 gap-2 w-full">
-              {cleanPhone && (
+            {/* 2. Quick Action Buttons Grid (WhatsApp, Call, Email, Website) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
+              {whatsAppUrl && (
                 <a
-                  href={`https://wa.me/${cleanPhone}`}
+                  href={whatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="py-3 px-3 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  className="py-3 px-2 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-sm"
                 >
-                  <div className="w-5 h-5 shrink-0 text-[#25D366]">
+                  <div className="w-6 h-6 shrink-0 text-[#25D366]">
                     {SOCIAL_MAP.whatsapp.svg}
                   </div>
-                  <span>WhatsApp</span>
+                  <span className="text-[11px]">WhatsApp</span>
                 </a>
               )}
 
-              {profile.phone && (
+              {phoneCallUrl && (
                 <a
-                  href={`tel:${profile.phone}`}
-                  className="py-3 px-3 rounded-2xl border font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-white/5 active:scale-[0.98]"
+                  href={phoneCallUrl}
+                  className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{isArabic ? 'اتصال مباشر' : 'Call'}</span>
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                    <Phone className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px]">{isArabic ? 'اتصال' : 'Call'}</span>
                 </a>
               )}
 
-              {profile.email && (
+              {emailUrl && (
                 <a
-                  href={`mailto:${profile.email}`}
-                  className={`py-3 px-3 rounded-2xl border font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-white/5 active:scale-[0.98] ${!cleanPhone || !profile.phone ? 'col-span-2' : ''}`}
+                  href={emailUrl}
+                  className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <Mail className="w-4 h-4 text-sky-400 shrink-0" />
-                  <span className="truncate">{profile.email}</span>
+                  <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center">
+                    <Mail className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] truncate max-w-full">{isArabic ? 'إيميل' : 'Email'}</span>
                 </a>
               )}
 
-              {profile.website && (
+              {websiteUrl && (
                 <a
-                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                  href={websiteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`py-3 px-3 rounded-2xl border font-bold text-xs flex items-center justify-center gap-2 transition-all hover:bg-white/5 active:scale-[0.98] ${(!profile.phone || !cleanPhone) && profile.email ? '' : 'col-span-2'}`}
+                  className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <Globe className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span className="truncate">{isArabic ? 'الموقع الإلكتروني' : 'Visit Website'}</span>
-                  <ExternalLink className="w-3 h-3 opacity-60" />
+                  <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                    <Globe className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] truncate max-w-full">{isArabic ? 'الموقع' : 'Website'}</span>
                 </a>
               )}
             </div>
@@ -703,10 +827,10 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
 
           {/* Social Networks Showcase */}
           {activeSocials.length > 0 && (
-            <div className="w-full mt-7 pt-6 border-t border-white/10 space-y-3.5">
+            <div className="w-full mt-7 pt-6 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#8A509E]" />
-                <h3 className="text-[11px] font-black uppercase tracking-widest opacity-70">
+                <h3 className="text-[11px] font-black uppercase tracking-widest opacity-75">
                   {isArabic ? 'وسائل التواصل الاجتماعي' : 'Social Networks'}
                 </h3>
                 <Sparkles className="w-3.5 h-3.5 text-[#8A509E]" />
@@ -749,41 +873,44 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             </div>
           )}
 
-          {/* Custom Blocks & Components */}
-          {profile.components && profile.components.length > 0 && (
-            <div className="w-full mt-6 space-y-4">
-              {profile.components.map((comp: any) => {
-                if (!comp.isVisible) return null;
+          {/* Core Feature 1: Location & Google Map Widget */}
+          {locationAddress && (
+            <div className="w-full mt-7">
+              <LocationMapWidget
+                address={locationAddress}
+                title={mapComponent?.title || (isArabic ? 'موقعنا الجغرافي' : 'Our Location')}
+                isArabic={isArabic}
+                primaryColor={appearance.primary}
+                surfaceColor={appearance.surface}
+                borderColor={appearance.border}
+                textColor={appearance.text}
+                mutedColor={appearance.muted}
+              />
+            </div>
+          )}
+
+          {/* Core Feature 2: Google Reviews Widget */}
+          {shouldShowReviews && (
+            <div className="w-full mt-5">
+              <ReviewsWidget
+                profileId={profile.id}
+                isArabic={isArabic}
+                profileName={profile.name}
+                primaryColor={appearance.primary}
+                accentColor={appearance.accent}
+                surfaceColor={appearance.surface}
+                borderColor={appearance.border}
+                textColor={appearance.text}
+                mutedColor={appearance.muted}
+              />
+            </div>
+          )}
+
+          {/* Additional Custom Blocks (Video, Image, Links) */}
+          {otherComponents.length > 0 && (
+            <div className="w-full mt-5 space-y-3">
+              {otherComponents.map((comp: any) => {
                 const compType = comp.type.toLowerCase();
-
-                if (compType === 'googlemap') {
-                  return (
-                    <div
-                      key={comp.id}
-                      className="w-full rounded-2xl overflow-hidden border p-3 bg-white/5"
-                      style={{ borderColor: appearance.border }}
-                    >
-                      <div className="text-left rtl:text-right font-bold text-xs pb-2 flex items-center gap-2 opacity-80">
-                        <MapPin className="w-4 h-4 text-red-400" />
-                        <span>{comp.title || 'Location'}</span>
-                      </div>
-                      <iframe
-                        width="100%"
-                        height="200"
-                        style={{ border: 0, borderRadius: '12px' }}
-                        loading="lazy"
-                        allowFullScreen
-                        src={`https://maps.google.com/maps?q=${encodeURIComponent(comp.value || comp.url || 'Location')}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                      />
-                    </div>
-                  );
-                }
-
-                if (compType === 'googlereview') {
-                  return (
-                    <ReviewsWidget key={comp.id} profileId={profile.id} isArabic={isArabic} />
-                  );
-                }
 
                 if (compType === 'video') {
                   const embedUrl = getYoutubeEmbedUrl(comp.value || comp.url || '');
@@ -791,7 +918,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   return (
                     <div
                       key={comp.id}
-                      className="w-full rounded-2xl overflow-hidden border p-3 bg-white/5"
+                      className="w-full rounded-3xl overflow-hidden border p-3 bg-white/5 shadow-md"
                       style={{ borderColor: appearance.border }}
                     >
                       {comp.title && (
@@ -799,7 +926,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                           {comp.title}
                         </p>
                       )}
-                      <div className="relative pb-[56.25%] h-0 rounded-xl overflow-hidden">
+                      <div className="relative pb-[56.25%] h-0 rounded-2xl overflow-hidden">
                         <iframe
                           className="absolute top-0 left-0 w-full h-full border-0"
                           src={embedUrl}
@@ -817,10 +944,10 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   return (
                     <div
                       key={comp.id}
-                      className="w-full rounded-2xl overflow-hidden border p-2 bg-white/5"
+                      className="w-full rounded-3xl overflow-hidden border p-2 bg-white/5 shadow-md"
                       style={{ borderColor: appearance.border }}
                     >
-                      <img src={imgUrl} alt={comp.title || 'Image'} className="w-full h-auto rounded-xl object-cover" />
+                      <img src={imgUrl} alt={comp.title || 'Image'} className="w-full h-auto rounded-2xl object-cover" />
                       {comp.title && (
                         <p className="text-xs font-bold text-center mt-2 opacity-80">{comp.title}</p>
                       )}
@@ -828,20 +955,21 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   );
                 }
 
-                const href = comp.url || comp.value || '#';
+                // If user added phone/email/whatsapp inside components
+                const smartHref = resolveSmartUrl(comp.type, comp.value || comp.url || '');
                 return (
                   <a
                     key={comp.id}
-                    href={href}
+                    href={smartHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3.5 rounded-2xl flex items-center justify-between border transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    className="p-4 rounded-2xl flex items-center justify-between border transition-all hover:scale-[1.01] active:scale-[0.99] shadow-sm"
                     style={{
                       borderColor: appearance.border,
                       backgroundColor: 'rgba(255, 255, 255, 0.04)',
                     }}
                   >
-                    <div className="text-left rtl:text-right">
+                    <div className="text-left rtl:text-right min-w-0 flex-1">
                       <span className="text-[10px] uppercase font-bold tracking-wider opacity-60 block">
                         {comp.title}
                       </span>
@@ -849,7 +977,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                         {comp.value || comp.url}
                       </span>
                     </div>
-                    <ExternalLink className="w-4 h-4 opacity-50" />
+                    <ExternalLink className="w-4 h-4 opacity-50 shrink-0" />
                   </a>
                 );
               })}
@@ -859,35 +987,34 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
           {/* Business Hours */}
           {profile.businessHours && profile.businessHours.length > 0 && (
             <div
-              className="w-full mt-6 p-4 rounded-2xl border text-left rtl:text-right space-y-3"
+              className="w-full mt-5 p-4 rounded-3xl border space-y-2.5 text-left rtl:text-right shadow-sm"
               style={{
-                borderColor: appearance.border,
                 backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                borderColor: appearance.border,
               }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#8A509E]" />
-                  <h3 className="text-xs font-black uppercase tracking-wider">
-                    {isArabic ? 'ساعات العمل' : 'Business Hours'}
-                  </h3>
-                </div>
+              <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <h3 className="text-xs font-black uppercase tracking-wider">
+                  {isArabic ? 'ساعات العمل' : 'Business Hours'}
+                </h3>
               </div>
-
               <div className="space-y-1.5 text-xs">
-                {profile.businessHours.map((hour: any) => {
-                  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                  const arabicDays = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                {profile.businessHours.map((bh: any) => {
+                  const daysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                  const daysAr = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                  const dayName = isArabic ? daysAr[bh.day] || `يوم ${bh.day}` : daysEn[bh.day] || `Day ${bh.day}`;
+
                   return (
-                    <div key={hour.id} className="flex justify-between items-center opacity-85">
-                      <span>{isArabic ? arabicDays[hour.day] : days[hour.day]}</span>
-                      {hour.isClosed ? (
-                        <span className="text-red-400 font-bold text-[11px]">{isArabic ? 'مغلق' : 'Closed'}</span>
-                      ) : (
-                        <span className="font-semibold text-[11px] font-mono">
-                          {hour.openTime} - {hour.closeTime}
-                        </span>
-                      )}
+                    <div key={bh.id} className="flex items-center justify-between opacity-80">
+                      <span className="font-semibold">{dayName}</span>
+                      <span className="font-bold">
+                        {bh.isClosed ? (
+                          <span className="text-rose-400">{isArabic ? 'مغلق' : 'Closed'}</span>
+                        ) : (
+                          <span>{bh.openTime || '09:00'} - {bh.closeTime || '18:00'}</span>
+                        )}
+                      </span>
                     </div>
                   );
                 })}
@@ -896,18 +1023,24 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
           )}
 
           {/* Footer Branding */}
-          <footer className="mt-10 pt-6 pb-2 text-center w-full border-t border-white/5">
+          <div className="mt-8 pt-6 border-t border-white/10 w-full flex flex-col items-center justify-center gap-1 opacity-70">
             <Link
               href="https://www.brandxpere.com"
               target="_blank"
-              className="inline-flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity text-[11px] font-medium"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 hover:opacity-100 transition-opacity"
             >
-              <img src="/brandxpere-icon.png" alt="Logo" className="w-4 h-4 rounded-sm object-contain" />
-              <span>
-                Powered by <strong className="font-bold">brand<span className="text-[#8A509E]">x</span>pere</strong>
+              <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#3B82F6] to-[#8A509E] flex items-center justify-center text-[10px] font-black text-white">
+                B
+              </div>
+              <span className="text-xs font-semibold tracking-wide">
+                Powered by <strong className="font-black text-white">brand<span className="text-[#8A509E]">x</span>pere</strong>
               </span>
             </Link>
-          </footer>
+            <p className="text-[10px] text-slate-500 font-medium">
+              {isArabic ? 'بطاقات الأعمال الرقمية الذكية NFC' : 'Smart Digital NFC Cards'}
+            </p>
+          </div>
         </div>
       </main>
     </div>
