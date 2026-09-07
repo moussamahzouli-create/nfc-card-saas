@@ -11,6 +11,7 @@ import Link from 'next/link';
 import ReviewsWidget from './ReviewsWidget';
 import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
+import CardImage from './CardImage';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
 
 export const dynamic = 'force-dynamic';
@@ -1011,7 +1012,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   if (!rawUrl) return null;
 
                   const isPinterest = /pinterest\.|pin\.it/i.test(rawUrl);
-                  const isWebPage = /^(https?:\/\/)?(www\.)?(pinterest\.|pin\.it|instagram\.com|facebook\.com|twitter\.com|x\.com|tiktok\.com|youtube\.com)/i.test(rawUrl);
+                  const isInstagram = /instagram\.com/i.test(rawUrl);
+                  const isDirectImage = /^data:image\//i.test(rawUrl) || 
+                    /^\/api\/profiles\/.*\/upload/i.test(rawUrl) || 
+                    /^\/uploads\//i.test(rawUrl) || 
+                    /\.(jpe?g|png|gif|webp|svg|avif)(\?.*)?$/i.test(rawUrl);
+
+                  const isWebPage = isPinterest || isInstagram || !isDirectImage;
 
                   if (isWebPage) {
                     return (
@@ -1029,16 +1036,28 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                         <div className="flex items-center gap-3 min-w-0">
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md group-hover:scale-105 transition-transform"
-                            style={{ background: isPinterest ? '#E60023' : appearance.primary }}
+                            style={{
+                              background: isPinterest
+                                ? '#E60023'
+                                : isInstagram
+                                ? 'linear-gradient(45deg, #F58529, #DD2A7B, #8134AF)'
+                                : appearance.primary,
+                            }}
                           >
-                            {isPinterest ? SOCIAL_MAP.pinterest.svg : <Globe className="w-5 h-5" />}
+                            {isPinterest ? (
+                              SOCIAL_MAP.pinterest.svg
+                            ) : isInstagram ? (
+                              SOCIAL_MAP.instagram.svg
+                            ) : (
+                              <Globe className="w-5 h-5" />
+                            )}
                           </div>
                           <div className="text-left rtl:text-right min-w-0">
                             <span className="text-xs font-black block truncate" style={{ color: appearance.text }}>
-                              {comp.title || (isPinterest ? 'Pinterest Showcase' : 'External Link')}
+                              {comp.title || (isPinterest ? 'Pinterest Showcase' : isInstagram ? 'Instagram Post' : 'Link')}
                             </span>
                             <span className="text-[10px] font-medium block truncate opacity-60" style={{ color: appearance.muted }}>
-                              {isArabic ? 'مشاهدة الرابط' : 'View Link'}
+                              {isArabic ? 'مشاهدة في الموقع الأصلي' : 'View Link'}
                             </span>
                           </div>
                         </div>
@@ -1048,20 +1067,14 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   }
 
                   return (
-                    <div
+                    <CardImage
                       key={comp.id}
-                      className="w-full rounded-3xl overflow-hidden border p-2 bg-white/5 shadow-md"
-                      style={{ borderColor: appearance.border }}
-                    >
-                      <img
-                        src={rawUrl}
-                        alt={comp.title || 'Image'}
-                        className="w-full h-auto rounded-2xl object-cover max-h-[450px]"
-                      />
-                      {comp.title && (
-                        <p className="text-xs font-bold text-center mt-2 opacity-80">{comp.title}</p>
-                      )}
-                    </div>
+                      src={rawUrl}
+                      alt={comp.title || 'Photo Block'}
+                      title={comp.title}
+                      borderColor={appearance.border}
+                      textColor={appearance.text}
+                    />
                   );
                 }
 

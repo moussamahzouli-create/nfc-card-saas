@@ -223,12 +223,18 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
 
               if (compType === 'image') {
                 const imgUrl = (comp.value || comp.url || '').trim();
-                const isWebPage = imgUrl && /^(https?:\/\/)?(www\.)?(pinterest\.|pin\.it|instagram\.com|facebook\.com|twitter\.com)/i.test(imgUrl);
+                const isPinterest = /pinterest\.|pin\.it/i.test(imgUrl);
+                const isDirectImage = /^data:image\//i.test(imgUrl) || 
+                  /^\/api\/profiles\/.*\/upload/i.test(imgUrl) || 
+                  /^\/uploads\//i.test(imgUrl) || 
+                  /\.(jpe?g|png|gif|webp|svg|avif)(\?.*)?$/i.test(imgUrl);
+                const isWebPage = imgUrl && (isPinterest || !isDirectImage);
+
                 return (
                   <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-2 bg-slate-50/50" style={{ borderColor: border }}>
                     {isWebPage ? (
                       <div className="p-3 bg-red-50 text-red-600 rounded-lg flex items-center justify-between text-xs font-bold">
-                        <span className="truncate">{comp.title || 'Pinterest Link'}</span>
+                        <span className="truncate">{comp.title || (isPinterest ? 'Pinterest Showcase' : 'Web Link')}</span>
                         <ExternalLink className="w-4 h-4 shrink-0" />
                       </div>
                     ) : imgUrl ? (
