@@ -21,6 +21,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: issues.join(', ') }, { status: 400 });
     }
 
+    // Check if public registration is paused by administration
+    const regSetting = await db.systemSetting.findUnique({
+      where: { key: 'allow_public_registration' },
+    });
+    if (regSetting && regSetting.value === 'false') {
+      return NextResponse.json({
+        error: 'Public registration is temporarily paused while payment gateways are being activated. Please contact administration.',
+      }, { status: 403 });
+    }
+
     const { name, email, password, phone } = result.data;
 
     // Check if email already exists

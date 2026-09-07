@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock, Smartphone, Languages, ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Lock, Smartphone, Languages, ArrowLeft, ArrowRight, Eye, EyeOff, ShieldAlert, Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const { t, language, setLanguage, dir } = useTranslation();
@@ -17,6 +17,22 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [allowPublicRegistration, setAllowPublicRegistration] = useState<boolean | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/auth/register/status')
+      .then((res) => res.json())
+      .then((data) => {
+        setAllowPublicRegistration(data.allowPublicRegistration ?? true);
+      })
+      .catch(() => {
+        setAllowPublicRegistration(true);
+      })
+      .finally(() => {
+        setCheckingStatus(false);
+      });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,124 +99,168 @@ export default function RegisterPage() {
       {/* Form Column */}
       <div className="flex-1 flex items-center justify-center p-8 sm:p-12 lg:p-16 pt-24 sm:pt-12">
         <div className="w-full max-w-md space-y-8 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-100/50 dark:shadow-none">
-          <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              {t('auth.registerTitle')}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Get started for free today.
-            </p>
-          </div>
-
-          {error && (
-            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-xs font-semibold text-red-600 dark:text-red-400">
-              {error}
+          {checkingStatus ? (
+            <div className="py-16 flex flex-col items-center justify-center space-y-3">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+              <p className="text-xs text-slate-500 font-medium">{t('common.loading')}</p>
             </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name Field */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                {t('auth.name')}
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </span>
-                <input
-                  type="text"
-                  required
-                  placeholder="Jane Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
-                />
+          ) : allowPublicRegistration === false ? (
+            <div className="space-y-6 text-center py-2">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/5">
+                <ShieldAlert className="w-8 h-8" />
               </div>
-            </div>
 
-            {/* Email Field */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                {t('auth.email')}
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Mail className="w-4 h-4" />
+              <div className="space-y-2">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60">
+                  {language === 'ar' ? 'التسجيل معلق مؤقتاً' : 'Registration Temporarily Paused'}
                 </span>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
-                />
+                <h1 className="text-2xl font-extrabold tracking-tight">
+                  {language === 'ar' ? 'التسجيل المباشر غير متاح حالياً' : 'Public Registration is Paused'}
+                </h1>
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {language === 'ar'
+                    ? 'تم إيقاف إنشاء الحسابات الذاتية مؤقتاً لحين اكتمال وتفعيل بوابات الدفع الإلكتروني. إذا كنت عميلاً أو بائعاً وتم تزويدك بحساب من الإدارة، يرجى تسجيل الدخول مباشرة.'
+                    : 'Public registration is temporarily paused while online payment gateways are being activated. If you already have an account, please log in below or contact administration.'}
+                </p>
               </div>
-            </div>
 
-            {/* Phone Field */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                {t('auth.phone')}
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Smartphone className="w-4 h-4" />
-                </span>
-                <input
-                  type="tel"
-                  placeholder="+1234567890"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                {t('auth.password')}
-              </label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
-                </span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+              <div className="pt-2 space-y-3">
+                <Link
+                  href="/auth/login"
+                  className="w-full py-3.5 px-4 font-bold text-white rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 active:scale-[0.98] transition-all flex items-center justify-center text-sm"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                  {t('auth.loginBtn')}
+                </Link>
+                <Link
+                  href="/"
+                  className="w-full py-3 px-4 font-semibold text-slate-700 dark:text-slate-300 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center text-xs"
+                >
+                  {language === 'ar' ? 'العودة للصفحة الرئيسية' : 'Back to Home'}
+                </Link>
               </div>
             </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  {t('auth.registerTitle')}
+                </h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Get started for free today.
+                </p>
+              </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 px-4 font-bold text-white rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center text-sm cursor-pointer mt-2"
-            >
-              {loading ? t('common.loading') : t('auth.registerBtn')}
-            </button>
-          </form>
+              {error && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-xs font-semibold text-red-600 dark:text-red-400">
+                  {error}
+                </div>
+              )}
 
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-            <span>{t('auth.alreadyHaveAccount')} </span>
-            <Link href="/auth/login" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
-              {t('auth.loginBtn')}
-            </Link>
-          </p>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Name Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {t('auth.name')}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <User className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Jane Doe"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Email Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {t('auth.email')}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Mail className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {t('auth.phone')}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Smartphone className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="tel"
+                      placeholder="+1234567890"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    {t('auth.password')}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </span>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 focus:bg-white dark:bg-slate-950 focus:dark:bg-slate-900 border border-slate-200 focus:border-blue-600 dark:border-slate-800 focus:dark:border-blue-500 rounded-xl outline-none font-medium text-sm transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 px-4 font-bold text-white rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center text-sm cursor-pointer mt-2"
+                >
+                  {loading ? t('common.loading') : t('auth.registerBtn')}
+                </button>
+              </form>
+
+              <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+                <span>{t('auth.alreadyHaveAccount')} </span>
+                <Link href="/auth/login" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                  {t('auth.loginBtn')}
+                </Link>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

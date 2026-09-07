@@ -56,6 +56,41 @@ export default function AdminUsersPage() {
   const [formError, setFormError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Public Registration Setting State
+  const [allowPublicRegistration, setAllowPublicRegistration] = useState(true);
+  const [togglingReg, setTogglingReg] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (typeof data.allowPublicRegistration === 'boolean') {
+          setAllowPublicRegistration(data.allowPublicRegistration);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleToggleRegistration = async () => {
+    const nextVal = !allowPublicRegistration;
+    setAllowPublicRegistration(nextVal);
+    setTogglingReg(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowPublicRegistration: nextVal }),
+      });
+      if (!res.ok) {
+        setAllowPublicRegistration(!nextVal); // Revert on failure
+      }
+    } catch (e) {
+      setAllowPublicRegistration(!nextVal);
+    } finally {
+      setTogglingReg(false);
+    }
+  };
+
   // Password Reset Modal State
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetTargetUser, setResetTargetUser] = useState<UserData | null>(null);
@@ -234,6 +269,53 @@ export default function AdminUsersPage() {
         >
           <UserPlus className="w-5 h-5" />
           <span>Add New User / Vendor</span>
+        </button>
+      </div>
+
+      {/* Registration Control Banner */}
+      <div className={`p-5 sm:p-6 rounded-3xl border transition-all duration-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 backdrop-blur-xl shadow-xl ${
+        allowPublicRegistration
+          ? 'bg-emerald-950/20 border-emerald-800/40'
+          : 'bg-amber-950/20 border-amber-800/40'
+      }`}>
+        <div className="flex items-start sm:items-center gap-4">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shrink-0 transition-colors ${
+            allowPublicRegistration
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+          }`}>
+            {allowPublicRegistration ? <UserCheck className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h3 className="text-base font-bold text-white">Public Customer Registration (تسجيل الزبائن من الموقع)</h3>
+              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                allowPublicRegistration
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              }`}>
+                {allowPublicRegistration ? 'Open / مفتوح' : 'Paused / متوقف مؤقتاً'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+              {allowPublicRegistration
+                ? 'الزبائن يستطيعون إنشاء حسابات بحرية. يمكنك إيقاف التسجيل بزر واحد حتى تكمل ربط بوابات الدفع.'
+                : 'التسجيل العام متوقف حالياً. الزوار سيشاهدون تنبيهاً بأن التسجيل متوقف مؤقتاً لحين تفعيل الدفع. يمكنك دائماً إنشاء حسابات بنفسك عبر زر "Add New User / Vendor" بالأسفل.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleToggleRegistration}
+          disabled={togglingReg}
+          className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-xs transition-all cursor-pointer shadow-lg shrink-0 ${
+            allowPublicRegistration
+              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/25'
+              : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+          }`}
+        >
+          <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${allowPublicRegistration ? 'bg-white' : 'bg-amber-400'}`} />
+          <span>{allowPublicRegistration ? 'إيقاف التسجيل للزبائن (Turn OFF)' : 'تفعيل التسجيل للزبائن (Turn ON)'}</span>
         </button>
       </div>
 
