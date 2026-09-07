@@ -517,16 +517,33 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     return formatWebsiteUrl(rawVal);
   };
 
+  // AS REQUESTED: Put WhatsApp in Social Networks!
+  const whatsAppNumber = profile.whatsApp || profile.phone;
+  if (whatsAppNumber) {
+    const formattedWa = formatWhatsAppUrl(whatsAppNumber);
+    if (formattedWa) {
+      activeSocials.push({
+        id: 'whatsapp-primary',
+        platform: 'whatsapp',
+        url: formattedWa,
+        username: whatsAppNumber,
+      });
+      seenPlatforms.add('whatsapp');
+    }
+  }
+
   for (const sl of profile.socialLinks || []) {
     if (sl.isVisible !== false && sl.url && sl.url.trim()) {
       const p = sl.platform.toLowerCase();
-      activeSocials.push({
-        id: sl.id,
-        platform: p,
-        url: resolveSmartUrl(p, sl.url),
-        username: sl.username,
-      });
-      seenPlatforms.add(p);
+      if (!seenPlatforms.has(p)) {
+        activeSocials.push({
+          id: sl.id,
+          platform: p,
+          url: resolveSmartUrl(p, sl.url),
+          username: sl.username,
+        });
+        seenPlatforms.add(p);
+      }
     }
   }
 
@@ -559,14 +576,13 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
 
   const avatarRadius = appearance.avatarShape === 'circle' ? '9999px' : appearance.avatarShape === 'rounded' ? '24px' : '12px';
 
-  // 10. Hero Contact Numbers & Links
+  // 10. Hero Contact Numbers & Links (WhatsApp moved to Social Networks as requested!)
   const rawPhone = profile.phone || profile.whatsApp || '';
   const phoneCallUrl = formatPhoneUrl(rawPhone);
-  const whatsAppUrl = formatWhatsAppUrl(profile.whatsApp || profile.phone || '');
   const emailUrl = formatEmailUrl(profile.email || '');
   const websiteUrl = formatWebsiteUrl(profile.website || '');
 
-  // 11. Location & Google Map Resolution (Core Killer Feature)
+  // 11. Location & Google Map Resolution (Displayed in dedicated LocationMapWidget only!)
   const mapComponent = profile.components?.find(c => c.type.toLowerCase() === 'googlemap' && c.isVisible);
   let locationAddress = mapComponent?.value || mapComponent?.url || '';
   if (!locationAddress && profile.locations && profile.locations.length > 0) {
@@ -577,15 +593,23 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     locationAddress = 'Marrakech, Maroc';
   }
 
-  // 12. Reviews Resolution (Core Killer Feature)
+  // 12. Reviews Resolution (Core Feature)
   const hasReviewComponent = profile.components?.some(c => c.type.toLowerCase() === 'googlereview' && c.isVisible);
   const shouldShowReviews = hasReviewComponent || profile.slug === 'moussa-mahzouli';
 
-  // Other components (video, image, custom links)
+  // AS REQUESTED: Exclude phone, email, whatsapp, website from otherComponents to eliminate redundant links at the bottom!
+  const excludedComponentTypes = new Set([
+    'googlemap', 'googlereview',
+    'phone', 'call', 'telephone', 'mobile',
+    'email', 'mail',
+    'whatsapp',
+    'website', 'web'
+  ]);
+
   const otherComponents = profile.components?.filter(c => {
     if (!c.isVisible) return false;
-    const t = c.type.toLowerCase();
-    return t !== 'googlemap' && t !== 'googlereview';
+    const t = c.type.toLowerCase().trim();
+    return !excludedComponentTypes.has(t);
   }) || [];
 
   return (
@@ -712,35 +736,31 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             <CheckCircle2 className="w-5 h-5 text-sky-400 shrink-0 inline fill-sky-400/20" />
           </h1>
 
-          {/* Job Title & Company */}
+          {/* AS REQUESTED: Job Title & Company in ONE single unified container (في خانة واحدة) */}
           {(profile.jobTitle || profile.company) && (
-            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+            <div
+              className="inline-flex items-center justify-center gap-2 mt-2 px-3.5 py-1.5 rounded-full shadow-sm max-w-full"
+              style={{
+                background: `${appearance.primary}18`,
+                border: `1px solid ${appearance.primary}40`,
+              }}
+            >
               {profile.jobTitle && (
-                <span
-                  className="text-xs font-bold px-3 py-1 rounded-full shadow-sm"
-                  style={{
-                    background: `${appearance.primary}22`,
-                    color: appearance.primary,
-                    border: `1px solid ${appearance.primary}55`,
-                  }}
-                >
+                <span className="text-xs font-bold" style={{ color: appearance.primary }}>
                   {profile.jobTitle}
                 </span>
               )}
+              {profile.jobTitle && profile.company && (
+                <span className="text-xs opacity-40 font-bold" style={{ color: appearance.muted }}>
+                  •
+                </span>
+              )}
               {profile.company && (
-                <span className="text-xs font-semibold flex items-center gap-1 opacity-85 px-2 py-0.5" style={{ color: appearance.muted }}>
-                  <Building2 className="w-3.5 h-3.5" />
+                <span className="text-xs font-semibold flex items-center gap-1 opacity-90" style={{ color: appearance.text }}>
+                  <Building2 className="w-3 h-3 opacity-70" />
                   <span>{profile.company}</span>
                 </span>
               )}
-            </div>
-          )}
-
-          {/* Location Chip */}
-          {locationAddress && (
-            <div className="flex items-center gap-1 text-[11px] font-bold mt-2 opacity-80" style={{ color: appearance.muted }}>
-              <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0" />
-              <span>{locationAddress}</span>
             </div>
           )}
 
@@ -769,29 +789,15 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
               <span>{isArabic ? 'حفظ جهة الاتصال في الهاتف' : 'Save Contact to Phone'}</span>
             </a>
 
-            {/* 2. Quick Action Buttons Grid (WhatsApp, Call, Email, Website) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
-              {whatsAppUrl && (
-                <a
-                  href={whatsAppUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-3 px-2 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:scale-105 active:scale-95 shadow-sm"
-                >
-                  <div className="w-6 h-6 shrink-0 text-[#25D366]">
-                    {SOCIAL_MAP.whatsapp.svg}
-                  </div>
-                  <span className="text-[11px]">WhatsApp</span>
-                </a>
-              )}
-
+            {/* 2. Quick Action Buttons Grid: Call, Email, Website (WhatsApp moved to Social Networks as requested!) */}
+            <div className="grid grid-cols-3 gap-2 w-full pt-1">
               {phoneCallUrl && (
                 <a
                   href={phoneCallUrl}
                   className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                     <Phone className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px]">{isArabic ? 'اتصال' : 'Call'}</span>
@@ -804,7 +810,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center">
                     <Mail className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] truncate max-w-full">{isArabic ? 'إيميل' : 'Email'}</span>
@@ -819,7 +825,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
                   style={{ borderColor: appearance.border, color: appearance.text }}
                 >
-                  <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
                     <Globe className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] truncate max-w-full">{isArabic ? 'الموقع' : 'Website'}</span>
@@ -828,7 +834,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             </div>
           </div>
 
-          {/* Social Networks Showcase */}
+          {/* Social Networks Showcase (WhatsApp is now here as requested!) */}
           {activeSocials.length > 0 && (
             <div className="w-full mt-7 pt-6 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-center gap-2">
@@ -909,7 +915,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             </div>
           )}
 
-          {/* Additional Custom Blocks (Video, Image, Links) */}
+          {/* Additional Custom Blocks (Video, Image, Custom Content Only - Duplicates Excluded!) */}
           {otherComponents.length > 0 && (
             <div className="w-full mt-5 space-y-3">
               {otherComponents.map((comp: any) => {
@@ -958,7 +964,6 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                   );
                 }
 
-                // If user added phone/email/whatsapp inside components
                 const smartHref = resolveSmartUrl(comp.type, comp.value || comp.url || '');
                 return (
                   <a
@@ -1025,22 +1030,31 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
             </div>
           )}
 
-          {/* Footer Branding */}
-          <div className="mt-8 pt-6 border-t border-white/10 w-full flex flex-col items-center justify-center gap-1 opacity-70">
+          {/* Footer Branding - AS REQUESTED: Styled with official brandxpere logo & brand colors */}
+          <div className="mt-8 pt-6 border-t border-white/10 w-full flex flex-col items-center justify-center gap-1.5 opacity-85">
             <Link
               href="https://www.brandxpere.com"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 hover:opacity-100 transition-opacity"
             >
-              <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-[#3B82F6] to-[#8A509E] flex items-center justify-center text-[10px] font-black text-white">
-                B
-              </div>
-              <span className="text-xs font-semibold tracking-wide">
-                Powered by <strong className="font-black text-white">brand<span className="text-[#8A509E]">x</span>pere</strong>
+              <span className="text-xs font-semibold text-slate-400">
+                Powered by
               </span>
+              <div className="inline-flex items-center gap-1.5">
+                <img
+                  src="/brandxpere-icon.png"
+                  alt="brandxpere"
+                  className="w-4 h-4 object-contain"
+                />
+                <span className="text-sm font-black tracking-tight font-sans text-white">
+                  <span className="text-slate-100">brand</span>
+                  <span className="text-[#8A509E] font-black">x</span>
+                  <span className="text-slate-100">pere</span>
+                </span>
+              </div>
             </Link>
-            <p className="text-[10px] text-slate-500 font-medium">
+            <p className="text-[10px] text-slate-400 font-medium">
               {isArabic ? 'بطاقات الأعمال الرقمية الذكية NFC' : 'Smart Digital NFC Cards'}
             </p>
           </div>
