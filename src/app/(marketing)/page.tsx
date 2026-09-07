@@ -7,7 +7,7 @@ import {
   Mail, Globe, Phone, MessageSquare, Star, Download, 
   QrCode, Wifi, Users, BarChart3, Palette, Check, 
   ArrowRight, Play, MapPin, Clock,
-  Sparkles, Award, TrendingUp
+  Sparkles, Award, TrendingUp, MessageCircle
 } from 'lucide-react';
 
 const FEATURES = [
@@ -529,43 +529,116 @@ export default function MarketingPage() {
       {/* ═══════════════════════════════════════
           FOOTER
       ═══════════════════════════════════════ */}
-      <footer className="border-t border-white/5 glass-dark py-12">
+      <footer className="border-t border-white/5 glass-dark py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            <div className="col-span-2 md:col-span-1 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center font-extrabold text-xs">C</div>
-                <span className="font-extrabold shimmer-text">ConnectCard</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+            
+            {/* Brand Column (2 cols on lg) */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center font-extrabold text-sm shadow-lg shadow-indigo-500/30">
+                  B
+                </div>
+                <span className="font-extrabold text-lg shimmer-text">BrandXper</span>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed">The smartest digital business card platform for modern professionals.</p>
+              <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
+                The premier digital business card and NFC solutions platform. Share contacts, showcase portfolios, and boost conversions effortlessly.
+              </p>
+              
+              {/* Contact Snapshot */}
+              <div className="space-y-2 pt-2 text-xs text-slate-300">
+                <a 
+                  href="https://wa.me/212606034080?text=Hello%20BrandXper" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors font-mono"
+                >
+                  <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>+212 606-034080 (WhatsApp & Tel)</span>
+                </a>
+                <a 
+                  href="mailto:BRANDXPER@GMAIL.COM" 
+                  className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-mono"
+                >
+                  <Mail className="w-4 h-4 flex-shrink-0" />
+                  <span>BRANDXPER@GMAIL.COM</span>
+                </a>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <MapPin className="w-4 h-4 flex-shrink-0 text-amber-400" />
+                  <span>Marrakech, Maroc (المغرب)</span>
+                </div>
+              </div>
             </div>
-            {[
-              { title: 'Product', links: ['Features', 'Templates', 'Pricing', 'Analytics'] },
-              { title: 'Company', links: ['About', 'Blog', 'Contact', 'Help'] },
-              { title: 'Legal', links: ['Privacy', 'Terms', 'Security', 'Cookies'] },
-            ].map(({ title, links }) => (
-              <div key={title}>
-                <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">{title}</h4>
-                <ul className="space-y-2.5">
-                  {links.map(link => (
-                    <li key={link}>
-                      <Link href="#" className="text-sm text-slate-400 hover:text-white transition-colors">{link}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+
+            {/* Column 1: Navigation */}
+            <div>
+              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">Product</h4>
+              <ul className="space-y-2.5">
+                <li><Link href="#features" className="text-sm text-slate-400 hover:text-white transition-colors">Features</Link></li>
+                <li><Link href="#templates" className="text-sm text-slate-400 hover:text-white transition-colors">Templates</Link></li>
+                <li><Link href="#pricing" className="text-sm text-slate-400 hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/auth/register" className="text-sm text-slate-400 hover:text-white transition-colors">Get Started</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 2: Support & Company */}
+            <div>
+              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">Support & Company</h4>
+              <ul className="space-y-2.5">
+                <li><Link href="/contact" className="text-sm text-slate-400 hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/help" className="text-sm text-slate-400 hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link href="/auth/login" className="text-sm text-slate-400 hover:text-white transition-colors">Sign In</Link></li>
+                <li><Link href="/contact" className="text-sm text-slate-400 hover:text-white transition-colors">Custom NFC Orders</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Quick Connect */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 block">
+                Instant Assistance
+              </span>
+              <p className="text-xs text-slate-300">
+                Need immediate help or consultation? Reach our team on WhatsApp directly.
+              </p>
+              <a
+                href="https://wa.me/212606034080?text=Hello%20BrandXper%20Team"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98]"
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span>Chat on WhatsApp</span>
+              </a>
+            </div>
+
           </div>
+
           <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-500">© 2026 ConnectCard. All rights reserved.</p>
+            <p className="text-xs text-slate-500">© 2026 BrandXper. All rights reserved. Marrakech, Maroc.</p>
             <div className="flex items-center gap-4">
-              {['Privacy', 'Terms', 'Cookies'].map(link => (
-                <Link key={link} href="#" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">{link}</Link>
-              ))}
+              <Link href="/contact" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Contact Support</Link>
+              <Link href="/help" className="text-xs text-slate-500 hover:text-slate-300 transition-colors">Help & FAQ</Link>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Floating WhatsApp Quick-Action Button */}
+      <aside aria-label="WhatsApp Support" className="fixed bottom-6 right-6 z-50">
+        <a
+          href="https://wa.me/212606034080?text=Hello%20BrandXper%20Team"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-2.5 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-105 active:scale-95 transition-all duration-300 font-bold text-xs"
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-200" />
+          </span>
+          <MessageCircle className="w-5 h-5" />
+          <span className="hidden sm:inline">WhatsApp +212 606-034080</span>
+        </a>
+      </aside>
     </div>
   );
 }

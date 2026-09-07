@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cardly - NFC Digital Business Cards",
-  description: "Create your premium digital business profile and connect it to physical NFC cards.",
+  title: "BrandXper - NFC Digital Business Cards | البطاقات الذكية",
+  description: "Create your premium digital business profile and connect it to physical NFC cards. Marrakech, Maroc. Tel & WhatsApp: +212 606-034080",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
