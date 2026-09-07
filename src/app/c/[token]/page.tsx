@@ -13,6 +13,9 @@ import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface TokenPageProps {
   params: Promise<{
     token: string;
