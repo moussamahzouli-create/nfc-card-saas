@@ -39,20 +39,35 @@ export class LocalStorageProvider implements StorageProvider {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
+      // On serverless environments (like Vercel) where filesystem is read-only, or if write fails, fallback to Base64 data URL
+      const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+      if (isServerless) {
+        const mime = file.type || 'image/jpeg';
+        const base64 = buffer.toString('base64');
+        return { success: true, url: `data:${mime};base64,${base64}` };
+      }
+
       // 2. Generate unique name using hash to prevent path traversal and naming conflicts
       const fileExtension = path.extname(file.name) || `.${file.type.split('/')[1]}`;
       const hash = crypto.createHash('md5').update(buffer).digest('hex');
       const safeName = `${prefix}-${hash}${fileExtension}`;
 
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      await fs.mkdir(uploadDir, { recursive: true });
+      try {
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        await fs.mkdir(uploadDir, { recursive: true });
 
-      const filePath = path.join(uploadDir, safeName);
-      await fs.writeFile(filePath, buffer);
+        const filePath = path.join(uploadDir, safeName);
+        await fs.writeFile(filePath, buffer);
 
-      return { success: true, url: `/uploads/${safeName}` };
+        return { success: true, url: `/uploads/${safeName}` };
+      } catch (fsError: any) {
+        // Safe fallback to Base64 data URL if filesystem write fails (EROFS, permission denied, etc.)
+        const mime = file.type || 'image/jpeg';
+        const base64 = buffer.toString('base64');
+        return { success: true, url: `data:${mime};base64,${base64}` };
+      }
     } catch (error: unknown) {
-      return { success: false, message: `Local upload failed: ${(error as Error).message}` };
+      return { success: false, message: `Upload failed: ${(error as Error).message}` };
     }
   }
 

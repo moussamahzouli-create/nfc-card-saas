@@ -11,6 +11,7 @@ import {
   Camera, Layers, Search, Zap, ExternalLink, Share2
 } from 'lucide-react';
 import { INDUSTRY_TEMPLATES, type IndustryTemplate } from '@/lib/templates/industry-templates';
+import { compressImage } from '@/lib/image-compression';
 
 /* ═══════════════════════════════
    TYPES & CONSTANTS
@@ -514,6 +515,8 @@ export default function PremiumVisualBuilder() {
         body: JSON.stringify({
           ...draft,
           name: [draft.firstName, draft.lastName].filter(Boolean).join(' ') || profile?.name,
+          photoUrl: profile?.photoUrl,
+          coverUrl: profile?.coverUrl,
           appearanceJson: JSON.stringify(appearanceToSave),
           socialLinks: Object.entries(socialLinks)
             .filter(([, v]) => v.trim())
@@ -527,7 +530,7 @@ export default function PremiumVisualBuilder() {
     finally { setSaving(false); }
   }, [id, draft, appearance, socialLinks, profile]);
 
-  // Image Upload handler
+  // Image Upload handler with client-side compression
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'cover') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -535,11 +538,21 @@ export default function PremiumVisualBuilder() {
     if (type === 'photo') setUploadingAvatar(true);
     else setUploadingCover(true);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-
     try {
+      const maxWidth = type === 'photo' ? 600 : 1200;
+      const maxHeight = type === 'photo' ? 600 : 600;
+      const { dataUrl, blob } = await compressImage(file, maxWidth, maxHeight, 0.85);
+
+      // Instant preview
+      setProfile((prev: any) => ({
+        ...prev,
+        [type === 'photo' ? 'photoUrl' : 'coverUrl']: dataUrl,
+      }));
+
+      const formData = new FormData();
+      formData.append('file', blob, file.name);
+      formData.append('type', type);
+
       const res = await fetch(`/api/profiles/${id}/upload`, {
         method: 'POST',
         body: formData,
@@ -559,6 +572,24 @@ export default function PremiumVisualBuilder() {
     } finally {
       if (type === 'photo') setUploadingAvatar(false);
       else setUploadingCover(false);
+    }
+  };
+
+  const handleRemoveImage = async (type: 'photo' | 'cover') => {
+    setProfile((prev: any) => ({
+      ...prev,
+      [type === 'photo' ? 'photoUrl' : 'coverUrl']: null,
+    }));
+    try {
+      await fetch(`/api/profiles/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          [type === 'photo' ? 'photoUrl' : 'coverUrl']: null,
+        }),
+      });
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -723,30 +754,56 @@ export default function PremiumVisualBuilder() {
               <div className="grid grid-cols-2 gap-3">
                 {/* Photo upload */}
                 <div className="space-y-1.5 col-span-2">
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Avatar Image</label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Avatar Image</label>
+                    {profile?.photoUrl && (
+                      <button type="button" onClick={() => handleRemoveImage('photo')} className="text-[10px] text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                        <Trash2 className="w-3 h-3" /> Remove
+                      </button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 p-3 border border-dashed border-slate-200 hover:border-slate-400 rounded-xl cursor-pointer transition-colors relative">
                     <input type="file" accept="image/*" onChange={e => handleFileUpload(e, 'photo')} className="absolute inset-0 opacity-0 cursor-pointer" />
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                      {uploadingAvatar ? <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" /> : <Camera className="w-4 h-4 text-slate-400" />}
+                    <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden">
+                      {uploadingAvatar ? (
+                        <RefreshCw className="w-5 h-5 text-slate-400 animate-spin" />
+                      ) : profile?.photoUrl ? (
+                        <img src={profile.photoUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="w-5 h-5 text-slate-400" />
+                      )}
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-700">Change avatar</p>
-                      <p className="text-[10px] text-slate-400">Square recommended</p>
+                      <p className="text-xs font-bold text-slate-700">{profile?.photoUrl ? 'Replace avatar' : 'Upload avatar'}</p>
+                      <p className="text-[10px] text-slate-400">Square recommended · Auto-optimized</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Cover upload */}
                 <div className="space-y-1.5 col-span-2">
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cover Banner</label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Cover Banner</label>
+                    {profile?.coverUrl && (
+                      <button type="button" onClick={() => handleRemoveImage('cover')} className="text-[10px] text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                        <Trash2 className="w-3 h-3" /> Remove
+                      </button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 p-3 border border-dashed border-slate-200 hover:border-slate-400 rounded-xl cursor-pointer transition-colors relative">
                     <input type="file" accept="image/*" onChange={e => handleFileUpload(e, 'cover')} className="absolute inset-0 opacity-0 cursor-pointer" />
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
-                      {uploadingCover ? <RefreshCw className="w-4 h-4 text-slate-400 animate-spin" /> : <Camera className="w-4 h-4 text-slate-400" />}
+                    <div className="w-16 h-10 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 overflow-hidden">
+                      {uploadingCover ? (
+                        <RefreshCw className="w-5 h-5 text-slate-400 animate-spin" />
+                      ) : profile?.coverUrl ? (
+                        <img src={profile.coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera className="w-5 h-5 text-slate-400" />
+                      )}
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-700">Change cover banner</p>
-                      <p className="text-[10px] text-slate-400">Landscape banner aspect</p>
+                      <p className="text-xs font-bold text-slate-700">{profile?.coverUrl ? 'Replace cover banner' : 'Upload cover banner'}</p>
+                      <p className="text-[10px] text-slate-400">Landscape banner aspect · Auto-optimized</p>
                     </div>
                   </div>
                 </div>

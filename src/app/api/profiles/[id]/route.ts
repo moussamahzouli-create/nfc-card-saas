@@ -4,19 +4,23 @@ import { getSessionUser } from '@/lib/auth/session';
 import { z } from 'zod';
 
 const updateProfileSchema = z.object({
-  name: z.string().min(2).optional(),
+  name: z.string().min(1).optional(),
   firstName: z.string().nullable().optional(),
   lastName: z.string().nullable().optional(),
   whatsApp: z.string().nullable().optional(),
   jobTitle: z.string().nullable().optional(),
   company: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
-  email: z.string().email().nullable().or(z.literal('')).optional(),
+  email: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
-  website: z.string().url().nullable().or(z.literal('')).optional(),
+  website: z.string().nullable().optional(),
   templateId: z.string().nullable().optional(),
+  appearanceJson: z.string().nullable().optional(),
+  photoUrl: z.string().nullable().optional(),
+  coverUrl: z.string().nullable().optional(),
   isPublic: z.boolean().optional(),
   showOnSearchEngines: z.boolean().optional(),
+  socialLinks: z.array(z.any()).optional(),
 });
 
 interface Params {
@@ -103,18 +107,66 @@ export async function PUT(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: messages.join(', ') }, { status: 400 });
     }
 
-    // Process empty string mapping to null for optional URLs / email fields
-    const updateData: any = { ...result.data };
-    if (updateData.email === '') updateData.email = null;
-    if (updateData.website === '') updateData.website = null;
+    const { socialLinks, ...rawUpdateData } = result.data;
 
+    // Process optional fields
+    const updateData: any = { ...rawUpdateData };
+    if (updateData.email === '') updateData.email = null;
+    if (updateData.website === '') {
+      updateData.website = null;
+    } else if (updateData.website && typeof updateData.website === 'string') {
+      const trimmed = updateData.website.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        updateData.website = `https://${trimmed}`;
+      }
+    }
+
+    // Update base profile fields
     const updated = await db.profile.update({
       where: { id },
       data: updateData,
     });
 
-    return NextResponse.json(updated);
+    // Synchronize social links if provided in payload
+    if (socialLinks !== undefined && Array.isArray(socialLinks)) {
+      await db.socialLink.deleteMany({ where: { profileId: id } });
+
+      const validLinks = socialLinks
+        .filter((l: any) => l && l.platform && typeof l.url === 'string' && l.url.trim() !== '')
+        .map((l: any, idx: number) => {
+          let rawUrl = l.url.trim();
+          if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://') && !rawUrl.startsWith('mailto:') && !rawUrl.startsWith('tel:')) {
+            rawUrl = `https://${rawUrl}`;
+          }
+          return {
+            profileId: id,
+            platform: String(l.platform).toLowerCase(),
+            username: l.username ? String(l.username) : rawUrl,
+            url: rawUrl,
+            sortOrder: typeof l.sortOrder === 'number' ? l.sortOrder : idx,
+            isVisible: l.isVisible !== false,
+          };
+        });
+
+      if (validLinks.length > 0) {
+        await db.socialLink.createMany({ data: validLinks });
+      }
+    }
+
+    // Return the updated profile with refreshed relations
+    const refreshed = await db.profile.findUnique({
+      where: { id },
+      include: {
+        components: { orderBy: { sortOrder: 'asc' } },
+        socialLinks: { orderBy: { sortOrder: 'asc' } },
+        locations: true,
+        businessHours: { orderBy: { day: 'asc' } },
+      },
+    });
+
+    return NextResponse.json(refreshed);
   } catch (error) {
+    console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -4,10 +4,23 @@ import { getSessionUser } from '@/lib/auth/session';
 import { z } from 'zod';
 
 const createProfileSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().min(1),
   slug: z.string().min(2).regex(/^[a-zA-Z0-9-_]+$/, { message: 'Slug can only contain alphanumeric characters, hyphens, and underscores' }),
-  type: z.enum(['PERSONAL', 'BUSINESS', 'PROFESSIONAL', 'COMPANY']),
+  type: z.enum(['PERSONAL', 'BUSINESS', 'PROFESSIONAL', 'COMPANY']).default('PERSONAL'),
   organizationId: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  jobTitle: z.string().optional(),
+  company: z.string().optional(),
+  bio: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  website: z.string().optional(),
+  whatsApp: z.string().optional(),
+  photoUrl: z.string().optional(),
+  coverUrl: z.string().optional(),
+  templateId: z.string().optional(),
+  appearanceJson: z.string().optional(),
 });
 
 // GET /api/profiles
@@ -47,7 +60,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: messages.join(', ') }, { status: 400 });
     }
 
-    const { name, slug, type, organizationId } = result.data;
+    const {
+      name, slug, type, organizationId,
+      firstName, lastName, jobTitle, company, bio,
+      phone, email, website, whatsApp, photoUrl, coverUrl,
+      templateId, appearanceJson,
+    } = result.data;
 
     // Check slug uniqueness
     const existingSlug = await db.profile.findUnique({
@@ -73,6 +91,19 @@ export async function POST(req: NextRequest) {
         type,
         name,
         slug,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        jobTitle: jobTitle || null,
+        company: company || null,
+        bio: bio || null,
+        phone: phone || null,
+        email: email || null,
+        website: website || null,
+        whatsApp: whatsApp || null,
+        photoUrl: photoUrl || null,
+        coverUrl: coverUrl || null,
+        templateId: templateId || null,
+        appearanceJson: appearanceJson || null,
         isPublic: true,
       },
     });
