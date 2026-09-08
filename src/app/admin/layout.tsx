@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, CreditCard, Import, Layers, ShieldAlert, Cpu, ArrowLeft, LogOut, Loader2, Globe, Package, ShoppingBag, Mail, Users } from 'lucide-react';
+import { LayoutDashboard, CreditCard, Import, Layers, ShieldAlert, Cpu, ArrowLeft, LogOut, Loader2, Globe, Package, ShoppingBag, Mail, Users, Contact } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -54,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { href: '/admin', label: 'Overview', icon: LayoutDashboard },
+    { href: '/admin/profiles', label: 'Profiles & Cards (البروفايلات)', icon: Contact },
     { href: '/admin/users', label: 'Users & Vendors', icon: Users },
     { href: '/admin/cards', label: 'Card Inventory', icon: CreditCard },
     { href: '/admin/nfc/provision', label: 'NFC Provisioning', icon: Cpu },

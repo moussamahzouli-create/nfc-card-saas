@@ -31,9 +31,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const showAll = req.nextUrl.searchParams.get('all') === 'true' && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN');
+
     const profiles = await db.profile.findMany({
-      where: {
-        userId: user.id,
+      where: showAll ? undefined : { userId: user.id },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, role: true }
+        },
+        cardAssignments: {
+          where: { unassignedAt: null },
+          include: { card: true }
+        },
+        _count: {
+          select: { components: true, reviews: true }
+        }
       },
       orderBy: { createdAt: 'desc' },
     });

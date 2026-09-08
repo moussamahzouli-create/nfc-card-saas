@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { QrCode, Download, Printer, Copy, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function DedicatedQRManager() {
@@ -174,17 +175,26 @@ export default function DedicatedQRManager() {
   return (
     <div className="space-y-8 font-sans max-w-4xl">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">QR Code Generator</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Generate dynamic QR codes for any profile card.</p>
         </div>
-        <button
-          onClick={fetchProfiles}
-          className="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-880 rounded-2xl transition-all cursor-pointer text-slate-500 dark:text-slate-405"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/qr-generator"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/20 transition-all cursor-pointer"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>مولد QR للروابط المخصصة (أداة مستقلة) ✨</span>
+          </Link>
+          <button
+            onClick={fetchProfiles}
+            className="p-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-880 rounded-2xl transition-all cursor-pointer text-slate-500 dark:text-slate-405"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {message && (

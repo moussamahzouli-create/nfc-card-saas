@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth/session';
 
+import { canAccessProfile } from '@/lib/auth/profile-access';
+
 interface Params {
   params: Promise<{
     id: string;
@@ -17,8 +19,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await db.profile.findUnique({ where: { id } });
-    if (!profile || profile.userId !== user.id) {
+    const { allowed, profile } = await canAccessProfile(id, user);
+    if (!allowed || !profile) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

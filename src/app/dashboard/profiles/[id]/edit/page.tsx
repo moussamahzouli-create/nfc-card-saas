@@ -8,7 +8,7 @@ import {
   User, Phone, Globe, Palette, Plus, Trash2, Check,
   AlertCircle, RefreshCw, Mail, MapPin, Clock,
   ChevronUp, ChevronDown, GripVertical, Settings,
-  Camera, Layers, Search, Zap, ExternalLink, Share2
+  Camera, Layers, Search, Zap, ExternalLink, Share2, UtensilsCrossed, FileText
 } from 'lucide-react';
 import { INDUSTRY_TEMPLATES, type IndustryTemplate } from '@/lib/templates/industry-templates';
 import { compressImage } from '@/lib/image-compression';
@@ -46,6 +46,7 @@ function getComponentIcon(type: string) {
     case 'website': return Globe;
     case 'googlemap': return MapPin;
     case 'googlereview': return StarIcon;
+    case 'menu': return UtensilsCrossed;
     default: return Smartphone;
   }
 }
@@ -217,6 +218,49 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
                     <span className="text-[9px] uppercase tracking-wider block opacity-60 font-semibold">{comp.title}</span>
                     <div className="flex justify-center gap-0.5 text-amber-500 text-sm">★★★★★</div>
                     <p className="text-[9px] text-slate-400 font-bold">Direct reviews form will render live on public page</p>
+                  </div>
+                );
+              }
+
+              if (compType === 'menu') {
+                const menuUrl = (comp.value || comp.url || '').trim();
+                let menuItems: Array<{ name: string; price: string; desc?: string }> = [];
+                if (comp.settingsJson) {
+                  try { menuItems = JSON.parse(comp.settingsJson); } catch {}
+                }
+
+                return (
+                  <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-3 bg-slate-50/50 space-y-2" style={{ borderColor: border }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+                          style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>
+                          <UtensilsCrossed className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block" style={{ color: textColor }}>{comp.title || 'قائمة الطعام / Menu'}</span>
+                          <span className="text-[9px] opacity-60 block" style={{ color: muted }}>
+                            {menuItems.length > 0 ? `${menuItems.length} وجبات مسجلة` : 'Digital Menu'}
+                          </span>
+                        </div>
+                      </div>
+                      {menuUrl && (
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold text-white shrink-0" style={{ background: primary }}>
+                          عرض المنيو
+                        </span>
+                      )}
+                    </div>
+
+                    {menuItems.length > 0 && (
+                      <div className="space-y-1 pt-1.5 border-t border-slate-200/50">
+                        {menuItems.slice(0, 3).map((item, i) => (
+                          <div key={i} className="flex justify-between items-center text-[10px] py-0.5">
+                            <span className="font-semibold truncate max-w-[150px]">{item.name}</span>
+                            <span className="font-bold text-amber-600 shrink-0">{item.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               }
@@ -439,6 +483,7 @@ export default function PremiumVisualBuilder() {
   const [components, setComponents] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
   const [enabledSocials, setEnabledSocials] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   // Controls
   const [activeTab, setActiveTab] = useState<EditorTab>('info');
@@ -511,6 +556,14 @@ export default function PremiumVisualBuilder() {
         }
         setSocialLinks(socialsMap);
         setEnabledSocials(enabledList);
+
+        // Fetch current user details for Super Admin banner
+        fetch('/api/auth/me')
+          .then(r => r.ok ? r.json() : null)
+          .then(u => {
+            if (u?.user || u) setCurrentUser(u.user || u);
+          })
+          .catch(() => {});
       } catch { router.push('/dashboard/profiles'); }
       finally { setLoading(false); }
     }
@@ -731,6 +784,19 @@ export default function PremiumVisualBuilder() {
   return (
     <div className="fixed inset-0 bg-slate-50 flex flex-col z-50 overflow-hidden"
       style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+      {/* Super Admin Notice Banner */}
+      {currentUser && (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') && profile && profile.userId !== currentUser.id && (
+        <div className="shrink-0 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 border-b border-purple-800/80 px-4 py-2 text-xs font-bold text-white flex items-center justify-between shadow-md z-40">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full bg-purple-500 text-[10px] uppercase tracking-wider font-extrabold shadow-sm">Super Admin 👑</span>
+            <span>أنت تقوم بتعديل بروفايل العميل: <strong>{profile.user?.name || profile.name}</strong></span>
+          </div>
+          <Link href="/admin/profiles" className="text-purple-300 hover:text-white underline text-[11px] font-bold">
+            العودة للوحة تحكم الإدارة →
+          </Link>
+        </div>
+      )}
 
       {/* TOP HEADER */}
       <header className="shrink-0 h-14 bg-white border-b border-slate-200 flex items-center px-4 gap-3 z-30">
@@ -1131,6 +1197,7 @@ export default function PremiumVisualBuilder() {
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Add Custom Blocks</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
+                    { type: 'Menu', title: 'Menu (قائمة طعام / خدمات)' },
                     { type: 'Phone', title: 'Phone Call' },
                     { type: 'WhatsApp', title: 'WhatsApp' },
                     { type: 'Email', title: 'Send Email' },
@@ -1266,6 +1333,158 @@ export default function PremiumVisualBuilder() {
                                 }}
                                 onBlur={e => updateComponent(comp.id, { value: e.target.value })}
                               />
+                            </div>
+                          ) : comp.type.toLowerCase() === 'menu' ? (
+                            <div className="space-y-3 pt-1">
+                              {/* Menu Link / PDF upload */}
+                              <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-slate-500">رابط المنيو الإلكتروني أو ملف PDF</label>
+                                <div className="flex gap-2">
+                                  <label className="shrink-0 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 border border-amber-500/30 rounded-lg text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    <span>رفع PDF / صورة من الجهاز</span>
+                                    <input
+                                      type="file"
+                                      accept="application/pdf,image/*"
+                                      className="hidden"
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        try {
+                                          const formData = new FormData();
+                                          formData.append('file', file);
+                                          formData.append('type', 'menu');
+
+                                          const res = await fetch(`/api/profiles/${id}/upload`, {
+                                            method: 'POST',
+                                            body: formData,
+                                          });
+                                          const data = await res.json();
+                                          if (res.ok && data.url) {
+                                            const list = [...components];
+                                            list[idx].value = data.url;
+                                            setComponents([...list]);
+                                            updateComponent(comp.id, { value: data.url });
+                                          }
+                                        } catch (err) {
+                                          console.error(err);
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="أو رابط المنيو (Drive / Canva / موقع...)"
+                                    className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-slate-400"
+                                    value={comp.value || ''}
+                                    onChange={e => {
+                                      const list = [...components];
+                                      list[idx].value = e.target.value;
+                                      setComponents(list);
+                                    }}
+                                    onBlur={e => updateComponent(comp.id, { value: e.target.value })}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Structured Dishes/Items Editor */}
+                              <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] font-black text-slate-700">قائمة الوجبات والخدمات بالأسعار (اختياري)</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      let currentItems: any[] = [];
+                                      try { currentItems = JSON.parse(comp.settingsJson || '[]'); } catch {}
+                                      const updated = [...currentItems, { name: '', price: '', desc: '' }];
+                                      const jsonStr = JSON.stringify(updated);
+                                      const list = [...components];
+                                      list[idx].settingsJson = jsonStr;
+                                      setComponents(list);
+                                      updateComponent(comp.id, { settingsJson: jsonStr });
+                                    }}
+                                    className="text-[10px] text-purple-600 hover:text-purple-700 font-bold flex items-center gap-1 cursor-pointer"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                    <span>إضافة وجبة / خدمة</span>
+                                  </button>
+                                </div>
+
+                                {(() => {
+                                  let items: any[] = [];
+                                  try { items = JSON.parse(comp.settingsJson || '[]'); } catch {}
+                                  if (items.length === 0) {
+                                    return <p className="text-[10px] text-slate-400 italic">يمكنك إدخال أسماء وأسعار الوجبات لتظهر مباشرة على البطاقة</p>;
+                                  }
+
+                                  return (
+                                    <div className="space-y-2">
+                                      {items.map((it: any, itemIdx: number) => (
+                                        <div key={itemIdx} className="p-2 bg-slate-50 rounded-lg border border-slate-200 flex flex-col gap-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <input
+                                              type="text"
+                                              placeholder="اسم الوجبة / الخدمة"
+                                              value={it.name || ''}
+                                              onChange={(e) => {
+                                                items[itemIdx].name = e.target.value;
+                                                const jsonStr = JSON.stringify(items);
+                                                const list = [...components];
+                                                list[idx].settingsJson = jsonStr;
+                                                setComponents(list);
+                                              }}
+                                              onBlur={() => updateComponent(comp.id, { settingsJson: JSON.stringify(items) })}
+                                              className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-[11px] font-bold"
+                                            />
+                                            <input
+                                              type="text"
+                                              placeholder="السعر (مثلاً 45 DH)"
+                                              value={it.price || ''}
+                                              onChange={(e) => {
+                                                items[itemIdx].price = e.target.value;
+                                                const jsonStr = JSON.stringify(items);
+                                                const list = [...components];
+                                                list[idx].settingsJson = jsonStr;
+                                                setComponents(list);
+                                              }}
+                                              onBlur={() => updateComponent(comp.id, { settingsJson: JSON.stringify(items) })}
+                                              className="w-28 px-2 py-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-amber-600"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                items.splice(itemIdx, 1);
+                                                const jsonStr = JSON.stringify(items);
+                                                const list = [...components];
+                                                list[idx].settingsJson = jsonStr;
+                                                setComponents(list);
+                                                updateComponent(comp.id, { settingsJson: jsonStr });
+                                              }}
+                                              className="p-1 text-slate-400 hover:text-red-500 cursor-pointer"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </button>
+                                          </div>
+                                          <input
+                                            type="text"
+                                            placeholder="وصف مختصر (المكونات، تفاصيل الوجبة)..."
+                                            value={it.desc || ''}
+                                            onChange={(e) => {
+                                              items[itemIdx].desc = e.target.value;
+                                              const jsonStr = JSON.stringify(items);
+                                              const list = [...components];
+                                              list[idx].settingsJson = jsonStr;
+                                              setComponents(list);
+                                            }}
+                                            onBlur={() => updateComponent(comp.id, { settingsJson: JSON.stringify(items) })}
+                                            className="w-full px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600"
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           ) : comp.type.toLowerCase() !== 'googlereview' && (
                             <input

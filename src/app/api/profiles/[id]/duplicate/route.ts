@@ -46,16 +46,19 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Source profile not found' }, { status: 404 });
     }
 
-    // Verify ownership
-    if (sourceProfile.userId !== user.id) {
+    // Verify ownership or admin access
+    const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+    if (sourceProfile.userId !== user.id && !isAdmin) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Enforce limits checks
-    const { canCreateProfile } = await import('@/lib/billing/limits');
-    const allowed = await canCreateProfile(user.id);
-    if (!allowed) {
-      return NextResponse.json({ error: 'Profile limit reached for your active subscription plan. Upgrade to duplicate profiles.' }, { status: 403 });
+    // Enforce limits checks (admins bypass limits)
+    if (!isAdmin) {
+      const { canCreateProfile } = await import('@/lib/billing/limits');
+      const allowed = await canCreateProfile(user.id);
+      if (!allowed) {
+        return NextResponse.json({ error: 'Profile limit reached for your active subscription plan. Upgrade to duplicate profiles.' }, { status: 403 });
+      }
     }
 
     // Generate unique slug

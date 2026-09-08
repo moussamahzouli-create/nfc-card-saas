@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth/session';
+import { canAccessProfile } from '@/lib/auth/profile-access';
 import { z } from 'zod';
 
 const updateProfileSchema = z.object({
@@ -29,31 +30,6 @@ interface Params {
   }>;
 }
 
-// Helper to check profile ownership or B2B organization access
-async function checkProfileAccess(profileId: string, userId: string) {
-  const profile = await db.profile.findUnique({
-    where: { id: profileId },
-  });
-
-  if (!profile) return null;
-
-  if (profile.userId === userId) {
-    return profile;
-  }
-
-  if (profile.organizationId) {
-    const member = await db.organizationMember.findFirst({
-      where: {
-        organizationId: profile.organizationId,
-        userId: userId,
-      },
-    });
-    if (member) return profile;
-  }
-
-  return null;
-}
-
 // GET /api/profiles/[id]
 export async function GET(req: NextRequest, { params }: Params) {
   try {
@@ -63,8 +39,8 @@ export async function GET(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await checkProfileAccess(id, user.id);
-    if (!profile) {
+    const { allowed, profile } = await canAccessProfile(id, user);
+    if (!allowed || !profile) {
       return NextResponse.json({ error: 'Profile not found or access denied' }, { status: 404 });
     }
 
@@ -94,8 +70,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await checkProfileAccess(id, user.id);
-    if (!profile) {
+    const { allowed, profile } = await canAccessProfile(id, user);
+    if (!allowed || !profile) {
       return NextResponse.json({ error: 'Profile not found or access denied' }, { status: 404 });
     }
 
@@ -214,8 +190,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await checkProfileAccess(id, user.id);
-    if (!profile) {
+    const { allowed, profile } = await canAccessProfile(id, user);
+    if (!allowed || !profile) {
       return NextResponse.json({ error: 'Profile not found or access denied' }, { status: 404 });
     }
 

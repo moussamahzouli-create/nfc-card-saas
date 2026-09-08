@@ -124,7 +124,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
           <Link href="/dashboard/qr" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-405 hover:bg-slate-100 dark:hover:bg-slate-850 font-semibold text-sm transition-all">
             <QrCode className="w-5 h-5" />
-            <span>QR Codes</span>
+            <span>{t('nav.qrCodes') || 'QR Codes'}</span>
+          </Link>
+          <Link href="/dashboard/qr-generator" className="flex items-center justify-between px-4 py-3 rounded-xl text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 font-bold text-sm transition-all">
+            <div className="flex items-center gap-3">
+              <QrCode className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <span>مولد QR للروابط</span>
+            </div>
+            <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold">جديد</span>
           </Link>
           <Link href="/help" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-405 hover:bg-slate-100 dark:hover:bg-slate-850 font-semibold text-sm transition-all">
             <HelpCircle className="w-5 h-5" />

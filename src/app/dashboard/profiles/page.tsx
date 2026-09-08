@@ -18,6 +18,8 @@ export default function ProfilesListPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [viewScope, setViewScope] = useState<'my' | 'all'>('my');
   
   // Share dialog state
   const [shareProfile, setShareProfile] = useState<any | null>(null);
@@ -28,9 +30,20 @@ export default function ProfilesListPage() {
     setTimeout(() => setSuccessMessage(''), 4000);
   };
 
-  const fetchProfiles = async () => {
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.user || data) setCurrentUser(data.user || data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const fetchProfiles = async (scope = viewScope) => {
+    setLoading(true);
     try {
-      const res = await fetch('/api/profiles');
+      const endpoint = scope === 'all' ? '/api/profiles?all=true' : '/api/profiles';
+      const res = await fetch(endpoint);
       if (res.ok) {
         const data = await res.json();
         setProfiles(data);
@@ -45,8 +58,8 @@ export default function ProfilesListPage() {
   };
 
   useEffect(() => {
-    fetchProfiles();
-  }, []);
+    fetchProfiles(viewScope);
+  }, [viewScope]);
 
   const handlePublishToggle = async (profileId: string, currentStatus: boolean) => {
     const endpoint = currentStatus ? 'unpublish' : 'publish';
@@ -173,23 +186,64 @@ export default function ProfilesListPage() {
         </div>
       )}
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            {t('dashboard.myProfiles')}
+            {viewScope === 'all' ? 'جميع بروفايلات العملاء (Super Admin)' : t('dashboard.myProfiles')}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Create and customize your business/personal digital cards.
+            {viewScope === 'all' 
+              ? 'إدارة واستعراض وتعديل كافة البطاقات والبروفايلات المسجلة في النظام.' 
+              : 'Create and customize your business/personal digital cards.'}
           </p>
         </div>
-        <Link
-          href="/dashboard/profiles/new"
-          className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Profile</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          {currentUser && (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') && (
+            <Link
+              href="/admin/profiles"
+              className="px-3.5 py-2.5 text-xs font-bold rounded-xl bg-purple-600/10 hover:bg-purple-600/20 text-purple-700 dark:text-purple-300 border border-purple-500/30 transition-all cursor-pointer"
+            >
+              لوحة إدارة البروفايلات 👑
+            </Link>
+          )}
+          <Link
+            href="/dashboard/profiles/new"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Profile</span>
+          </Link>
+        </div>
       </div>
+
+      {/* Scope Switcher for Super Admin */}
+      {currentUser && (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'ADMIN') && (
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-fit text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setViewScope('my')}
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+              viewScope === 'my'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            بروفايلاتي الشخصية ({profiles.filter(p => !p.user || p.userId === currentUser.id).length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewScope('all')}
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+              viewScope === 'all'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                : 'text-purple-600 dark:text-purple-400 hover:opacity-80'
+            }`}
+          >
+            <span>جميع بروفايلات العملاء (Super Admin)</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-[10px]">الكل</span>
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-2xl flex items-center gap-2 text-red-600 text-xs font-semibold">
@@ -224,7 +278,14 @@ export default function ProfilesListPage() {
                 <div>
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{profile.type}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{profile.type}</span>
+                        {profile.user && viewScope === 'all' && (
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 truncate max-w-[140px]">
+                            👤 {profile.user.name}
+                          </span>
+                        )}
+                      </div>
                       <h3 className="text-lg font-extrabold tracking-tight mt-0.5">{profile.name}</h3>
                       <span className="text-xs text-slate-500 font-medium truncate block">/c/{profile.slug}</span>
                     </div>

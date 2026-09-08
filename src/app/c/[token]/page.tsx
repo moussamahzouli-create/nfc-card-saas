@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { 
   Phone, Mail, Globe, MapPin, Clock, Download, AlertTriangle, EyeOff,
   Building2, ExternalLink, Sparkles, CheckCircle2, ChevronRight,
-  Share2, ShieldCheck, Briefcase
+  Share2, ShieldCheck, Briefcase, UtensilsCrossed
 } from 'lucide-react';
 import Link from 'next/link';
 import ReviewsWidget from './ReviewsWidget';
@@ -1003,6 +1003,105 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                           allowFullScreen
                         />
                       </div>
+                    </div>
+                  );
+                }
+
+                if (compType === 'menu') {
+                  const menuUrl = (comp.value || comp.url || '').trim();
+                  let menuItems: Array<{ name: string; price: string; desc?: string }> = [];
+                  if (comp.settingsJson) {
+                    try { menuItems = JSON.parse(comp.settingsJson); } catch {}
+                  }
+
+                  const iconBg = appearance.iconStyle === 'unified' && appearance.iconBg
+                    ? appearance.iconBg
+                    : appearance.iconStyle === 'glass'
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : appearance.iconStyle === 'monochrome'
+                    ? '#1E293B'
+                    : appearance.iconStyle === 'gradient'
+                    ? `linear-gradient(135deg, ${appearance.primary}, ${appearance.accent})`
+                    : 'linear-gradient(135deg, #F59E0B, #D97706)';
+
+                  const iconColor = appearance.iconColor || '#FFFFFF';
+
+                  return (
+                    <div
+                      key={comp.id}
+                      className="w-full rounded-3xl overflow-hidden border p-4 bg-white/5 backdrop-blur-md shadow-md space-y-3"
+                      style={{ borderColor: appearance.border }}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-md"
+                            style={{ background: iconBg, color: iconColor }}
+                          >
+                            <UtensilsCrossed className="w-5 h-5" />
+                          </div>
+                          <div className="text-left rtl:text-right min-w-0">
+                            <span className="text-xs font-black block truncate" style={{ color: appearance.text }}>
+                              {comp.title || (isArabic ? 'قائمة الطعام والخدمات' : 'Menu & Catalog')}
+                            </span>
+                            <span className="text-[10px] font-medium block truncate opacity-60" style={{ color: appearance.muted }}>
+                              {menuItems.length > 0 
+                                ? (isArabic ? `${menuItems.length} وجبات/خدمات مع الأسعار` : `${menuItems.length} items listed`)
+                                : (isArabic ? 'تصفح قائمة الأسعار والوجبات' : 'View digital menu')}
+                            </span>
+                          </div>
+                        </div>
+
+                        {menuUrl && (
+                          <a
+                            href={menuUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3.5 py-1.5 rounded-xl font-black text-[11px] flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 transition-all shrink-0"
+                            style={{
+                              backgroundColor: appearance.primary,
+                              color: appearance.background,
+                            }}
+                          >
+                            <span>{isArabic ? 'فتح المنيو' : 'View Menu'}</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Dishes/Items list if structured */}
+                      {menuItems.length > 0 && (
+                        <div className="pt-2 border-t space-y-2" style={{ borderColor: appearance.border }}>
+                          {menuItems.map((item, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2.5 rounded-2xl flex items-start justify-between gap-3 bg-black/10 border border-white/5"
+                            >
+                              <div className="min-w-0">
+                                <span className="text-xs font-bold block truncate" style={{ color: appearance.text }}>
+                                  {item.name}
+                                </span>
+                                {item.desc && (
+                                  <p className="text-[10px] opacity-60 line-clamp-1 mt-0.5" style={{ color: appearance.muted }}>
+                                    {item.desc}
+                                  </p>
+                                )}
+                              </div>
+                              {item.price && (
+                                <span
+                                  className="text-[11px] font-black px-2 py-0.5 rounded-lg shrink-0"
+                                  style={{
+                                    backgroundColor: `${appearance.primary}20`,
+                                    color: appearance.primary,
+                                  }}
+                                >
+                                  {item.price}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 }
