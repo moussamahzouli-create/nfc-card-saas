@@ -14,6 +14,7 @@ export default function DedicatedQRManager() {
   // QR Customizer
   const [fgColor, setFgColor] = useState('#000000');
   const [bgColor, setBgColor] = useState('#FFFFFF');
+  const [errorCorrectionLevel, setErrorCorrectionLevel] = useState<'L' | 'M' | 'H'>('L');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [contrastError, setContrastError] = useState<string | null>(null);
 
@@ -61,6 +62,8 @@ export default function DedicatedQRManager() {
             fgColor,
             bgColor,
             format: 'png',
+            errorCorrectionLevel,
+            margin: 3,
           }),
         });
 
@@ -84,7 +87,7 @@ export default function DedicatedQRManager() {
       }
     }
     updateQrPreview();
-  }, [selectedProfile, fgColor, bgColor]);
+  }, [selectedProfile, fgColor, bgColor, errorCorrectionLevel]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const p = profiles.find(item => item.id === e.target.value);
@@ -116,6 +119,8 @@ export default function DedicatedQRManager() {
           fgColor,
           bgColor,
           format,
+          errorCorrectionLevel,
+          margin: 3,
         }),
       });
 
@@ -261,6 +266,63 @@ export default function DedicatedQRManager() {
                     className="w-full h-11 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:outline-none p-1 cursor-pointer"
                   />
                 </div>
+              </div>
+
+              {/* Density / Print Optimization Mode */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    كثافة الرمز ونمط الطباعة (Density / Print Mode)
+                  </label>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                    {errorCorrectionLevel === 'L' ? 'خفيف ومثالي للطباعة' : errorCorrectionLevel === 'M' ? 'متوازن' : 'كثيف'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setErrorCorrectionLevel('L')}
+                    className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
+                      errorCorrectionLevel === 'L'
+                        ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-500 text-purple-700 dark:text-purple-300 font-black shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold">خفيف للطباعة ⭐</div>
+                    <div className="text-[9px] text-slate-400 mt-0.5">نقاط عريضة ومتباعدة</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setErrorCorrectionLevel('M')}
+                    className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
+                      errorCorrectionLevel === 'M'
+                        ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-500 text-purple-700 dark:text-purple-300 font-black shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold">متوازن (M)</div>
+                    <div className="text-[9px] text-slate-400 mt-0.5">النمط القياسي</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setErrorCorrectionLevel('H')}
+                    className={`p-2 rounded-xl text-center border transition-all cursor-pointer ${
+                      errorCorrectionLevel === 'H'
+                        ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-500 text-purple-700 dark:text-purple-300 font-black shadow-sm'
+                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-xs font-bold">كثيف (H)</div>
+                    <div className="text-[9px] text-slate-400 mt-0.5">حماية 30%</div>
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  💡 <strong>نصيحة الطباعة:</strong> النمط <strong>الخفيف (L)</strong> يولد مربعات أكبر وأقل ازدحاماً، مما يمنع تشوه الحبر على الورق وبطاقات البلاستيك ويسمح للهواتف بمسح الكود في جزء من الثانية من مسافة أبعد.
+                </p>
               </div>
             </div>
           </div>

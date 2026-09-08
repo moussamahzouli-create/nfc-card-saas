@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Share2, QrCode, Copy, Check, X, Download, MessageCircle } from 'lucide-react';
@@ -24,8 +24,9 @@ export default function ShareModal({ slug, name, title, primaryColor = '#8A509E'
       setCardUrl(url);
 
       QRCode.toDataURL(url, {
-        width: 320,
-        margin: 2,
+        width: 360,
+        margin: 3,
+        errorCorrectionLevel: 'L',
         color: {
           dark: '#0F172A',
           light: '#FFFFFF',

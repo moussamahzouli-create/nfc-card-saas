@@ -9,6 +9,9 @@ const qrRequestSchema = z.object({
   fgColor: z.string().regex(/^#[0-9A-F]{6}$/i, { message: 'Invalid hex foreground color' }),
   bgColor: z.string().regex(/^#[0-9A-F]{6}$/i, { message: 'Invalid hex background color' }),
   format: z.enum(['png', 'svg']).default('png'),
+  errorCorrectionLevel: z.enum(['L', 'M', 'Q', 'H']).default('L'),
+  margin: z.number().min(0).max(10).default(3),
+  width: z.number().min(200).max(4000).default(1000),
 });
 
 export async function POST(req: NextRequest) {
@@ -25,17 +28,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error.issues.map(i => i.message).join(', ') }, { status: 400 });
     }
 
-    const { data, fgColor, bgColor, format } = result.data;
+    const { data, fgColor, bgColor, format, errorCorrectionLevel, margin, width } = result.data;
 
     // 2. Validate contrast
     if (!hasSufficientContrast(fgColor, bgColor)) {
       return NextResponse.json({ error: 'QR colors have insufficient contrast' }, { status: 400 });
     }
 
-    // 3. Generate QR code locally
+    // 3. Generate QR code locally (Defaulting to Level L for light, clean, print-friendly matrix)
     if (format === 'svg') {
       const svgString = await QRCode.toString(data, {
         type: 'svg',
+        margin: margin ?? 3,
+        errorCorrectionLevel: errorCorrectionLevel || 'L',
         color: {
           dark: fgColor,
           light: bgColor,
@@ -50,8 +55,9 @@ export async function POST(req: NextRequest) {
     } else {
       const pngBuffer = await QRCode.toBuffer(data, {
         type: 'png',
-        width: 400,
-        margin: 2,
+        width: width ?? 1000,
+        margin: margin ?? 3,
+        errorCorrectionLevel: errorCorrectionLevel || 'L',
         color: {
           dark: fgColor,
           light: bgColor,
