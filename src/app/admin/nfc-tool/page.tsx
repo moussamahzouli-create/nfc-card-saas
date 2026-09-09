@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Smartphone, Cpu, CheckCircle2, AlertTriangle, RefreshCw, 
   ShieldCheck, Lock, Unlock, QrCode, ArrowRight, Sparkles, 
-  Copy, Check, Download, ExternalLink, Eye, HelpCircle, XCircle, Wifi, Zap, ChevronDown, ChevronUp
+  Copy, Check, Download, ExternalLink, Eye, HelpCircle, XCircle, Wifi, Zap, 
+  ChevronDown, ChevronUp, KeyRound, ShieldAlert
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
@@ -56,6 +57,9 @@ export default function MobileNfcToolPage() {
   const [useCustomUrl, setUseCustomUrl] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Auto-lock toggle during write
+  const [autoLockAfterWrite, setAutoLockAfterWrite] = useState(false);
+
   // Live Generated QR for the selected target
   const [cardQrCode, setCardQrCode] = useState<string>('');
 
@@ -63,15 +67,19 @@ export default function MobileNfcToolPage() {
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const [scanning, setScanning] = useState(false);
   const [currentAction, setCurrentAction] = useState<'WRITE' | 'READ' | 'LOCK' | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('اختر البروفايل واضغط على زر البرمجة ثم ألصق الكارت بظهر الهاتف');
+  const [statusMessage, setStatusMessage] = useState<string>('اختر البروفايل واضغط على زر البرمجة أو القفل أدناه');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastWritten, setLastWritten] = useState<any>(null);
+  const [lastLocked, setLastLocked] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
   // Diagnostic Read States
-  const [showDiagnostic, setShowDiagnostic] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(true);
   const [readTagData, setReadTagData] = useState<any>(null);
+
+  // Password / NFC Tools Guide State
+  const [showPasswordGuide, setShowPasswordGuide] = useState(false);
 
   // Guide Section State
   const [showGuide, setShowGuide] = useState(false);
@@ -172,7 +180,7 @@ export default function MobileNfcToolPage() {
     } else if (err.name === 'NotSupportedError') {
       userFriendlyError = 'الرقاقة غير مدعومة في متصفح كروم أو أن الكارت مقفل مسبقاً. تأكد من استخدام بطاقات NTAG213 أو NTAG215 أو NTAG216 القياسية.';
     } else if (err.name === 'NetworkError') {
-      userFriendlyError = 'انقطع الاتصال بالرقاقة أثناء العملية. يرجى تثبيت الكارت جيداً خلف الكاميرا لمدة ثانيتين دون إبعاده بسرعة حتى يهتز الهاتف.';
+      userFriendlyError = 'انقطع الاتصال بالرقاقة أثناء العملية. يرجى تثبيت الكارت جيداً ملاصقاً لأعلى ظهر الهاتف (بجانب الكاميرا) لمدة ثانيتين كاملتين دون إبعاده بسرعة حتى يهتز الهاتف.';
     } else if (err.name === 'InvalidStateError') {
       userFriendlyError = 'توجد عملية NFC قيد التشغيل بالفعل. أعد الضغط على الزر للمحاولة.';
     } else {
@@ -197,13 +205,13 @@ export default function MobileNfcToolPage() {
     setCurrentAction('WRITE');
     setErrorMessage(null);
     setLastWritten(null);
+    setLastLocked(false);
     setStatusMessage('📡 المستشعر جاهز للكتابة! ألصق الكارت الآن بأعلى ظهر الهاتف (بجانب الكاميرا)...');
     playSound('beep');
 
     const ctrl = new AbortController();
     abortControllerRef.current = ctrl;
 
-    // Timeout safety after 45 seconds
     const timeoutId = setTimeout(() => {
       if (ctrl && !ctrl.signal.aborted) {
         ctrl.abort();
@@ -231,6 +239,22 @@ export default function MobileNfcToolPage() {
         navigator.vibrate([150, 60, 200]);
       }
 
+      // If auto-lock was enabled, prompt to lock
+      let isLocked = false;
+      if (autoLockAfterWrite && typeof ndef.makeReadOnly === 'function') {
+        setStatusMessage('تمت كتابة الرابط! أبقِ الكارت ملاصقاً للهاتف لقفل الرقاقة نهائياً...');
+        try {
+          await new Promise(r => setTimeout(r, 600));
+          await ndef.makeReadOnly({ signal: ctrl.signal });
+          isLocked = true;
+          setLastLocked(true);
+          playSound('success');
+        } catch (lockErr) {
+          console.warn('Auto-lock note:', lockErr);
+          setStatusMessage('تمت كتابة الرابط بنجاح! (لقفل الكارت، استخدم زر القفل المخصص أدناه وثبت الكارت لثانيتين)');
+        }
+      }
+
       // Sync with SaaS platform
       try {
         await fetch('/api/mobile/nfc/complete-write', {
@@ -241,7 +265,7 @@ export default function MobileNfcToolPage() {
             profileSlug: selectedProfile?.slug,
             cardId: selectedProfile?.cardId || undefined,
             chipType: 'NTAG213',
-            lockType: 'NONE',
+            lockType: isLocked ? 'PERMANENT_READ_ONLY' : 'NONE',
           }),
         });
       } catch (err) {
@@ -252,10 +276,11 @@ export default function MobileNfcToolPage() {
         url: targetUrl,
         profileName: selectedProfile?.name || 'رابط مخصص',
         profileSlug: selectedProfile?.slug,
+        isLocked,
         time: new Date().toLocaleTimeString('ar-MA'),
       });
 
-      setStatusMessage('✅ تم نسخ وبرمجة الرابط بنجاح على الكارت!');
+      setStatusMessage(isLocked ? '🔒 تم برمجة وقفل الكارت نهائياً بنجاح!' : '✅ تم نسخ وبرمجة الرابط بنجاح على الكارت!');
       fetchProfiles();
     } catch (err: any) {
       clearTimeout(timeoutId);
@@ -266,7 +291,68 @@ export default function MobileNfcToolPage() {
     }
   };
 
-  // 2. DIAGNOSTIC READ ACTION
+  // 2. DEDICATED LOCK ACTION (Make Read-Only)
+  const handleStartLockNfc = async () => {
+    if (!('NDEFReader' in window)) {
+      alert('مستشعر الـ NFC غير مدعوم في هذا المتصفح. استخدم متصفح Google Chrome على هاتف أندرويد.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      '⚠️ تأكيد قفل الكارت نهائياً (Make Read-Only):\n\n' +
+      'هذه العملية ستقوم بحرق بتات القفل في الشريحة وتجعل الكارت للقراءة فقط للأبد!\n' +
+      'لن يتمكن أي شخص أو أي تطبيق (بما في ذلك NFC Tools) من مسح أو تعديل الرابط على هذا الكارت مجدداً.\n\n' +
+      'هل الكارت مبرمج بالرابط الصحيح وتريد قفله نهائياً الآن؟'
+    );
+
+    if (!confirmed) return;
+
+    cancelNfcSession();
+    setScanning(true);
+    setCurrentAction('LOCK');
+    setErrorMessage(null);
+    setStatusMessage('🔒 مستشعر القفل نشط الآن! ألصق الكارت بأعلى ظهر الهاتف (بجانب الكاميرا) وثبته لمدة ثانيتين كاملتين دون تحريكه...');
+    playSound('beep');
+
+    const ctrl = new AbortController();
+    abortControllerRef.current = ctrl;
+
+    const timeoutId = setTimeout(() => {
+      if (ctrl && !ctrl.signal.aborted) {
+        ctrl.abort();
+        setScanning(false);
+        setCurrentAction(null);
+        setErrorMessage('انتهت مهلة القفل. تأكد من تثبيت الكارت جيداً بجانب الكاميرا.');
+      }
+    }, 45000);
+
+    try {
+      const ndef = new (window as any).NDEFReader();
+      if (typeof ndef.makeReadOnly !== 'function') {
+        throw new Error('خاصية القفل النهائي غير مدعومة في إصدار متصفح كروم الحالي.');
+      }
+
+      await ndef.makeReadOnly({ signal: ctrl.signal });
+
+      clearTimeout(timeoutId);
+      playSound('success');
+      setLastLocked(true);
+
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([200, 100, 300]);
+      }
+
+      setStatusMessage('🔒 تم قفل الكارت نهائياً بنجاح! أصبح الكارت للقراءة فقط (Read-Only) ولا يمكن تعديله أو مسحه أبداً.');
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      handleNfcError(err, 'LOCK');
+    } finally {
+      setScanning(false);
+      setCurrentAction(null);
+    }
+  };
+
+  // 3. DIAGNOSTIC READ ACTION
   const handleStartReadNfc = async () => {
     if (!('NDEFReader' in window)) {
       alert('مستشعر الـ NFC غير مدعوم في هذا المتصفح. استخدم متصفح Google Chrome على هاتف أندرويد.');
@@ -349,66 +435,6 @@ export default function MobileNfcToolPage() {
     }
   };
 
-  // 3. OPTIONAL LOCK ACTION (Make Read-Only)
-  const handleStartLockNfc = async () => {
-    if (!('NDEFReader' in window)) {
-      alert('مستشعر الـ NFC غير مدعوم في هذا المتصفح.');
-      return;
-    }
-
-    const confirmed = window.confirm(
-      '⚠️ تحذير أمني هام:\n\n' +
-      'القفل النهائي للكارت عبر المتصفح (Permanent Read-Only) سيجعل الرقاقة للقراءة فقط للأبد!\n' +
-      'لن يتمكن أي شخص أو أي تطبيق من مسح أو تعديل الرابط على هذا الكارت مجدداً.\n\n' +
-      'هل أنت متأكد من أنك كتبت الرابط الصحيح وتريد قفل الكارت نهائياً الآن؟'
-    );
-
-    if (!confirmed) return;
-
-    cancelNfcSession();
-    setScanning(true);
-    setCurrentAction('LOCK');
-    setErrorMessage(null);
-    setStatusMessage('🔒 مستشعر القفل جاهز! ألصق الكارت بظهر الهاتف بجانب الكاميرا وثبته للقفل النهائي...');
-    playSound('beep');
-
-    const ctrl = new AbortController();
-    abortControllerRef.current = ctrl;
-
-    const timeoutId = setTimeout(() => {
-      if (ctrl && !ctrl.signal.aborted) {
-        ctrl.abort();
-        setScanning(false);
-        setCurrentAction(null);
-        setErrorMessage('انتهت مهلة القفل.');
-      }
-    }, 45000);
-
-    try {
-      const ndef = new (window as any).NDEFReader();
-      if (typeof ndef.makeReadOnly !== 'function') {
-        throw new Error('خاصية القفل النهائي غير مدعومة في إصدار متصفح كروم الحالي.');
-      }
-
-      await ndef.makeReadOnly({ signal: ctrl.signal });
-
-      clearTimeout(timeoutId);
-      playSound('success');
-
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate([200, 100, 300]);
-      }
-
-      setStatusMessage('🔒 تم قفل الكارت نهائياً بنجاح! أصبح الكارت للقراءة فقط ولا يمكن تعديله أو مسحه أبداً.');
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      handleNfcError(err, 'LOCK');
-    } finally {
-      setScanning(false);
-      setCurrentAction(null);
-    }
-  };
-
   const filteredProfiles = profiles.filter((p: any) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -421,7 +447,7 @@ export default function MobileNfcToolPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 sm:p-6 font-sans max-w-3xl mx-auto pb-24" dir="rtl">
+    <div className="min-h-screen bg-slate-950 text-white p-4 sm:p-6 font-sans max-w-3xl mx-auto pb-28" dir="rtl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-5 mb-6">
         <div className="flex items-center gap-3">
@@ -429,10 +455,10 @@ export default function MobileNfcToolPage() {
             <Smartphone className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black">برمجة كروت NFC وتوليد الكود</h1>
+            <h1 className="text-xl sm:text-2xl font-black">برمجة وقفل كروت الـ NFC</h1>
             <span className="text-xs text-purple-400 font-bold flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5" />
-              كتابة الرابط على الشريحة وتوليد كود الـ QR بلمسة واحدة
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              كتابة الرابط، توليد الـ QR، وقفل الكارت ضد التعديل نهائياً
             </span>
           </div>
         </div>
@@ -496,7 +522,7 @@ export default function MobileNfcToolPage() {
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-black">1</span>
-              <span>اختيار البروفايل المراد برمجته وتوليد كوده</span>
+              <span>اختيار البروفايل المراد برمجته وقفله</span>
             </label>
             <button
               type="button"
@@ -608,7 +634,7 @@ export default function MobileNfcToolPage() {
                   <div className="text-right space-y-1">
                     <span className="text-xs font-bold text-white block">كود الـ QR جاهز للمسح والطباعة 🖨️</span>
                     <span className="text-[10px] text-slate-400 block">
-                      يمكنك تحميل هذا الكود أو طباعته مباشرة على الكارت الورقي أو البلاستيكي.
+                      يمكنك تحميل هذا الكود أو طباعته مباشرة على الكارت.
                     </span>
                   </div>
                 </div>
@@ -631,10 +657,10 @@ export default function MobileNfcToolPage() {
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-black">2</span>
-              <span>برمجة كارت الـ NFC بلمسة واحدة</span>
+              <span>برمجة كارت الـ NFC</span>
             </span>
             <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800/80">
-              عملية فورية سريعة ⚡
+              عملية فورية ⚡
             </span>
           </div>
 
@@ -672,6 +698,26 @@ export default function MobileNfcToolPage() {
             </div>
           </div>
 
+          {/* Auto Lock Checkbox */}
+          <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-right">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoLockAfterWrite}
+                onChange={(e) => setAutoLockAfterWrite(e.target.checked)}
+                className="w-4 h-4 text-purple-600 rounded cursor-pointer shrink-0"
+              />
+              <div>
+                <span className="text-xs font-bold text-white block">
+                  قفل الكارت تلقائياً فور كتابة الرابط (Auto-Lock)
+                </span>
+                <span className="text-[10px] text-slate-400 block">
+                  يقوم بحرق بتات القفل فوراً لجعل الكارت للقراءة فقط وحمايته من أي مسح أو تعديل.
+                </span>
+              </div>
+            </label>
+          </div>
+
           {/* Status Message */}
           <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 max-w-md mx-auto">
             <p className="text-xs text-slate-300 leading-relaxed font-medium">
@@ -701,7 +747,7 @@ export default function MobileNfcToolPage() {
                 <Zap className="w-5 h-5" />
                 <span>كتابة وبرمجة الكود على الكارت بلمسة واحدة ⚡</span>
               </button>
-            ) : (
+            ) : currentAction === 'WRITE' ? (
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -721,60 +767,115 @@ export default function MobileNfcToolPage() {
                   <span>إلغاء</span>
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
-        {/* Success Report Card */}
-        {lastWritten && (
-          <div className="p-5 bg-emerald-950/40 border border-emerald-800 rounded-3xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <CheckCircle2 className="w-5 h-5" />
-                <span>تمت كتابة الكارت وتوثيقه بنجاح! 🎉</span>
-              </div>
-              <span className="text-[10px] text-emerald-300 bg-emerald-900/60 px-2 py-0.5 rounded-full font-mono">
-                {lastWritten.time}
+        {/* Step 3: THE DEDICATED LOCK & PROTECT SECTION (Always Visible!) */}
+        <div className="p-6 bg-gradient-to-br from-slate-900 via-rose-950/20 to-slate-900 border-2 border-rose-800/60 rounded-3xl space-y-4 text-right">
+          <div className="flex items-center justify-between border-b border-rose-900/40 pb-3">
+            <div className="flex items-center gap-2 text-rose-400 font-black text-sm">
+              <Lock className="w-5 h-5" />
+              <span>3. قفل الكارت نهائياً ضد التعديل أو المسح (Permanent Read-Only)</span>
+            </div>
+            {lastLocked ? (
+              <span className="text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full">
+                🔒 مقفل ومحمي
               </span>
+            ) : (
+              <span className="text-[10px] bg-rose-950 border border-rose-800 text-rose-300 font-bold px-2.5 py-0.5 rounded-full">
+                حماية أمنية
+              </span>
+            )}
+          </div>
+
+          <div className="p-4 bg-slate-950/80 rounded-2xl border border-rose-900/30 space-y-2 text-xs text-slate-300 leading-relaxed">
+            <p className="font-bold text-white">
+              🛡️ هل برمجت الكارت وتريد قفله الآن لمنع أي شخص من استبداله أو مسحه؟
+            </p>
+            <p className="text-slate-400">
+              القفل النهائي يقوم بحرق بتات القفل الدائمة (Lock Bits) في شريحة الكارت.
+              <strong> بعد القفل، لن يتمكن أي تطبيق (بما في ذلك NFC Tools) من مسح أو تغيير الرابط نهائياً!</strong>
+            </p>
+            <div className="p-2.5 bg-amber-950/40 border border-amber-800/60 rounded-xl text-amber-200 text-[11px] flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>ملاحظة هامة للقفل الناجح: ألصق الكارت بأعلى ظهر الهاتف (بجانب الكاميرا مباشرة) وثبّته لمدة <strong>ثانيتين كاملتين</strong> دون سحبه حتى يهتز الهاتف.</span>
             </div>
+          </div>
 
-            <div className="space-y-2 text-xs text-slate-300 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
-              <div className="flex justify-between">
-                <span className="text-slate-400">البروفايل:</span>
-                <span className="font-bold text-white">{lastWritten.profileName}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400">الرابط المبرمج:</span>
-                <span className="font-mono text-purple-400 font-bold dir-ltr truncate max-w-[220px]">
-                  {lastWritten.url}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-              <a
-                href={lastWritten.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <ExternalLink className="w-4 h-4 text-purple-400" />
-                <span>تجربة وفتح الرابط في المتصفح</span>
-              </a>
-
+          {/* Lock Action Button */}
+          <div>
+            {!scanning ? (
               <button
                 type="button"
                 onClick={handleStartLockNfc}
-                className="py-3 px-4 rounded-xl bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="w-full py-4 px-6 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-700 hover:to-red-800 text-white shadow-xl shadow-rose-600/25 active:scale-98 transition-all cursor-pointer"
               >
-                <Lock className="w-4 h-4" />
-                <span>قفل الكارت ضد التعديل (اختياري) 🔒</span>
+                <Lock className="w-5 h-5" />
+                <span>🔒 قفل هذا الكارت نهائياً الآن ضد أي تعديل</span>
               </button>
-            </div>
-          </div>
-        )}
+            ) : currentAction === 'LOCK' ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled
+                  className="flex-1 py-4 px-6 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 bg-slate-800 text-rose-300 border border-rose-500/40 animate-pulse"
+                >
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>المستشعر ينتظر الكارت... ثبته خلف الكاميرا لثانيتين</span>
+                </button>
 
-        {/* Collapsible Section: Diagnostic Read (Optional) */}
+                <button
+                  type="button"
+                  onClick={cancelNfcSession}
+                  className="py-4 px-5 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all cursor-pointer"
+                >
+                  <XCircle className="w-4 h-4" />
+                  <span>إلغاء</span>
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Step 4: Password Protection with NFC Tools (Alternative Method) */}
+        <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
+          <button
+            type="button"
+            onClick={() => setShowPasswordGuide(!showPasswordGuide)}
+            className="w-full flex items-center justify-between text-right cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-bold text-white">
+                🔐 طريقة الحماية برقم سري (Password Protection) عبر NFC Tools
+              </span>
+            </div>
+            {showPasswordGuide ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          </button>
+
+          {showPasswordGuide && (
+            <div className="space-y-3 pt-3 border-t border-slate-800 text-xs text-slate-300 leading-relaxed text-right">
+              <p className="text-slate-300">
+                إذا أردت وضع <strong>رقم سري سري (PIN Password مثل 1234)</strong> بحيث يفتح الكارت الرابط مع أي زبون بشكل طبيعي، ولكن إذا حاول أحد فتحه لتعديله يطلب منه الرقم السري:
+              </p>
+
+              <ol className="list-decimal list-inside space-y-2 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-slate-200">
+                <li>افتح تطبيق <strong>NFC Tools</strong> المجاني من متجر هاتفك.</li>
+                <li>اضغط على تبويب <strong>Other (أخرى)</strong> في الأعلى.</li>
+                <li>اختر خيار <strong>Lock tag (قفل الكارت)</strong> أو <strong>Set password</strong>.</li>
+                <li>أدخل الرمز السري الذي تريده (مثلاً: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-amber-400 font-mono">1234</code>).</li>
+                <li>ألصق الكارت بظهر الهاتف حتى يكتمل القفل.</li>
+              </ol>
+
+              <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl text-emerald-300 text-[11px]">
+                ✅ النتيجة: الكارت يفتح البروفايل تلقائياً عند أي شخص، لكنه مشفر برقم سري ومستحيل تعديله أو مسحه إلا بإدخال رقمك السري!
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Step 5: Diagnostic Read (Collapsible) */}
         <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
           <button
             type="button"
@@ -784,7 +885,7 @@ export default function MobileNfcToolPage() {
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 text-blue-400" />
               <span className="text-xs font-bold text-white">
-                🔍 فحص وقراءة كارت للتأكد من سلامته (Diagnostic Read)
+                🔍 فحص وقراءة كارت للتأكد من سلامته ومحتواه (Diagnostic Read)
               </span>
             </div>
             {showDiagnostic ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
@@ -873,10 +974,10 @@ export default function MobileNfcToolPage() {
           {showGuide && (
             <div className="space-y-3 pt-2 border-t border-slate-800 text-xs text-slate-300 leading-relaxed text-right">
               <p><strong>1. أين تضع الكارت؟</strong> في معظم هواتف أندرويد (شاومي، سامسونج، ريدمي)، يقع لاقط الـ NFC في أعلى ظهر الهاتف تماماً بجانب الكاميرا.</p>
-              <p><strong>2. مدة اللمس:</strong> ألصق الكارت بظهر الهاتف لمدة <strong>ثانيتين كاملتين</strong> دون سحبه بسرعة حتى ينتهي الهاتف من الكتابة ويهتز.</p>
+              <p><strong>2. مدة اللمس:</strong> ألصق الكارت بظهر الهاتف لمدة <strong>ثانيتين كاملتين</strong> دون سحبه بسرعة حتى ينتهي الهاتف من الكتابة أو القفل ويهتز.</p>
               <p><strong>3. غطاء الهاتف:</strong> الأغطية السميكة أو التي بها مغناطيس أو مساكات معدنية تعزل الإشارة. انزع الغطاء وجرب مجدداً.</p>
               <p><strong>4. نوع الرقاقة:</strong> المتصفح يدعم بطاقات NTAG213 / NTAG215 / NTAG216 القياسية.</p>
-              <p><strong>5. تطبيق NFC Tools البديل:</strong> يمكنك أيضاً استخدام تطبيق <strong>NFC Tools</strong> المجاني من متجر Google Play لفحص وكتابة الرقاقات في أي وقت.</p>
+              <p><strong>5. تطبيق NFC Tools البديل:</strong> يمكنك أيضاً استخدام تطبيق <strong>NFC Tools</strong> المجاني من متجر Google Play لقفل الرقاقات بكلمة سر في أي وقت.</p>
             </div>
           )}
         </div>
