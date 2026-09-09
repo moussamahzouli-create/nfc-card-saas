@@ -322,14 +322,20 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
 
   let card = null;
 
-  // 2. If not found by slug, look up Card by publicToken, id or cardNumber
+  // 2. If not found by slug, look up Card by publicToken, id, cardNumber, or nfcUid
   if (!profile) {
+    const rawToken = token.trim();
+    const cleanToken = rawToken.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
     card = await db.card.findFirst({
       where: {
         OR: [
-          { publicToken: token },
-          { id: token },
-          { cardNumber: token }
+          { publicToken: rawToken },
+          { id: rawToken },
+          { cardNumber: rawToken },
+          { nfcUid: rawToken },
+          { nfcUid: cleanToken },
+          { cardNumber: cleanToken },
         ]
       },
       include: {

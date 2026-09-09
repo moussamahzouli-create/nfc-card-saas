@@ -5,7 +5,7 @@ import {
   Smartphone, Cpu, CheckCircle2, AlertTriangle, RefreshCw, 
   ShieldCheck, Lock, Unlock, QrCode, ArrowRight, Sparkles, 
   Copy, Check, Download, ExternalLink, Eye, HelpCircle, XCircle, Wifi, Zap, 
-  ChevronDown, ChevronUp, KeyRound, ShieldAlert
+  ChevronDown, ChevronUp, KeyRound, ShieldAlert, Link2
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
@@ -56,6 +56,11 @@ export default function MobileNfcToolPage() {
   const [customUrl, setCustomUrl] = useState('');
   const [useCustomUrl, setUseCustomUrl] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Cloud Direct Code Binding States
+  const [cloudCardCode, setCloudCardCode] = useState('5a:c5:02:d2:1d:41:89');
+  const [bindingLoading, setBindingLoading] = useState(false);
+  const [bindSuccess, setBindSuccess] = useState<any>(null);
   
   // Auto-lock toggle during write
   const [autoLockAfterWrite, setAutoLockAfterWrite] = useState(false);
@@ -352,7 +357,53 @@ export default function MobileNfcToolPage() {
     }
   };
 
-  // 3. DIAGNOSTIC READ ACTION
+  // 3. DIRECT CLOUD BINDING (No scanning required!)
+  const handleDirectCloudBind = async () => {
+    if (!selectedProfile?.id) {
+      alert('يرجى اختيار بروفايل من القائمة أولاً');
+      return;
+    }
+    if (!cloudCardCode.trim()) {
+      alert('يرجى إدخال كود الكارت أو الـ UID');
+      return;
+    }
+
+    setBindingLoading(true);
+    setBindSuccess(null);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch('/api/mobile/nfc/bind-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profileId: selectedProfile.id,
+          cardCode: cloudCardCode.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        playSound('success');
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([150, 50, 200]);
+        }
+        setBindSuccess(data);
+        setStatusMessage('✅ تم ربط كود الكارت بالبروفايل مباشرة عبر السيرفر دون لمس الهاتف!');
+        fetchProfiles();
+      } else {
+        playSound('error');
+        setErrorMessage(data.error || 'تعذر إتمام عملية الربط');
+      }
+    } catch (err: any) {
+      playSound('error');
+      setErrorMessage(err.message || 'حدث خطأ في الاتصال بالمنصة');
+    } finally {
+      setBindingLoading(false);
+    }
+  };
+
+  // 4. DIAGNOSTIC READ ACTION
   const handleStartReadNfc = async () => {
     if (!('NDEFReader' in window)) {
       alert('مستشعر الـ NFC غير مدعوم في هذا المتصفح. استخدم متصفح Google Chrome على هاتف أندرويد.');
@@ -416,12 +467,18 @@ export default function MobileNfcToolPage() {
           }
         }
 
+        const foundUid = serialNumber || 'غير محدد من النظام';
         setReadTagData({
-          serialNumber: serialNumber || 'غير محدد من النظام',
+          serialNumber: foundUid,
           recordsCount: recordsParsed.length,
           records: recordsParsed,
           time: new Date().toLocaleTimeString('ar-MA'),
         });
+
+        // Pre-fill the cloudCardCode with scanned UID
+        if (serialNumber) {
+          setCloudCardCode(serialNumber);
+        }
 
         setStatusMessage('✅ تم فحص وقراءة بيانات الكارت بنجاح!');
         cancelNfcSession();
@@ -522,7 +579,7 @@ export default function MobileNfcToolPage() {
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-black">1</span>
-              <span>اختيار البروفايل المراد برمجته وقفله</span>
+              <span>اختيار البروفايل المراد برمجته وتوليد كوده</span>
             </label>
             <button
               type="button"
@@ -652,15 +709,83 @@ export default function MobileNfcToolPage() {
           </div>
         </div>
 
-        {/* Step 2: The Primary NFC Write Pad */}
+        {/* NEW EXCLUSIVE FEATURE: CLOUD DIRECT CODE BINDING (NO SCANNING NEEDED!) */}
+        <div className="p-6 bg-gradient-to-br from-purple-950/40 via-indigo-950/30 to-slate-900 border-2 border-purple-500/50 rounded-3xl space-y-4 text-right shadow-xl shadow-purple-950/30">
+          <div className="flex items-center justify-between border-b border-purple-800/40 pb-3">
+            <div className="flex items-center gap-2 text-purple-300 font-black text-sm">
+              <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" />
+              <span>فكرة ذكية: الربط السحابي المباشر عبر كود الكارت (بدون لمس الهاتف!) ⚡</span>
+            </div>
+            <span className="text-[10px] bg-purple-900/80 border border-purple-600 text-purple-200 font-bold px-2.5 py-0.5 rounded-full">
+              بضغطة زر واحدة
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            لست مضطراً لملامسة الكارت بالهاتف! يمكنك فقط إدخال كود الكارت أو الرقم التسلسلي (UID المطبوع على الكارت أو المقروء سابقاً) وربطه بالبروفايل مباشرة عبر السيرفر:
+          </p>
+
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-purple-300 block">
+              أدخل كود الكارت أو الـ UID (مثلاً: <code className="text-emerald-400 font-mono">5a:c5:02:d2:1d:41:89</code> أو <code className="text-emerald-400 font-mono">BP-1001</code>):
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={cloudCardCode}
+                onChange={(e) => setCloudCardCode(e.target.value)}
+                placeholder="5a:c5:02:d2:1d:41:89"
+                className="flex-1 px-4 py-3 bg-slate-950 border border-purple-500/40 rounded-2xl text-xs font-mono text-emerald-400 font-bold focus:outline-none focus:border-purple-400 dir-ltr text-left"
+              />
+              <button
+                type="button"
+                onClick={handleDirectCloudBind}
+                disabled={bindingLoading}
+                className="py-3 px-5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-600/30 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {bindingLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                <span>{bindingLoading ? 'جاري الربط...' : 'ربط الكارت بالبروفايل فوراً 🔗'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Cloud Bind Success Box */}
+          {bindSuccess && (
+            <div className="p-4 bg-emerald-950/60 border border-emerald-700 rounded-2xl space-y-2 text-xs text-right">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{bindSuccess.message}</span>
+              </div>
+              <p className="text-slate-300 text-[11px] leading-relaxed">
+                تم ربط الكارت بالعميل <strong>{bindSuccess.profile.name}</strong> بنجاح! الآن أي شخص يفتح رابط الكارت أو يلمسه سيفتح بروفايله تلقائياً:
+              </p>
+              <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <span className="font-mono text-purple-400 font-bold dir-ltr truncate text-xs">
+                  {bindSuccess.card.directCardUrl}
+                </span>
+                <a
+                  href={bindSuccess.card.directCardUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-1 px-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>تجربة الرابط</span>
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Step 2: The Physical NFC Write Pad */}
         <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl text-center space-y-5">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-black">2</span>
-              <span>برمجة كارت الـ NFC</span>
+              <span>أو كتابة الشريحة مباشرة باللمس (NFC Hardware Write)</span>
             </span>
             <span className="text-[11px] text-emerald-400 font-bold bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800/80">
-              عملية فورية ⚡
+              اختياري بالهاتف 📲
             </span>
           </div>
 
