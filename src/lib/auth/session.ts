@@ -32,6 +32,19 @@ export function generateToken(user: SessionUser): string {
  * Get current session user from the request cookies.
  */
 export async function getSessionUser(req: NextRequest): Promise<SessionUser | null> {
+  // 1. Check Authorization Bearer header (for mobile apps & API clients)
+  const authHeader = req.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7).trim();
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as SessionUser;
+      return decoded;
+    } catch {
+      return null;
+    }
+  }
+
+  // 2. Fallback to cookie
   const cookie = req.cookies.get(COOKIE_NAME);
   if (!cookie?.value) return null;
 

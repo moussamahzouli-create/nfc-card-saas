@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Brandxpere NFC Manager",
+    "slug": "brandxpere-nfc-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#090D16"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brandxpere.nfcmanager",
+      "infoPlist": {
+        "NFCReaderUsageDescription": "يتطلب التطبيق الوصول إلى مستشعر NFC لبرمجة وتأمين كروت العمل الذكية"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#090D16"
+      },
+      "package": "com.brandxpere.nfcmanager",
+      "permissions": [
+        "android.permission.NFC",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "plugins": [
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermissionDescription": "يتطلب التطبيق مستشعر NFC لبرمجة كروت Brandxpere"
+        }
+      ]
+    ]
+  }
+}
