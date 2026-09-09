@@ -281,15 +281,52 @@ const SOCIAL_MAP: Record<string, SocialConfig> = {
       </svg>
     ),
   },
+  google: {
+    id: 'google',
+    label: 'Google',
+    gradient: 'linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%)',
+    solidColor: '#4285F4',
+    svg: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      </svg>
+    ),
+  },
+  googlereviews: {
+    id: 'googlereviews',
+    label: 'Google Reviews',
+    gradient: 'linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%)',
+    solidColor: '#4285F4',
+    svg: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+      </svg>
+    ),
+  },
+  googlemap: {
+    id: 'googlemap',
+    label: 'Google Maps',
+    gradient: 'linear-gradient(135deg, #34A853 0%, #137333 100%)',
+    solidColor: '#34A853',
+    svg: <MapPin className="w-5 h-5 fill-current" />,
+  },
 };
 
 function getSocialInfo(platform: string) {
   const p = (platform || '').toLowerCase().trim();
   if (SOCIAL_MAP[p]) return SOCIAL_MAP[p];
+  if (p.includes('googlereview') || p.includes('review')) return SOCIAL_MAP.googlereviews;
+  if (p.includes('googlemap') || p.includes('map') || p.includes('location')) return SOCIAL_MAP.location;
+  if (p.includes('google')) return SOCIAL_MAP.google;
   if (p.includes('call') || p.includes('phone') || p.includes('tel')) return SOCIAL_MAP.phone;
   if (p.includes('mail')) return SOCIAL_MAP.email;
   if (p.includes('web') || p.includes('site')) return SOCIAL_MAP.website;
-  if (p.includes('map') || p.includes('location')) return SOCIAL_MAP.location;
   if (p.includes('pin')) return SOCIAL_MAP.pinterest;
 
   return {
@@ -531,17 +568,47 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   const seenPlatforms = new Set<string>();
 
   const resolveSmartUrl = (plat: string, rawVal: string): string => {
+    const val = (rawVal || '').trim();
     const p = plat.toLowerCase().trim();
-    if (p.includes('call') || p.includes('phone') || p.includes('tel') || (/^\+?[0-9\s\-]+$/.test(rawVal) && !rawVal.includes('@'))) {
-      return formatPhoneUrl(rawVal);
+
+    // 1. If it's already an absolute web URL (http or https), ALWAYS preserve it as a web link!
+    // Critical: Google Maps/Reviews URLs contain '@' in coordinates (e.g. /@31.63,-7.99,15z/) and MUST NOT be mailto!
+    if (val.startsWith('http://') || val.startsWith('https://')) {
+      return val;
     }
-    if (p.includes('mail') || rawVal.includes('@')) {
-      return formatEmailUrl(rawVal);
+
+    // 2. Phone / Call
+    if (
+      p.includes('call') || 
+      p.includes('phone') || 
+      p.includes('tel') || 
+      (/^\+?[0-9\s\-]{6,}$/.test(val) && !val.includes('@') && !val.includes('.'))
+    ) {
+      return formatPhoneUrl(val);
     }
+
+    // 3. Email (only if platform says mail, or it's a valid email address with @ and no slashes)
+    if (p.includes('mail') || (val.includes('@') && !val.includes('/') && !val.startsWith('@'))) {
+      return formatEmailUrl(val);
+    }
+
+    // 4. WhatsApp
     if (p.includes('whatsapp')) {
-      return formatWhatsAppUrl(rawVal);
+      return formatWhatsAppUrl(val);
     }
-    return formatWebsiteUrl(rawVal);
+
+    // 5. Social handles with @ (e.g., @username)
+    if (val.startsWith('@')) {
+      const handle = val.substring(1);
+      if (p.includes('insta')) return `https://instagram.com/${handle}`;
+      if (p.includes('twit') || p === 'x') return `https://x.com/${handle}`;
+      if (p.includes('tiktok')) return `https://tiktok.com/@${handle}`;
+      if (p.includes('tele')) return `https://t.me/${handle}`;
+      if (p.includes('git')) return `https://github.com/${handle}`;
+    }
+
+    // 6. Default web URL
+    return formatWebsiteUrl(val);
   };
 
   // AS REQUESTED: Put WhatsApp in Social Networks!
