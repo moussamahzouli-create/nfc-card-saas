@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, CreditCard, User, BarChart3, Settings, LogOut, Layers, ShoppingBag, Receipt, QrCode, HelpCircle, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, CreditCard, User, BarChart3, Settings, LogOut, Layers, ShoppingBag, Receipt, QrCode, HelpCircle, ShieldCheck, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -132,6 +132,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span>مولد QR للروابط</span>
             </div>
             <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold">جديد</span>
+          </Link>
+          <Link href="/dashboard/nfc-tool" className="flex items-center justify-between px-4 py-3 rounded-xl text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 font-bold text-sm transition-all">
+            <div className="flex items-center gap-3">
+              <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              <span>برمجة NFC للهاتف</span>
+            </div>
+            <span className="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">📲</span>
           </Link>
           <Link href="/help" className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-405 hover:bg-slate-100 dark:hover:bg-slate-850 font-semibold text-sm transition-all">
             <HelpCircle className="w-5 h-5" />
