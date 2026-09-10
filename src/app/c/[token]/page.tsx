@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
@@ -14,8 +14,7 @@ import ShareModal from './ShareModal';
 import CardImage from './CardImage';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 30;
 
 interface TokenPageProps {
   params: Promise<{
@@ -23,18 +22,84 @@ interface TokenPageProps {
   }>;
 }
 
+// Cached profile lookup: deduplicates queries between generateMetadata and PublicTokenPage in a single request
+const getProfileByToken = cache(async (token: string) => {
+  const rawToken = (token || '').trim();
+  const cleanToken = rawToken.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+  // 1. Try to fetch profile directly by slug or id
+  let profile = await db.profile.findFirst({
+    where: {
+      OR: [
+        { slug: rawToken },
+        { id: rawToken }
+      ]
+    },
+    include: {
+      components: { orderBy: { sortOrder: 'asc' } },
+      socialLinks: { orderBy: { sortOrder: 'asc' } },
+      locations: true,
+      businessHours: { orderBy: { day: 'asc' } },
+    },
+  });
+
+  let card = null;
+
+  // 2. If not found by slug, look up Card by publicToken, id, cardNumber, or nfcUid
+  if (!profile) {
+    card = await db.card.findFirst({
+      where: {
+        OR: [
+          { publicToken: rawToken },
+          { id: rawToken },
+          { cardNumber: rawToken },
+          { nfcUid: rawToken },
+          { nfcUid: cleanToken },
+          { cardNumber: cleanToken },
+        ]
+      },
+      include: {
+        assignments: {
+          include: {
+            profile: {
+              include: {
+                components: { orderBy: { sortOrder: 'asc' } },
+                socialLinks: { orderBy: { sortOrder: 'asc' } },
+                locations: true,
+                businessHours: { orderBy: { day: 'asc' } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (card && card.assignments?.[0]?.profile) {
+      profile = card.assignments[0].profile;
+    }
+  }
+
+  // 3. Find active card if not already found
+  if (profile && !card) {
+    card = await db.card.findFirst({
+      where: {
+        assignments: {
+          some: {
+            profileId: profile.id,
+            unassignedAt: null
+          }
+        }
+      }
+    });
+  }
+
+  return { profile, card };
+});
+
 // Metadata generator for high-res social sharing cards
 export async function generateMetadata({ params }: TokenPageProps): Promise<Metadata> {
   const { token } = await params;
-  const profile = await db.profile.findFirst({
-    where: {
-      OR: [
-        { slug: token },
-        { id: token }
-      ]
-    },
-    select: { name: true, jobTitle: true, company: true, bio: true, photoUrl: true }
-  });
+  const { profile } = await getProfileByToken(token);
 
   if (!profile) {
     return { title: 'Digital Business Card | brandxpere' };
@@ -340,79 +405,13 @@ function getSocialInfo(platform: string) {
 
 export default async function PublicTokenPage({ params }: TokenPageProps) {
   const { token } = await params;
+  const { profile: initialProfile, card: initialCard } = await getProfileByToken(token);
+  let profile = initialProfile;
+  let card = initialCard;
 
-  // 1. Try to fetch profile directly by slug or id
-  let profile = await db.profile.findFirst({
-    where: {
-      OR: [
-        { slug: token },
-        { id: token }
-      ]
-    },
-    include: {
-      components: { orderBy: { sortOrder: 'asc' } },
-      socialLinks: { orderBy: { sortOrder: 'asc' } },
-      locations: true,
-      businessHours: { orderBy: { day: 'asc' } },
-    },
-  });
-
-  let card = null;
-
-  // 2. If not found by slug, look up Card by publicToken, id, cardNumber, or nfcUid
-  if (!profile) {
-    const rawToken = token.trim();
-    const cleanToken = rawToken.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
-    card = await db.card.findFirst({
-      where: {
-        OR: [
-          { publicToken: rawToken },
-          { id: rawToken },
-          { cardNumber: rawToken },
-          { nfcUid: rawToken },
-          { nfcUid: cleanToken },
-          { cardNumber: cleanToken },
-        ]
-      },
-      include: {
-        assignments: {
-          include: {
-            profile: {
-              include: {
-                components: { orderBy: { sortOrder: 'asc' } },
-                socialLinks: { orderBy: { sortOrder: 'asc' } },
-                locations: true,
-                businessHours: { orderBy: { day: 'asc' } },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (card && card.assignments?.[0]?.profile) {
-      profile = card.assignments[0].profile;
-    }
-  }
-
-  // 3. If no profile matches, show 404 notFound
+  // If no profile matches, show 404 notFound
   if (!profile) {
     return notFound();
-  }
-
-  // 4. Check Card state restrictions
-  if (!card) {
-    card = await db.card.findFirst({
-      where: {
-        assignments: {
-          some: {
-            profileId: profile.id,
-            unassignedAt: null
-          }
-        }
-      }
-    });
   }
 
   if (card) {

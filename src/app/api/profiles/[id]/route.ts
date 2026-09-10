@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth/session';
 import { canAccessProfile } from '@/lib/auth/profile-access';
@@ -173,6 +174,13 @@ export async function PUT(req: NextRequest, { params }: Params) {
         businessHours: { orderBy: { day: 'asc' } },
       },
     });
+
+    if (refreshed) {
+      if (refreshed.slug) {
+        try { revalidatePath(`/c/${refreshed.slug}`); } catch {}
+      }
+      try { revalidatePath(`/c/${refreshed.id}`); } catch {}
+    }
 
     return NextResponse.json(refreshed);
   } catch (error: any) {
