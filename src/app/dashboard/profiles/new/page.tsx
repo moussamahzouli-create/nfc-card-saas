@@ -129,7 +129,7 @@ function TemplateCard({ tpl, selected, onSelect }: {
 }
 
 /* ── Input helper ──────────────────────────────────────── */
-const inp = 'w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-400 text-slate-900 text-sm outline-none transition-all placeholder-slate-400';
+const inp = 'w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-400 text-black font-bold text-sm outline-none transition-all placeholder:text-slate-400';
 
 /* ═══════════════════════════════════════════════════════
    MAIN PAGE
@@ -379,7 +379,7 @@ export default function CreateProfilePage() {
                 <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Public Card URL *</label>
                 <div className="flex items-center border border-slate-200 bg-slate-50 focus-within:bg-white focus-within:border-slate-400 rounded-xl overflow-hidden transition-all">
                   <span className="px-3 py-3 text-xs font-mono text-slate-400 bg-slate-100 border-r border-slate-200 select-none whitespace-nowrap">/c/</span>
-                  <input className="flex-1 px-3 py-3 bg-transparent outline-none text-slate-900 placeholder-slate-400 font-mono text-sm"
+                  <input className="flex-1 px-3 py-3 bg-transparent outline-none text-black font-bold placeholder:text-slate-400 font-mono text-sm"
                     placeholder="your-name" value={slug}
                     onChange={e => { setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '')); setSlugTouched(true); }} />
                   <button type="button" onClick={() => {

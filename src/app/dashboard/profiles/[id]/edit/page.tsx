@@ -941,31 +941,31 @@ export default function PremiumVisualBuilder() {
                 {/* Name fields */}
                 <div className="space-y-1.5">
                   <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">First Name</label>
-                  <input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                  <input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                     placeholder="Ahmed" value={draft.firstName || ''} onChange={e => setDraft((p: any) => ({ ...p, firstName: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Last Name</label>
-                  <input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                  <input className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                     placeholder="Al-Rashid" value={draft.lastName || ''} onChange={e => setDraft((p: any) => ({ ...p, lastName: e.target.value }))} />
                 </div>
 
                 {/* Job / Company */}
                 <div className="space-y-1.5 col-span-2">
                   <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Job Title</label>
-                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                     placeholder="CEO, Doctor, Designer…" value={draft.jobTitle || ''} onChange={e => setDraft((p: any) => ({ ...p, jobTitle: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Company / Organisation</label>
-                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                     placeholder="Acme Corp" value={draft.company || ''} onChange={e => setDraft((p: any) => ({ ...p, company: e.target.value }))} />
                 </div>
 
                 {/* Bio */}
                 <div className="space-y-1.5 col-span-2">
                   <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Bio / Description</label>
-                  <textarea rows={3} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs outline-none transition-all resize-none"
+                  <textarea rows={3} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all resize-none"
                     placeholder="Tell visitors about your professional profile…" value={draft.bio || ''} onChange={e => setDraft((p: any) => ({ ...p, bio: e.target.value }))} />
                 </div>
               </div>
@@ -981,7 +981,7 @@ export default function PremiumVisualBuilder() {
               ].map(({ key, label, placeholder }) => (
                 <div key={key} className="space-y-1.5">
                   <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
-                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                     placeholder={placeholder} value={draft[key] || ''} onChange={e => setDraft((p: any) => ({ ...p, [key]: e.target.value }))} />
                 </div>
               ))}
@@ -1040,7 +1040,7 @@ export default function PremiumVisualBuilder() {
                     <input
                       type="text"
                       placeholder="مثال: Marrakech, Maroc أو رابط خرائط Google"
-                      className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs outline-none transition-all"
+                      className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                       value={(() => {
                         const mc = components.find(c => c.type.toLowerCase() === 'googlemap');
                         return mc?.value || draft.location || '';
@@ -1099,7 +1099,7 @@ export default function PremiumVisualBuilder() {
                       </div>
                       {enabled && (
                         <div className="p-2.5 border-t border-slate-100">
-                          <input className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-slate-400 focus:bg-white"
+                          <input className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none focus:border-slate-400 focus:bg-white"
                             placeholder={`${s.label} Link or handle`} value={socialLinks[s.id] || ''} onChange={e => setSocialLinks(p => ({ ...p, [s.id]: e.target.value }))} />
                         </div>
                       )}
@@ -1116,7 +1116,7 @@ export default function PremiumVisualBuilder() {
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Apply Industry Template</label>
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-                  <input className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-slate-400 focus:bg-white"
+                  <input className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none focus:border-slate-400 focus:bg-white"
                     placeholder="Search industry templates…" value={templateSearch} onChange={e => setTemplateSearch(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
@@ -1272,7 +1272,7 @@ export default function PremiumVisualBuilder() {
                           <input
                             type="text"
                             placeholder="Block Title (e.g. Call Me)"
-                            className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-slate-450"
+                            className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-black font-bold placeholder:text-slate-400 outline-none focus:border-slate-450"
                             value={comp.title || ''}
                             onChange={e => {
                               const list = [...components];
@@ -1340,7 +1340,7 @@ export default function PremiumVisualBuilder() {
                               <input
                                 type="text"
                                 placeholder="أو رابط ويب / Pinterest / صورة مباشرة..."
-                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-slate-450"
+                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-black font-bold placeholder:text-slate-400 outline-none focus:border-slate-450"
                                 value={comp.value || ''}
                                 onChange={e => {
                                   const list = [...components];
@@ -1391,7 +1391,7 @@ export default function PremiumVisualBuilder() {
                                   <input
                                     type="text"
                                     placeholder="أو رابط المنيو (Drive / Canva / موقع...)"
-                                    className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-slate-400"
+                                    className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-black font-bold placeholder:text-slate-400 outline-none focus:border-slate-400"
                                     value={comp.value || ''}
                                     onChange={e => {
                                       const list = [...components];
@@ -1450,7 +1450,7 @@ export default function PremiumVisualBuilder() {
                                                 setComponents(list);
                                               }}
                                               onBlur={() => updateComponent(comp.id, { settingsJson: JSON.stringify(items) })}
-                                              className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-[11px] font-bold"
+                                              className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-[11px] text-black font-bold placeholder:text-slate-400"
                                             />
                                             <input
                                               type="text"
@@ -1464,7 +1464,7 @@ export default function PremiumVisualBuilder() {
                                                 setComponents(list);
                                               }}
                                               onBlur={() => updateComponent(comp.id, { settingsJson: JSON.stringify(items) })}
-                                              className="w-28 px-2 py-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-amber-600"
+                                              className="w-28 px-2 py-1 bg-white border border-slate-200 rounded text-[11px] font-bold text-black placeholder:text-slate-400"
                                             />
                                             <button
                                               type="button"
@@ -1493,7 +1493,7 @@ export default function PremiumVisualBuilder() {
                                               setComponents(list);
                                             }}
                                             onBlur={() => updateComponent(comp.id, { settingsJson: JSON.stringify(items) })}
-                                            className="w-full px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-slate-600"
+                                            className="w-full px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] text-black font-semibold placeholder:text-slate-400"
                                           />
                                         </div>
                                       ))}
@@ -1510,7 +1510,7 @@ export default function PremiumVisualBuilder() {
                                 comp.type.toLowerCase() === 'video' ? 'YouTube Video URL' :
                                 'Value or Link'
                               }
-                              className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-slate-450"
+                              className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] text-black font-bold placeholder:text-slate-400 outline-none focus:border-slate-450"
                               value={comp.value || ''}
                               onChange={e => {
                                 const list = [...components];
