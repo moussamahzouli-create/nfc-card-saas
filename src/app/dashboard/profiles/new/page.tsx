@@ -342,7 +342,7 @@ export default function CreateProfilePage() {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <div className="profile-editor-panel bg-white rounded-2xl border border-slate-200 p-8 shadow-sm" style={{ colorScheme: 'light' }}>
             <h2 className="text-2xl font-black text-slate-900 mb-1">Your details</h2>
             <p className="text-sm text-slate-500 mb-7">You can update everything later in the editor.</p>
 

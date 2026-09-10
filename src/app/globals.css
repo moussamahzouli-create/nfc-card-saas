@@ -24,6 +24,43 @@
 /* ── Base resets ───────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── Universal Form Input Visibility Fix (All Phones, Tablets & Computers) ── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="button"]):not([type="submit"]),
+textarea,
+select {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  color-scheme: light !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* Ensure dark-themed admin inputs retain white text */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+.dark textarea,
+.bg-slate-900 input,
+.bg-slate-950 input,
+.bg-slate-800 input {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color-scheme: dark !important;
+}
+
+/* Force pure crisp black text and white background inside profile editor panel */
+.profile-editor-panel input,
+.profile-editor-panel textarea,
+.profile-editor-panel select {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  background-color: #ffffff !important;
+  color-scheme: light !important;
+}
+
 /* ── Public card page ──────────────────────── */
 .card-page {
   background: var(--theme-background);

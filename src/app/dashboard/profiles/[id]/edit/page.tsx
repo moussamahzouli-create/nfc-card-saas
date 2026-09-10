@@ -856,7 +856,7 @@ export default function PremiumVisualBuilder() {
       <div className="flex-1 flex min-h-0">
         
         {/* LEFT COLUMN PANEL */}
-        <div className="w-[310px] xl:w-[350px] shrink-0 flex flex-col bg-white border-r border-slate-200 overflow-hidden">
+        <div className="profile-editor-panel w-[310px] xl:w-[350px] shrink-0 flex flex-col bg-white text-slate-900 border-r border-slate-200 overflow-hidden" style={{ colorScheme: 'light' }}>
           {/* Tabs */}
           <div className="flex border-b border-slate-200 overflow-x-auto shrink-0 scrollbar-none">
             {([
