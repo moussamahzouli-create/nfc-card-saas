@@ -13,6 +13,7 @@ import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
 import CardImage from './CardImage';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
+import { resolveAndParseMapsInput } from '@/lib/maps';
 
 export const revalidate = 30;
 
@@ -691,6 +692,16 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     }
   }
 
+  // Resolve Google Map data dynamically (handles short links, place links, coordinates, and plain addresses)
+  let resolvedMapData = null;
+  if (!isMapDisabled && locationAddress) {
+    resolvedMapData = await resolveAndParseMapsInput(
+      locationAddress,
+      mapComponent?.title || profile.company || profile.name,
+      isArabic
+    );
+  }
+
   // 12. Reviews Resolution (Core Feature)
   const hasReviewComponent = profile.components?.some(c => c.type.toLowerCase() === 'googlereview' && c.isVisible);
   const shouldShowReviews = hasReviewComponent || profile.slug === 'moussa-mahzouli';
@@ -1026,6 +1037,10 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                 borderColor={appearance.border}
                 textColor={appearance.text}
                 mutedColor={appearance.muted}
+                embedUrl={resolvedMapData?.embedUrl}
+                directMapsUrl={resolvedMapData?.directUrl}
+                directionsUrl={resolvedMapData?.directionsUrl}
+                displayAddress={resolvedMapData?.displayAddress}
               />
             </div>
           )}

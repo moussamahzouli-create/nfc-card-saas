@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { MapPin, Navigation, Copy, Check, ExternalLink } from 'lucide-react';
+import { parseMapsInput } from '@/lib/maps';
 
 interface LocationMapWidgetProps {
   address: string;
@@ -12,6 +13,10 @@ interface LocationMapWidgetProps {
   borderColor?: string;
   textColor?: string;
   mutedColor?: string;
+  embedUrl?: string;
+  directMapsUrl?: string;
+  directionsUrl?: string;
+  displayAddress?: string;
 }
 
 export default function LocationMapWidget({
@@ -23,36 +28,26 @@ export default function LocationMapWidget({
   borderColor = 'rgba(255, 255, 255, 0.08)',
   textColor = '#FFFFFF',
   mutedColor = '#94A3B8',
+  embedUrl: propEmbedUrl,
+  directMapsUrl: propDirectMapsUrl,
+  directionsUrl: propDirectionsUrl,
+  displayAddress: propDisplayAddress,
 }: LocationMapWidgetProps) {
   const [copied, setCopied] = useState(false);
 
   if (!address || !address.trim()) return null;
 
-  const isUrl = address.startsWith('http://') || address.startsWith('https://');
-  
-  // Resolve friendly label and embed query
-  let displayAddress = address;
-  let embedQuery = address;
-  let directMapsUrl = isUrl ? address : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-
-  if (isUrl) {
-    if (address.includes('PC4RSK7CmeR6dSFf8') || address.toLowerCase().includes('moussa')) {
-      displayAddress = 'Moussa print - مراكش، المغرب';
-      embedQuery = '31.5645365,-7.6628174';
-    } else {
-      displayAddress = isArabic ? 'موقعنا عبر خرائط Google' : 'Google Maps Location';
-      embedQuery = 'Marrakech, Maroc';
-    }
-  }
+  // Use pre-resolved props if provided by the server, otherwise parse client-side
+  const parsed = parseMapsInput(address, title, isArabic);
+  const finalEmbedUrl = propEmbedUrl || parsed.embedUrl;
+  const finalDirectUrl = propDirectMapsUrl || parsed.directUrl;
+  const finalDirectionsUrl = propDirectionsUrl || parsed.directionsUrl;
+  const finalDisplayAddress = propDisplayAddress || parsed.displayAddress;
 
   const displayTitle = title || (isArabic ? 'موقعنا على الخريطة' : 'Location Map');
-  const googleMapsDirectionsUrl = isUrl && !address.includes('?') 
-    ? address 
-    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(embedQuery)}`;
-  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(embedQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   const handleCopy = async () => {
-    const textToCopy = isUrl ? address : displayAddress;
+    const textToCopy = finalDirectUrl || finalDisplayAddress || address;
     try {
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
@@ -88,7 +83,7 @@ export default function LocationMapWidget({
               {displayTitle}
             </h3>
             <p className="text-[11px] font-semibold truncate opacity-85" style={{ color: mutedColor }}>
-              {displayAddress}
+              {finalDisplayAddress}
             </p>
           </div>
         </div>
@@ -98,7 +93,7 @@ export default function LocationMapWidget({
           onClick={handleCopy}
           className="px-2.5 py-1.5 rounded-xl border text-[10px] font-bold flex items-center gap-1 shrink-0 transition-all hover:bg-white/10 active:scale-95 cursor-pointer"
           style={{ borderColor: borderColor, color: textColor }}
-          title={isArabic ? 'نسخ العنوان' : 'Copy address'}
+          title={isArabic ? 'نسخ العنوان أو الرابط' : 'Copy address or link'}
         >
           {copied ? (
             <>
@@ -124,7 +119,7 @@ export default function LocationMapWidget({
           loading="lazy"
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
-          src={embedUrl}
+          src={finalEmbedUrl}
         />
 
         {/* Ambient Map overlay indicator */}
@@ -137,7 +132,7 @@ export default function LocationMapWidget({
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-2 pt-0.5">
         <a
-          href={googleMapsDirectionsUrl}
+          href={finalDirectionsUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 text-white shadow-md transition-all hover:opacity-95 active:scale-98 cursor-pointer"
@@ -150,7 +145,7 @@ export default function LocationMapWidget({
         </a>
 
         <a
-          href={directMapsUrl}
+          href={finalDirectUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all hover:bg-white/10 active:scale-98 cursor-pointer"

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { INDUSTRY_TEMPLATES, type IndustryTemplate } from '@/lib/templates/industry-templates';
 import { compressImage } from '@/lib/image-compression';
+import { parseMapsInput } from '@/lib/maps';
 
 /* ═══════════════════════════════
    TYPES & CONSTANTS
@@ -214,15 +215,18 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
 
               if (compType === 'googlemap') {
                 if (appearance?.showMap === false) return null;
+                const mapInfo = parseMapsInput(comp.value || comp.url || '', comp.title || 'Location Map');
                 return (
                   <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-2 bg-slate-50/50" style={{ borderColor: border }}>
-                    <div className="text-[9px] uppercase tracking-wider block opacity-60 font-semibold mb-1 px-1">{comp.title}</div>
+                    <div className="text-[9px] uppercase tracking-wider block opacity-60 font-semibold mb-1 px-1">
+                      {comp.title} {mapInfo.displayAddress ? `— ${mapInfo.displayAddress}` : ''}
+                    </div>
                     <iframe
                       width="100%"
                       height="120"
                       style={{ border: 0, borderRadius: '8px' }}
                       loading="lazy"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(comp.value || comp.url || 'Location')}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                      src={mapInfo.embedUrl}
                     />
                   </div>
                 );
@@ -1039,7 +1043,7 @@ export default function PremiumVisualBuilder() {
                     <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">عنوان أو رابط الخريطة</label>
                     <input
                       type="text"
-                      placeholder="مثال: Marrakech, Maroc أو رابط خرائط Google"
+                      placeholder="مثال: اسم المحل، العنوان، أو رابط خرائط Google"
                       className="w-full px-3 py-2 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
                       value={(() => {
                         const mc = components.find(c => c.type.toLowerCase() === 'googlemap');
@@ -1506,7 +1510,7 @@ export default function PremiumVisualBuilder() {
                             <input
                               type="text"
                               placeholder={
-                                comp.type.toLowerCase() === 'googlemap' ? 'Address (e.g. London, UK)' :
+                                comp.type.toLowerCase() === 'googlemap' ? 'مثال: اسم المحل، العنوان، أو رابط خرائط Google' :
                                 comp.type.toLowerCase() === 'video' ? 'YouTube Video URL' :
                                 'Value or Link'
                               }
