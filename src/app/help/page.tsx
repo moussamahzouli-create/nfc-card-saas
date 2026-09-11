@@ -91,7 +91,7 @@ export default function HelpPage() {
             </div>
             <h3 className="text-lg font-black">Still Need Help? We&apos;re Available on WhatsApp</h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md">
-              Marrakech, Maroc &bull; +212 606-034080 &bull; BRANDXPER@GMAIL.COM
+              Marrakech, Maroc &bull; +212 778-481250 &bull; BRANDXPER@GMAIL.COM
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export default function HelpPage() {
               <span>Instagram @brandxpere</span>
             </a>
             <a
-              href="https://wa.me/212606034080?text=Hello%20brandxpere%20Support"
+              href="https://wa.me/212778481250?text=Hello%20brandxpere%20Support"
               target="_blank"
               rel="noopener noreferrer"
               className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-2 transition-all"

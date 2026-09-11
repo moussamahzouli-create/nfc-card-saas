@@ -150,14 +150,14 @@ export default function ContactPage() {
                 </span>
                 <h2 className="text-base font-bold">WhatsApp & Telephone</h2>
                 <p className="text-lg font-extrabold text-slate-900 dark:text-white font-mono">
-                  +212 606-034080
+                  +212 778-481250
                 </p>
               </div>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-2.5">
               <a 
-                href="https://wa.me/212606034080?text=Hello%20brandxpere%20Team" 
+                href="https://wa.me/212778481250?text=Hello%20brandxpere%20Team" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all active:scale-[0.98]"
@@ -166,7 +166,7 @@ export default function ContactPage() {
                 <span>WhatsApp</span>
               </a>
               <a 
-                href="tel:+212606034080"
+                href="tel:+212778481250"
                 className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all active:scale-[0.98]"
               >
                 <Phone className="w-4 h-4" />

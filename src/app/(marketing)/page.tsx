@@ -579,13 +579,13 @@ export default function MarketingPage() {
                   <span>@brandxpere (Instagram)</span>
                 </a>
                 <a 
-                  href="https://wa.me/212606034080?text=Hello%20brandxpere" 
+                  href="https://wa.me/212778481250?text=Hello%20brandxpere" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors font-mono"
                 >
                   <MessageCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>+212 606-034080 (WhatsApp & Tel)</span>
+                  <span>+212 778-481250 (WhatsApp & Tel)</span>
                 </a>
                 <a 
                   href="mailto:BRANDXPER@GMAIL.COM" 
@@ -632,7 +632,7 @@ export default function MarketingPage() {
                 Need immediate help or consultation? Reach our team on WhatsApp directly.
               </p>
               <a
-                href="https://wa.me/212606034080?text=Hello%20BrandXper%20Team"
+                href="https://wa.me/212778481250?text=Hello%20BrandXper%20Team"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98]"
@@ -657,7 +657,7 @@ export default function MarketingPage() {
       {/* Floating WhatsApp Quick-Action Button */}
       <aside aria-label="WhatsApp Support" className="fixed bottom-6 right-6 z-50">
         <a
-          href="https://wa.me/212606034080?text=Hello%20BrandXper%20Team"
+          href="https://wa.me/212778481250?text=Hello%20BrandXper%20Team"
           target="_blank"
           rel="noopener noreferrer"
           className="group flex items-center gap-2.5 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full shadow-2xl shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-105 active:scale-95 transition-all duration-300 font-bold text-xs"
@@ -667,7 +667,7 @@ export default function MarketingPage() {
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-200" />
           </span>
           <MessageCircle className="w-5 h-5" />
-          <span className="hidden sm:inline">WhatsApp +212 606-034080</span>
+          <span className="hidden sm:inline">WhatsApp +212 778-481250</span>
         </a>
       </aside>
     </div>
