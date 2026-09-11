@@ -14,9 +14,11 @@ const createProfileSchema = z.object({
   company: z.string().optional(),
   bio: z.string().optional(),
   phone: z.string().optional(),
+  phone2: z.string().optional(),
   email: z.string().optional(),
   website: z.string().optional(),
   whatsApp: z.string().optional(),
+  whatsApp2: z.string().optional(),
   photoUrl: z.string().optional(),
   coverUrl: z.string().optional(),
   templateId: z.string().optional(),
@@ -75,7 +77,7 @@ export async function POST(req: NextRequest) {
     const {
       name, slug, type, organizationId,
       firstName, lastName, jobTitle, company, bio,
-      phone, email, website, whatsApp, photoUrl, coverUrl,
+      phone, phone2, email, website, whatsApp, whatsApp2, photoUrl, coverUrl,
       templateId, appearanceJson,
     } = result.data;
 
@@ -138,6 +140,15 @@ export async function POST(req: NextRequest) {
           if (!parsed.templateId) parsed.templateId = templateId;
           finalAppearanceJson = JSON.stringify(parsed);
         }
+      } catch {}
+    }
+
+    if (phone2 || whatsApp2) {
+      try {
+        let appObj = finalAppearanceJson ? JSON.parse(finalAppearanceJson) : {};
+        if (phone2) appObj.phone2 = phone2.trim();
+        if (whatsApp2) appObj.whatsApp2 = whatsApp2.trim();
+        finalAppearanceJson = JSON.stringify(appObj);
       } catch {}
     }
 

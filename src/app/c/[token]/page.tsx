@@ -564,7 +564,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   }
 
   // 8. Resolve Social Links with smart formatters
-  const activeSocials: Array<{ id: string; platform: string; url: string; username?: string }> = [];
+  const activeSocials: Array<{ id: string; platform: string; url: string; username?: string; label?: string }> = [];
   const seenPlatforms = new Set<string>();
 
   const resolveSmartUrl = (plat: string, rawVal: string): string => {
@@ -611,17 +611,47 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     return formatWebsiteUrl(val);
   };
 
-  // AS REQUESTED: Put WhatsApp in Social Networks!
-  const whatsAppNumber = profile.whatsApp || profile.phone;
-  if (whatsAppNumber) {
-    const formattedWa = formatWhatsAppUrl(whatsAppNumber);
-    if (formattedWa) {
+  // 9. Check language & direction
+  const isArabic = !!(
+    profile.bio?.includes('ال') || 
+    profile.name?.match(/[\u0600-\u06FF]/) ||
+    profile.jobTitle?.match(/[\u0600-\u06FF]/)
+  );
+  const dir = isArabic ? 'rtl' : 'ltr';
+
+  // AS REQUESTED: Support Two WhatsApp numbers in Social Networks!
+  const phone1 = (profile.phone || '').trim();
+  const phone2 = ((appearance as any).phone2 || '').trim() || (profile.components?.find(c => c.type.toLowerCase() === 'phone' && c.isVisible && c.value && c.value.trim() !== phone1)?.value || '').trim();
+
+  const rawWa1 = (profile.whatsApp || profile.phone || '').trim();
+  const rawWa2 = ((appearance as any).whatsApp2 || '').trim() || (profile.components?.find(c => c.type.toLowerCase() === 'whatsapp' && c.isVisible && c.value && c.value.trim() !== rawWa1)?.value || '').trim();
+
+  if (rawWa1) {
+    const formattedWa1 = formatWhatsAppUrl(rawWa1);
+    if (formattedWa1) {
       activeSocials.push({
         id: 'whatsapp-primary',
         platform: 'whatsapp',
-        url: formattedWa,
-        username: whatsAppNumber,
+        label: rawWa2 ? (isArabic ? 'واتساب 1 (الأساسي)' : 'WhatsApp 1') : 'WhatsApp',
+        url: formattedWa1,
+        username: rawWa1,
       });
+      seenPlatforms.add('whatsapp-primary');
+      if (!rawWa2) seenPlatforms.add('whatsapp');
+    }
+  }
+
+  if (rawWa2) {
+    const formattedWa2 = formatWhatsAppUrl(rawWa2);
+    if (formattedWa2) {
+      activeSocials.push({
+        id: 'whatsapp-secondary',
+        platform: 'whatsapp',
+        label: isArabic ? 'واتساب 2 (إضافي)' : 'WhatsApp 2',
+        url: formattedWa2,
+        username: rawWa2,
+      });
+      seenPlatforms.add('whatsapp-secondary');
       seenPlatforms.add('whatsapp');
     }
   }
@@ -654,14 +684,6 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     }
   }
 
-  // 9. Check language & direction
-  const isArabic = !!(
-    profile.bio?.includes('ال') || 
-    profile.name?.match(/[\u0600-\u06FF]/) ||
-    profile.jobTitle?.match(/[\u0600-\u06FF]/)
-  );
-  const dir = isArabic ? 'rtl' : 'ltr';
-
   const initials = [profile.firstName, profile.lastName]
     .filter((s): s is string => !!s)
     .map((s) => s[0])
@@ -670,11 +692,62 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
 
   const avatarRadius = appearance.avatarShape === 'circle' ? '9999px' : appearance.avatarShape === 'rounded' ? '24px' : '12px';
 
-  // 10. Hero Contact Numbers & Links (WhatsApp moved to Social Networks as requested!)
-  const rawPhone = profile.phone || profile.whatsApp || '';
-  const phoneCallUrl = formatPhoneUrl(rawPhone);
+  // 10. Hero Contact Numbers & Links (Support Two Phone Numbers!)
+  const phoneCallUrl1 = formatPhoneUrl(phone1);
+  const phoneCallUrl2 = formatPhoneUrl(phone2);
   const emailUrl = formatEmailUrl(profile.email || '');
   const websiteUrl = formatWebsiteUrl(profile.website || '');
+
+  const quickActions = [
+    phoneCallUrl1 ? {
+      key: 'call1',
+      url: phoneCallUrl1,
+      label: phoneCallUrl2 ? (isArabic ? 'اتصال 1' : 'Call 1') : (isArabic ? 'اتصال' : 'Call'),
+      badge: phoneCallUrl2 ? '1' : undefined,
+      icon: Phone,
+      iconBg: appearance.iconBg || 'rgba(16, 185, 129, 0.2)',
+      iconColor: appearance.iconColor || '#34D399',
+    } : null,
+    phoneCallUrl2 ? {
+      key: 'call2',
+      url: phoneCallUrl2,
+      label: isArabic ? 'اتصال 2' : 'Call 2',
+      badge: '2',
+      icon: Phone,
+      iconBg: appearance.iconBg || 'rgba(16, 185, 129, 0.2)',
+      iconColor: appearance.iconColor || '#34D399',
+    } : null,
+    emailUrl ? {
+      key: 'email',
+      url: emailUrl,
+      label: isArabic ? 'إيميل' : 'Email',
+      badge: undefined,
+      icon: Mail,
+      iconBg: appearance.iconBg || 'rgba(14, 165, 233, 0.2)',
+      iconColor: appearance.iconColor || '#38BDF8',
+    } : null,
+    websiteUrl ? {
+      key: 'website',
+      url: websiteUrl,
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      label: isArabic ? 'الموقع' : 'Website',
+      badge: undefined,
+      icon: Globe,
+      iconBg: appearance.iconBg || 'rgba(168, 85, 247, 0.2)',
+      iconColor: appearance.iconColor || '#C084FC',
+    } : null,
+  ].filter(Boolean) as Array<{
+    key: string;
+    url: string;
+    target?: string;
+    rel?: string;
+    label: string;
+    badge?: string;
+    icon: any;
+    iconBg: string;
+    iconColor: string;
+  }>;
 
   // 11. Location & Google Map Resolution (Strictly respects client's choice to disable/cancel map!)
   const mapComponent = profile.components?.find(c => c.type.toLowerCase() === 'googlemap');
@@ -898,67 +971,53 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
               <span>{isArabic ? 'حفظ جهة الاتصال في الهاتف' : 'Save Contact to Phone'}</span>
             </a>
 
-            {/* 2. Quick Action Buttons Grid: Call, Email, Website (WhatsApp moved to Social Networks as requested!) */}
-            <div className="grid grid-cols-3 gap-2 w-full pt-1">
-              {phoneCallUrl && (
-                <a
-                  href={phoneCallUrl}
-                  className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
-                  style={{ borderColor: appearance.border, color: appearance.text }}
-                >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
-                    style={{
-                      backgroundColor: appearance.iconBg || 'rgba(16, 185, 129, 0.2)',
-                      color: appearance.iconColor || '#34D399',
-                    }}
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[11px]">{isArabic ? 'اتصال' : 'Call'}</span>
-                </a>
-              )}
-
-              {emailUrl && (
-                <a
-                  href={emailUrl}
-                  className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
-                  style={{ borderColor: appearance.border, color: appearance.text }}
-                >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
-                    style={{
-                      backgroundColor: appearance.iconBg || 'rgba(14, 165, 233, 0.2)',
-                      color: appearance.iconColor || '#38BDF8',
-                    }}
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[11px] truncate max-w-full">{isArabic ? 'إيميل' : 'Email'}</span>
-                </a>
-              )}
-
-              {websiteUrl && (
-                <a
-                  href={websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm"
-                  style={{ borderColor: appearance.border, color: appearance.text }}
-                >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
-                    style={{
-                      backgroundColor: appearance.iconBg || 'rgba(168, 85, 247, 0.2)',
-                      color: appearance.iconColor || '#C084FC',
-                    }}
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[11px] truncate max-w-full">{isArabic ? 'الموقع' : 'Website'}</span>
-                </a>
-              )}
-            </div>
+            {/* 2. Quick Action Buttons Grid: Call 1, Call 2, Email, Website */}
+            {quickActions.length > 0 && (
+              <div
+                className={`grid gap-2 w-full pt-1 ${
+                  quickActions.length === 4
+                    ? 'grid-cols-2 sm:grid-cols-4'
+                    : quickActions.length === 3
+                    ? 'grid-cols-3'
+                    : quickActions.length === 2
+                    ? 'grid-cols-2'
+                    : 'grid-cols-1'
+                }`}
+              >
+                {quickActions.map((action) => {
+                  const Icon = action.icon;
+                  return (
+                    <a
+                      key={action.key}
+                      href={action.url}
+                      target={action.target}
+                      rel={action.rel}
+                      className="py-3 px-2 rounded-2xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all hover:bg-white/5 hover:scale-105 active:scale-95 shadow-sm relative group"
+                      style={{ borderColor: appearance.border, color: appearance.text }}
+                    >
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm relative"
+                        style={{
+                          backgroundColor: action.iconBg,
+                          color: action.iconColor,
+                        }}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        {action.badge && (
+                          <span
+                            className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center text-white shadow-sm"
+                            style={{ backgroundColor: appearance.primary || '#10B981' }}
+                          >
+                            {action.badge}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] truncate max-w-full">{action.label}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Social Networks Showcase (WhatsApp is now here as requested!) */}
@@ -1011,7 +1070,7 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                       </div>
                       <div className="text-left rtl:text-right min-w-0 flex-1">
                         <span className="text-xs font-black block truncate" style={{ color: appearance.text }}>
-                          {info.label}
+                          {(link as any).label || info.label}
                         </span>
                         <span className="text-[10px] font-medium block truncate opacity-60" style={{ color: appearance.muted }}>
                           {link.username || (isArabic ? 'متابعة' : 'Follow')}

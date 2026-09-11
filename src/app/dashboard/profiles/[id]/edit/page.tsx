@@ -193,14 +193,21 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
         )}
 
         {/* CTA buttons */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className={`grid gap-2 mt-2 ${
+          (profile.phone && profile.phone2) ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'
+        }`}>
           {profile.phone && (
-            <div className="flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-bold" style={btnBaseStyle}>
-              <Phone className="w-3.5 h-3.5" /> Call
+            <div className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs font-bold" style={btnBaseStyle}>
+              <Phone className="w-3.5 h-3.5" /> {profile.phone2 ? 'Call 1' : 'Call'}
+            </div>
+          )}
+          {profile.phone2 && (
+            <div className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs font-bold" style={btnBaseStyle}>
+              <Phone className="w-3.5 h-3.5" /> Call 2
             </div>
           )}
           {profile.email && (
-            <div className="flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-bold" style={btnBaseStyle}>
+            <div className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs font-bold" style={btnBaseStyle}>
               <Mail className="w-3.5 h-3.5" /> Email
             </div>
           )}
@@ -419,7 +426,8 @@ function LiveCardPreview({ profile, appearance, deviceView, components }: any) {
 
   const socialLinks = (profile.socialLinks || []) as Array<{ platform: string; url: string }>;
   const visibleSocials = SOCIALS.filter((s: any) =>
-    socialLinks.some((l: any) => l.platform === s.id && l.url)
+    socialLinks.some((l: any) => l.platform === s.id && l.url) ||
+    (s.id === 'whatsapp' && (profile.whatsApp || profile.whatsApp2))
   );
 
   return (
@@ -524,6 +532,12 @@ export default function PremiumVisualBuilder() {
         if (!res.ok) { router.push('/dashboard/profiles'); return; }
         const data = await res.json();
         setProfile(data);
+        let parsedAppearance: any = {};
+        if (data.appearanceJson) {
+          try {
+            parsedAppearance = JSON.parse(data.appearanceJson);
+          } catch {}
+        }
         setDraft({
           firstName: data.firstName || '',
           lastName: data.lastName || '',
@@ -531,16 +545,18 @@ export default function PremiumVisualBuilder() {
           company: data.company || '',
           bio: data.bio || '',
           phone: data.phone || '',
+          phone2: data.phone2 || parsedAppearance.phone2 || '',
           email: data.email || '',
           website: data.website || '',
           whatsApp: data.whatsApp || '',
+          whatsApp2: data.whatsApp2 || parsedAppearance.whatsApp2 || '',
         });
         setComponents(data.components || []);
         
         // Parse styling config
         if (data.appearanceJson) {
           try {
-            const parsed = JSON.parse(data.appearanceJson);
+            const parsed = parsedAppearance;
             setAppearance(prev => ({
               ...prev,
               background: parsed.backgroundColor || parsed.background || prev.background,
@@ -612,6 +628,8 @@ export default function PremiumVisualBuilder() {
     // Save appearance mapping to legacy formats too for backwards compatibility
     const appearanceToSave = {
       ...appearance,
+      phone2: (draft.phone2 || '').trim(),
+      whatsApp2: (draft.whatsApp2 || '').trim(),
       showMap: appearance.showMap !== false,
       iconColor: appearance.iconColor || '#FFFFFF',
       iconBg: appearance.iconBg || '#8A509E',
@@ -635,6 +653,8 @@ export default function PremiumVisualBuilder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...draft,
+          phone2: (draft.phone2 || '').trim(),
+          whatsApp2: (draft.whatsApp2 || '').trim(),
           name: [draft.firstName, draft.lastName].filter(Boolean).join(' ') || profile?.name,
           photoUrl: profile?.photoUrl,
           coverUrl: profile?.coverUrl,
@@ -977,18 +997,128 @@ export default function PremiumVisualBuilder() {
 
             {/* 2. CONTACT DETAILS */}
             {activeTab === 'contact' && (<>
-              {[
-                { key: 'phone',    label: 'Phone number', placeholder: '+123 456 789' },
-                { key: 'email',    label: 'Email address', placeholder: 'me@example.com' },
-                { key: 'website',  label: 'Website link', placeholder: 'https://...' },
-                { key: 'whatsApp', label: 'WhatsApp', placeholder: '+123 456 789' },
-              ].map(({ key, label, placeholder }) => (
-                <div key={key} className="space-y-1.5">
-                  <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">{label}</label>
-                  <input className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
-                    placeholder={placeholder} value={draft[key] || ''} onChange={e => setDraft((p: any) => ({ ...p, [key]: e.target.value }))} />
+              {/* Group 1: Phone Numbers for Calling */}
+              <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <Phone className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">أرقام الاتصال الهاتفي (Phone Numbers)</span>
+                    <span className="text-[10px] text-slate-400 block">إضافة رقمين للاتصال المباشر عبر الهاتف وبطاقة vCard</span>
+                  </div>
                 </div>
-              ))}
+
+                {/* Phone 1 */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                      رقم الاتصال 1 (الأساسي)
+                    </label>
+                    <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">أساسي</span>
+                  </div>
+                  <input
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
+                    placeholder="+212 600 000 000"
+                    value={draft.phone || ''}
+                    onChange={e => setDraft((p: any) => ({ ...p, phone: e.target.value }))}
+                  />
+                </div>
+
+                {/* Phone 2 */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                      رقم الاتصال 2 (إضافي / هاتف العمل)
+                    </label>
+                    <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">إضافي اختياري</span>
+                  </div>
+                  <input
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
+                    placeholder="+212 522 000 000"
+                    value={draft.phone2 || ''}
+                    onChange={e => setDraft((p: any) => ({ ...p, phone2: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Group 2: WhatsApp Numbers */}
+              <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 mt-3">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200">
+                  <div className="w-6 h-6 rounded-lg bg-green-500/10 text-green-600 flex items-center justify-center">
+                    <MessageSquareIcon className="w-3.5 h-3.5 text-green-600" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">أرقام الواتساب (WhatsApp Numbers)</span>
+                    <span className="text-[10px] text-slate-400 block">إضافة رقمين واتساب للتواصل عبر الشبكات الاجتماعية وحفظ جهات الاتصال</span>
+                  </div>
+                </div>
+
+                {/* WhatsApp 1 */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                      واتساب 1 (الأساسي)
+                    </label>
+                    <span className="text-[9px] font-extrabold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">أساسي</span>
+                  </div>
+                  <input
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
+                    placeholder="+212 600 000 000"
+                    value={draft.whatsApp || ''}
+                    onChange={e => setDraft((p: any) => ({ ...p, whatsApp: e.target.value }))}
+                  />
+                </div>
+
+                {/* WhatsApp 2 */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">
+                      واتساب 2 (إضافي / مبيعات / دعم)
+                    </label>
+                    <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">إضافي اختياري</span>
+                  </div>
+                  <input
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
+                    placeholder="+212 611 111 111"
+                    value={draft.whatsApp2 || ''}
+                    onChange={e => setDraft((p: any) => ({ ...p, whatsApp2: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              {/* Group 3: Email and Website */}
+              <div className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 mt-3">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-slate-200">
+                  <div className="w-6 h-6 rounded-lg bg-sky-500/10 text-sky-600 flex items-center justify-center">
+                    <Mail className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">البريد الإلكتروني والموقع (Email & Website)</span>
+                    <span className="text-[10px] text-slate-400 block">معلومات الموقع الإلكتروني والبريد الرسمي</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">البريد الإلكتروني (Email Address)</label>
+                  <input
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
+                    placeholder="contact@brandxpere.com"
+                    value={draft.email || ''}
+                    onChange={e => setDraft((p: any) => ({ ...p, email: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider">رابط الموقع الإلكتروني (Website Link)</label>
+                  <input
+                    className="w-full px-3 py-2.5 bg-white border border-slate-200 focus:border-slate-400 rounded-lg text-xs text-black font-bold placeholder:text-slate-400 outline-none transition-all"
+                    placeholder="https://www.brandxpere.com"
+                    value={draft.website || ''}
+                    onChange={e => setDraft((p: any) => ({ ...p, website: e.target.value }))}
+                  />
+                </div>
+              </div>
 
               {/* GOOGLE MAPS CONTROLLER WITH CANCEL / DISABLE BUTTON */}
               <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3 mt-4">

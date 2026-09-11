@@ -15,7 +15,9 @@ const updateProfileSchema = z.object({
   bio: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
+  phone2: z.string().nullable().optional(),
   website: z.string().nullable().optional(),
+  whatsApp2: z.string().nullable().optional(),
   templateId: z.string().nullable().optional(),
   appearanceJson: z.string().nullable().optional(),
   photoUrl: z.string().nullable().optional(),
@@ -56,7 +58,25 @@ export async function GET(req: NextRequest, { params }: Params) {
       },
     });
 
-    return NextResponse.json(fullProfile);
+    if (!fullProfile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    let phone2 = '';
+    let whatsApp2 = '';
+    if (fullProfile.appearanceJson) {
+      try {
+        const parsed = JSON.parse(fullProfile.appearanceJson);
+        phone2 = parsed.phone2 || '';
+        whatsApp2 = parsed.whatsApp2 || '';
+      } catch {}
+    }
+
+    return NextResponse.json({
+      ...fullProfile,
+      phone2,
+      whatsApp2,
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -131,6 +151,21 @@ export async function PUT(req: NextRequest, { params }: Params) {
         }
       }
     }
+
+    // Merge phone2 and whatsApp2 into appearanceJson if provided, and strip from updateData for Prisma
+    if (updateData.phone2 !== undefined || updateData.whatsApp2 !== undefined || body.phone2 !== undefined || body.whatsApp2 !== undefined) {
+      let appData: any = {};
+      try {
+        appData = JSON.parse(updateData.appearanceJson || profile.appearanceJson || '{}');
+      } catch {}
+      const p2 = updateData.phone2 !== undefined ? updateData.phone2 : body.phone2;
+      const w2 = updateData.whatsApp2 !== undefined ? updateData.whatsApp2 : body.whatsApp2;
+      if (p2 !== undefined) appData.phone2 = (p2 || '').trim();
+      if (w2 !== undefined) appData.whatsApp2 = (w2 || '').trim();
+      updateData.appearanceJson = JSON.stringify(appData);
+    }
+    delete updateData.phone2;
+    delete updateData.whatsApp2;
 
     // Update base profile fields
     const updated = await db.profile.update({

@@ -74,11 +74,27 @@ export async function GET(req: NextRequest, { params }: Params) {
     if (profile.company) {
       vCardLines.push(`ORG:${escapeVCardValue(profile.company)}`);
     }
+    let phone2 = '';
+    let whatsApp2 = '';
+    if (profile.appearanceJson) {
+      try {
+        const parsed = JSON.parse(profile.appearanceJson);
+        phone2 = parsed.phone2 || '';
+        whatsApp2 = parsed.whatsApp2 || '';
+      } catch {}
+    }
+
     if (profile.phone) {
-      vCardLines.push(`TEL;TYPE=CELL:${escapeVCardValue(profile.phone)}`);
+      vCardLines.push(`TEL;TYPE=CELL,VOICE:${escapeVCardValue(profile.phone)}`);
+    }
+    if (phone2) {
+      vCardLines.push(`TEL;TYPE=WORK,VOICE:${escapeVCardValue(phone2)}`);
     }
     if (profile.whatsApp) {
-      vCardLines.push(`TEL;TYPE=WORK,MSG:${escapeVCardValue(profile.whatsApp)}`);
+      vCardLines.push(`TEL;TYPE=MSG,CELL:${escapeVCardValue(profile.whatsApp)}`);
+    }
+    if (whatsApp2) {
+      vCardLines.push(`TEL;TYPE=MSG,WORK:${escapeVCardValue(whatsApp2)}`);
     }
     if (profile.email) {
       vCardLines.push(`EMAIL;TYPE=PREF,INTERNET:${escapeVCardValue(profile.email)}`);
