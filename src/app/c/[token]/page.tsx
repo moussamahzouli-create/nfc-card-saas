@@ -15,7 +15,8 @@ import CardImage from './CardImage';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
 import { resolveAndParseMapsInput } from '@/lib/maps';
 
-export const revalidate = 30;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface TokenPageProps {
   params: Promise<{
@@ -553,6 +554,8 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
         iconColor: parsed.iconColor || undefined,
         iconBg: parsed.iconBg || undefined,
         iconStyle: parsed.iconStyle || 'brand',
+        phone2: (parsed.phone2 || '').trim(),
+        whatsApp2: (parsed.whatsApp2 || '').trim(),
       };
 
       if (parsed.socialLinks && Array.isArray(parsed.socialLinks)) {
@@ -621,10 +624,28 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
 
   // AS REQUESTED: Support Two WhatsApp numbers in Social Networks!
   const phone1 = (profile.phone || '').trim();
-  const phone2 = ((appearance as any).phone2 || '').trim() || (profile.components?.find(c => c.type.toLowerCase() === 'phone' && c.isVisible && c.value && c.value.trim() !== phone1)?.value || '').trim();
+  let phone2 = ((appearance as any).phone2 || '').trim();
+  if (!phone2 && profile.appearanceJson) {
+    try {
+      const parsedApp = JSON.parse(profile.appearanceJson);
+      phone2 = (parsedApp.phone2 || '').trim();
+    } catch {}
+  }
+  if (!phone2) {
+    phone2 = (profile.components?.find(c => c.type.toLowerCase() === 'phone' && c.isVisible && c.value && c.value.trim() !== phone1)?.value || '').trim();
+  }
 
   const rawWa1 = (profile.whatsApp || profile.phone || '').trim();
-  const rawWa2 = ((appearance as any).whatsApp2 || '').trim() || (profile.components?.find(c => c.type.toLowerCase() === 'whatsapp' && c.isVisible && c.value && c.value.trim() !== rawWa1)?.value || '').trim();
+  let rawWa2 = ((appearance as any).whatsApp2 || '').trim();
+  if (!rawWa2 && profile.appearanceJson) {
+    try {
+      const parsedApp = JSON.parse(profile.appearanceJson);
+      rawWa2 = (parsedApp.whatsApp2 || '').trim();
+    } catch {}
+  }
+  if (!rawWa2) {
+    rawWa2 = (profile.components?.find(c => c.type.toLowerCase() === 'whatsapp' && c.isVisible && c.value && c.value.trim() !== rawWa1)?.value || '').trim();
+  }
 
   if (rawWa1) {
     const formattedWa1 = formatWhatsAppUrl(rawWa1);
