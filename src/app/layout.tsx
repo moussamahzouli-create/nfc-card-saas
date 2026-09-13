@@ -133,6 +133,12 @@ export const metadata: Metadata = {
       { url: "/brandxpere-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
+  verification: {
+    google: "d1ef1ac176a1f8e1",
+  },
+  other: {
+    "google-site-verification": "googled1ef1ac176a1f8e1.html",
+  },
   category: "technology",
 };
 
@@ -267,6 +273,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <meta name="google-site-verification" content="googled1ef1ac176a1f8e1.html" />
+        <meta name="google-site-verification" content="googled1ef1ac176a1f8e1" />
+        <meta name="google-site-verification" content="d1ef1ac176a1f8e1" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
