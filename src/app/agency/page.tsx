@@ -6,7 +6,7 @@ import {
   Sparkles, Zap, Palette, Shield, ArrowRight, 
   CheckCircle2, ChevronRight, Phone, Mail, MapPin, 
   MessageCircle, Star, Monitor, Camera, TrendingUp, 
-  Award, Layers, Cpu, Check, Send, Languages
+  Award, Layers, Cpu, Check, Send, Languages, ArrowUpRight
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -29,13 +29,16 @@ const CONTENT = {
       startProjectBtn: 'Start Your Project',
       exploreCardsBtn: 'Explore Smart NFC Cards',
       whatsAppBtn: 'WhatsApp Consultation',
+      stat1: '100% Bespoke Quality',
+      stat2: 'Next-Gen Performance',
+      stat3: 'Direct Expert Support',
     },
     pillarsTitle: 'Our Creative & Engineering Services',
-    pillarsSubtitle: 'Every project is designed with a balance of strategy, aesthetics, innovation, and functionality.',
+    pillarsSubtitle: 'Every project is crafted with a balance of strategy, aesthetics, innovation, and functionality.',
     processTitle: 'Our Workflow Process',
-    processSubtitle: 'A structured approach from initial strategy to launch and scale.',
+    processSubtitle: 'A structured, transparent approach from initial strategy to launch and continuous scale.',
     quoteTitle: 'Let’s Build Something Exceptional',
-    quoteSubtitle: 'Select your services, specify your goals, and receive a direct proposal.',
+    quoteSubtitle: 'Select your services, specify your goals, and receive a direct proposal tailored to your vision.',
   },
   ar: {
     nav: {
@@ -55,6 +58,9 @@ const CONTENT = {
       startProjectBtn: 'ابدأ مشروعك الآن',
       exploreCardsBtn: 'استكشف بطاقات NFC الذكية',
       whatsAppBtn: 'استشارة واتساب فورية',
+      stat1: 'تصميم وهوية حصرية 100%',
+      stat2: 'أداء برمجي فائق السرعة',
+      stat3: 'دعم مباشر عبر واتساب',
     },
     pillarsTitle: 'خدماتنا الإبداعية والتقنية المتكاملة',
     pillarsSubtitle: 'يتم تصميم كل مشروع بتوازن دقيق بين الاستراتيجية، الجماليات، الابتكار، والوظيفة العملية.',
@@ -121,65 +127,65 @@ const PILLARS_DATA = [
     icon: Camera,
     num: '03',
     deliverablesEn: [
-      'Commercial Brand Videos & Product Showcases',
-      '3D Photorealistic Modeling & Animations',
-      'Viral Social Media Video Content (Reels & TikTok)',
-      'Professional Voiceover, Sound Design & Color Grading',
-      'Visual Storytelling tailored for conversions'
+      'High-End Commercial Photography',
+      'Cinematic Brand Storytelling & Video Reels',
+      '2D/3D Motion Graphics & Micro-Animations',
+      'Color Grading, Sound Design & Audio Mixing',
+      'Social Media Campaign Asset Suites'
     ],
     deliverablesAr: [
-      'فيديوهات إعلانية سينمائية للمنتجات والشركات',
-      'مجسمات ورسوم متحركة 3D واقعية',
-      'فيديوهات ريلز وتيك توك سريعة الانتشار',
-      'تعليق صوتي احترافي، هندسة صوتية، وتلوين سنمائي',
-      'سرد قصصي مرئي موجه لزيادة المبيعات'
+      'تصوير فوتوغرافي تجاري فائق الجودة',
+      'فيديوهات إعلانية وسينمائية تروي قصة علامتك',
+      'موشن جرافيكس 2D و 3D ومؤثرات بصرية',
+      'تصحيح ألوان سينمائي وهندسة صوتية متكاملة',
+      'حزم محتوى مرئي مخصصة لمنصات التواصل'
     ],
   },
   {
     id: 'marketing',
-    titleEn: 'Social Media Management & Ads',
-    titleAr: 'إدارة التواصل الاجتماعي والإعلانات الممولة',
-    taglineEn: 'We manage your social presence and run targeted ad campaigns that grow your brand online.',
-    taglineAr: 'ندير حضورك الرقمي ونطلق حملات إعلانية ممولة دقيقة تحقق عائداً استثمارياً مرتفعاً.',
+    titleEn: 'Digital Marketing & Growth Strategy',
+    titleAr: 'التسويق الرقمي واستراتيجيات النمو',
+    taglineEn: 'We help brands scale with targeted digital marketing, content strategy, and paid campaigns.',
+    taglineAr: 'نساعد علامتك على التوسع عبر التسويق الرقمي المستهدف، استراتيجيات المحتوى، والإعلانات الممولة.',
     icon: TrendingUp,
     num: '04',
     deliverablesEn: [
-      'Meta (Instagram & Facebook) Ads Management',
-      'Google Search & Performance Max Campaigns',
-      'Conversion Rate Optimization (CRO) & Funnels',
-      'High-Engagement Social Media Content Strategy',
-      'Full-Funnel Attribution & Weekly Analytics'
+      'Full-Funnel Paid Advertising (Meta, Google, TikTok)',
+      'Brand Social Media Management & Organic Growth',
+      'Comprehensive Organic SEO & Backlink Building',
+      'Influencer Collaborations & PR Outreach',
+      'Data Analytics, ROI Dashboards & KPI Tracking'
     ],
     deliverablesAr: [
-      'إدارة حملات Meta الإعلانية (إنستغرام وفيسبوك)',
-      'إعلانات Google Search و Performance Max المتقدمة',
-      'بناء مسارات المبيعات والتحويل (Sales Funnels)',
-      'استراتيجية محتوى متفاعل لشبكات التواصل',
-      'تقارير تفصيلية أسبوعية وتتبع العائد المالي'
+      'حملات إعلانية مدفوعة عبر Meta و Google و TikTok',
+      'إدارة حسابات التواصل وبناء المجتمعات الرقمية',
+      'تصدر نتائج محركات البحث SEO وبناء الروابط',
+      'التعاون مع المؤثرين والحملات الترويجية',
+      'تحليلات دقيقة وتقارير دورية للعائد على الاستثمار'
     ],
   },
   {
     id: 'nfc',
-    titleEn: 'Smart NFC & Connected Identity (Hardware)',
-    titleAr: 'بطاقات NFC الذكية والعتاد المتصل (المنتج الرائد)',
-    taglineEn: 'Physical luxury meets digital speed. One tap delivers your identity without apps.',
-    taglineAr: 'الفخامة المادية تلتقي بالسرعة الرقمية. لمسة واحدة تنقل بياناتك بدون الحاجة لأي تطبيق.',
+    titleEn: 'Smart NFC Cards & Connected Hardware',
+    titleAr: 'بطاقات NFC الذكية والأجهزة المتصلة',
+    taglineEn: 'Seamless digital networking cards connecting physical interactions to your digital profile in one tap.',
+    taglineAr: 'بطاقات أعمال رقمية ذكية تدمج العالم الحقيقي مع هويتك الرقمية بلمسة واحدة بدون تطبيقات.',
     icon: Cpu,
     num: '05',
     isFlagship: true,
     deliverablesEn: [
-      'Laser-Engraved Matte Black & Metal Cards',
-      'Dynamic Live Cloud Profile Management',
-      'Fleet Team Management & Corporate Dashboard',
-      'Real-time Analytics & Contact Sync',
-      'Instant Tap for all iOS and Android devices'
+      'Bespoke Matte Black, Bamboo Wood & Metallic Cards',
+      'Instant Tap-to-Share (vCard, Socials, Portfolio)',
+      'Enterprise Team Management & Cloud Dashboard',
+      'Zero App Requirement for Scanning Clients',
+      'Real-Time Analytics & Dynamic Profile Updates'
     ],
     deliverablesAr: [
-      'بطاقات معدنية وبلاستيكية مات محفورة بالليزر',
-      'إدارة بروفايل سحابي ذكي يتحدث في ثوانٍ',
-      'لوحة تحكم مركزية لإدارة بطاقات فِرق الشركات',
-      'إحصائيات مباشرة لكل عملية مسح أو نقرة',
-      'توافق فوري مع كافة هواتف آيفون وأندرويد'
+      'بطاقات معدنية، خشب بامبو، وبلاستيك مطفي فاخر',
+      'مشاركة فورية للمعلومات والروابط بلمسة هاتف واحدة',
+      'لوحة تحكم سحابية لإدارة بطاقات الشركات وفرق العمل',
+      'لا تتطلب أي تطبيق من الطرف الآخر لقراءة البطاقة',
+      'إحصائيات تفاعلية وتحديث فوري للمعلومات في أي وقت'
     ],
   },
 ];
@@ -188,15 +194,15 @@ const PROCESS_STEPS = [
   {
     step: '01',
     titleEn: 'Discovery & Strategy',
-    titleAr: 'الاكتشاف والتخطيط الاستراتيجي',
-    descEn: 'We dissect your market positioning, target audience, and business targets to architect an execution blueprint.',
-    descAr: 'ندرس وضع علامتك في السوق، جمهورك المستهدف، وأهدافك التجارية لبناء خطة عمل واضحة.',
+    titleAr: 'الاستكشاف والتخطيط الاستراتيجي',
+    descEn: 'We dive deep into your market position, competitive landscape, and audience psyche to formulate a clear roadmap.',
+    descAr: 'ندرس وضع علامتك في السوق ونحلل المنافسين بدقة لوضع خارطة طريق استراتيجية واضحة.',
   },
   {
     step: '02',
-    titleEn: 'Creative Direction & Design',
-    titleAr: 'التوجيه الإبداعي والتصميم',
-    descEn: 'Our art directors craft moodboards, high-fidelity prototypes, and brand systems tailored to your identity.',
+    titleEn: 'Creative Concept & Art Direction',
+    titleAr: 'التصميم الإبداعي والتوجيه الفني',
+    descEn: 'Our art directors craft moodboards, prototypes, and aesthetic guidelines perfectly tailored to your ambitions.',
     descAr: 'يبتكر مصممونا النماذج الأولية المتقدمة والهوية البصرية بما ينسجم تماماً مع طموح علامتك.',
   },
   {
@@ -262,44 +268,44 @@ export default function AgencyPage() {
 
   return (
     <div 
-      className="flex flex-col min-h-screen bg-[#1B0C21] text-white overflow-x-hidden font-sans transition-all duration-300"
+      className="flex flex-col min-h-screen bg-white text-slate-900 overflow-x-hidden transition-all duration-300"
       dir={dir}
     >
       
       {/* ═══════════════════════════════════════
-          HEADER / NAVBAR
+          HEADER / NAVBAR (eSoft White Style)
       ═══════════════════════════════════════ */}
-      <header className="fixed top-0 w-full z-50 bg-[#1B0C21]/85 backdrop-blur-xl border-b border-[#DACBE3]/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+      <header className="sticky top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 transition-all shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-95 transition-opacity group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#844D98] to-[#301739] p-1.5 flex items-center justify-center border border-[#DACBE3]/20 shadow-lg shadow-[#844D98]/20 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#844D98] to-[#301739] p-1.5 flex items-center justify-center border border-[#DACBE3]/30 shadow-md shadow-[#844D98]/20 group-hover:scale-105 transition-transform">
               <img
                 src="/brandxpere-icon.png"
                 alt="brandxpere logo"
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="text-2xl font-black tracking-tight font-sans text-white leading-none">
+            <span className="text-2xl font-black tracking-tight text-[#301739] leading-none">
               <span>brand</span>
               <span className="text-[#844D98] font-black">x</span>
               <span>pere</span>
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-[#DACBE3]/80">
-            <Link href="/" className="hover:text-white transition-colors">
+          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-600">
+            <Link href="/" className="hover:text-[#844D98] transition-colors">
               {t.nav.home}
             </Link>
-            <a href="#services" className="text-[#DACBE3] font-bold transition-colors">
+            <a href="#services" className="text-[#844D98] font-bold transition-colors">
               {t.nav.services}
             </a>
-            <a href="#process" className="hover:text-white transition-colors">
+            <a href="#process" className="hover:text-[#844D98] transition-colors">
               {t.nav.process}
             </a>
-            <Link href="/pricing" className="hover:text-white transition-colors">
+            <Link href="/pricing" className="hover:text-[#844D98] transition-colors">
               {t.nav.pricing}
             </Link>
-            <Link href="/contact" className="hover:text-white transition-colors">
+            <Link href="/contact" className="hover:text-[#844D98] transition-colors">
               {t.nav.contact}
             </Link>
           </nav>
@@ -308,19 +314,19 @@ export default function AgencyPage() {
             {/* Language toggle */}
             <button
               onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#DACBE3]/20 bg-[#301739]/60 hover:bg-[#844D98]/20 text-xs font-bold text-[#DACBE3] transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#DACBE3]/60 bg-[#FAF7FC] hover:bg-white text-xs font-bold text-[#301739] transition-all shadow-xs"
             >
-              <Languages className="w-3.5 h-3.5 text-[#DACBE3]" />
-              <span className={isArabic ? 'text-[#844D98] font-extrabold' : 'text-white'}>EN</span>
-              <span className="text-[#DACBE3]/40">|</span>
-              <span className={isArabic ? 'text-white' : 'text-[#DACBE3]/70'}>عربي</span>
+              <Languages className="w-3.5 h-3.5 text-[#844D98]" />
+              <span className={!isArabic ? 'text-[#844D98] font-black' : 'text-slate-500'}>EN</span>
+              <span className="text-slate-300">|</span>
+              <span className={isArabic ? 'text-[#844D98] font-black' : 'text-slate-500'}>عربي</span>
             </button>
 
             <a
               href="#quote"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#844D98] to-[#602773] text-sm font-bold text-white shadow-lg shadow-[#844D98]/30 hover:scale-105 active:scale-95 transition-all"
+              className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#844D98] hover:bg-[#6F2E82] text-xs sm:text-sm font-bold text-white shadow-md shadow-[#844D98]/25 hover:shadow-lg hover:shadow-[#844D98]/30 hover:scale-[1.02] active:scale-95 transition-all"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5" />
               <span>{t.nav.quote}</span>
             </a>
           </div>
@@ -328,49 +334,68 @@ export default function AgencyPage() {
       </header>
 
       {/* ═══════════════════════════════════════
-          AGENCY HERO SECTION
+          AGENCY HERO SECTION (eSoft Light Style)
       ═══════════════════════════════════════ */}
-      <section className="relative pt-36 pb-20 overflow-hidden bg-gradient-to-b from-[#1B0C21] via-[#26102F] to-[#1B0C21]">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-[#844D98]/20 rounded-full blur-[140px]" />
-          <div className="absolute top-1/3 left-10 w-72 h-72 bg-[#301739]/60 rounded-full blur-[100px]" />
+      <section className="relative pt-24 pb-20 overflow-hidden bg-gradient-to-b from-[#FAF7FC] via-white to-[#FAF7FC]">
+        {/* Soft Motion Graphic Ambient Glows */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-[#844D98]/15 via-[#DACBE3]/30 to-purple-100/40 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute top-1/3 left-10 w-72 h-72 bg-[#DACBE3]/30 rounded-full blur-[80px]" />
+          <div className="absolute top-1/4 right-10 w-80 h-80 bg-purple-100/40 rounded-full blur-[90px]" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-7">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#301739] border border-[#DACBE3]/20 text-xs font-bold text-[#DACBE3]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-[#DACBE3]/60 text-xs font-bold text-[#844D98] shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-[#844D98] animate-pulse" />
             <span>{t.hero.badge}</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.12] max-w-5xl mx-auto">
-            <span className="bg-gradient-to-r from-white via-[#DACBE3] to-[#844D98] bg-clip-text text-transparent block">
+          <div className="space-y-4 max-w-5xl mx-auto">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[#301739] leading-[1.12]">
               {t.hero.titleMain}
-            </span>
-            <span className="text-xl sm:text-3xl font-medium text-[#DACBE3]/90 mt-3 block italic">
+            </h1>
+            <p className="text-xl sm:text-2xl font-bold text-[#844D98]">
               {t.hero.titleSub}
-            </span>
-          </h1>
+            </p>
+          </div>
 
-          <p className="text-base sm:text-xl text-[#DACBE3]/80 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
             {t.hero.description}
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          {/* Action CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <a
               href="#quote"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#844D98] via-[#6F2E82] to-[#301739] border border-[#DACBE3]/30 text-white font-bold text-base shadow-2xl shadow-[#844D98]/40 hover:scale-105 active:scale-95 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#844D98] hover:bg-[#6F2E82] text-white font-bold text-base shadow-xl shadow-[#844D98]/25 hover:shadow-2xl hover:shadow-[#844D98]/30 hover:scale-105 active:scale-95 transition-all"
             >
               <Send className="w-4 h-4" />
               <span>{t.hero.startProjectBtn}</span>
             </a>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl bg-[#301739]/80 border border-[#DACBE3]/20 hover:border-[#DACBE3]/50 text-[#DACBE3] font-bold text-base hover:scale-105 transition-all"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white border border-[#DACBE3] hover:border-[#844D98] text-[#301739] font-bold text-base shadow-sm hover:bg-[#FAF7FC] hover:scale-105 transition-all"
             >
               <Cpu className="w-4 h-4 text-[#844D98]" />
               <span>{t.hero.exploreCardsBtn}</span>
             </Link>
+          </div>
+
+          {/* Trust Metric Badges */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto pt-6">
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-[#DACBE3]/40 shadow-xs flex items-center justify-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-[#844D98]" />
+              <span className="text-xs sm:text-sm font-bold text-[#301739]">{t.hero.stat1}</span>
+            </div>
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-[#DACBE3]/40 shadow-xs flex items-center justify-center gap-3">
+              <Zap className="w-5 h-5 text-[#844D98]" />
+              <span className="text-xs sm:text-sm font-bold text-[#301739]">{t.hero.stat2}</span>
+            </div>
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-[#DACBE3]/40 shadow-xs flex items-center justify-center gap-3">
+              <MessageCircle className="w-5 h-5 text-[#844D98]" />
+              <span className="text-xs sm:text-sm font-bold text-[#301739]">{t.hero.stat3}</span>
+            </div>
           </div>
 
         </div>
@@ -379,62 +404,67 @@ export default function AgencyPage() {
       {/* ═══════════════════════════════════════
           SERVICES SHOWCASE (THE 5 PILLARS)
       ═══════════════════════════════════════ */}
-      <section id="services" className="py-24 relative border-t border-[#DACBE3]/10 bg-[#16081B]">
+      <section id="services" className="py-24 relative bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-20">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#844D98]/20 border border-[#844D98]/40 text-xs font-bold text-[#DACBE3]">
-              <Layers className="w-3.5 h-3.5 text-[#DACBE3]" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FAF7FC] border border-[#DACBE3]/60 text-xs font-bold text-[#844D98]">
+              <Layers className="w-3.5 h-3.5 text-[#844D98]" />
               <span>{isArabic ? 'الركائز الإبداعية' : 'Creative Pillars'}</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white">
+            <h2 className="text-3xl sm:text-5xl font-black text-[#301739]">
               {t.pillarsTitle}
             </h2>
-            <p className="text-[#DACBE3]/80 text-base sm:text-lg">
+            <p className="text-slate-600 text-base sm:text-lg">
               {t.pillarsSubtitle}
             </p>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-10">
             {PILLARS_DATA.map((srv) => {
               const Icon = srv.icon;
               return (
                 <div 
                   key={srv.id}
-                  className={`rounded-3xl p-8 sm:p-12 border transition-all duration-300 relative overflow-hidden group ${
+                  className={`rounded-3xl p-8 sm:p-12 border transition-all duration-300 relative overflow-hidden card-hover-motion ${
                     srv.isFlagship
-                      ? 'bg-gradient-to-br from-[#301739] via-[#844D98]/25 to-[#1B0C21] border-[#DACBE3]/40 shadow-2xl'
-                      : 'bg-[#301739]/50 hover:bg-[#301739]/70 border-[#DACBE3]/15 hover:border-[#DACBE3]/30 shadow-xl'
+                      ? 'bg-gradient-to-br from-[#FAF7FC] via-white to-purple-50/50 border-[#844D98]/40 shadow-xl shadow-purple-950/5 ring-1 ring-[#844D98]/20'
+                      : 'bg-[#FAF7FC]/60 hover:bg-white border-slate-100 hover:border-[#DACBE3] shadow-sm hover:shadow-xl hover:shadow-purple-950/5'
                   }`}
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                     
                     <div className="lg:col-span-7 space-y-5 text-start">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#844D98] to-[#301739] border border-[#DACBE3]/20 flex items-center justify-center text-white shadow-lg">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#844D98] to-[#301739] flex items-center justify-center text-white shadow-md shadow-[#844D98]/20">
                           <Icon className="w-6 h-6 text-[#DACBE3]" />
                         </div>
-                        <span className="text-xs font-mono font-bold text-[#DACBE3]/80 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                        <span className="text-xs font-mono font-bold text-[#844D98] px-3 py-1 rounded-full bg-white border border-[#DACBE3]/50 shadow-xs">
                           {srv.num}
                         </span>
+                        {srv.isFlagship && (
+                          <span className="text-[11px] font-bold text-white px-2.5 py-0.5 rounded-full bg-[#844D98]">
+                            {isArabic ? 'الخدمة المميزة' : 'Flagship Service'}
+                          </span>
+                        )}
                       </div>
 
                       <div className="space-y-1.5">
-                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                        <h3 className="text-2xl sm:text-3xl font-black text-[#301739]">
                           {isArabic ? srv.titleAr : srv.titleEn}
                         </h3>
-                        <p className="text-xs sm:text-sm font-semibold text-[#DACBE3]">
+                        <p className="text-sm sm:text-base font-semibold text-[#844D98]">
                           {isArabic ? srv.taglineAr : srv.taglineEn}
                         </p>
                       </div>
 
                       <div className="pt-2">
-                        <h4 className="text-xs font-bold text-[#DACBE3] uppercase tracking-wider mb-3">
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
                           {isArabic ? 'نطاق العمل ومخرجات الخدمة:' : 'Key Deliverables:'}
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           {(isArabic ? srv.deliverablesAr : srv.deliverablesEn).map((d, dIdx) => (
-                            <div key={dIdx} className="flex items-center gap-2 text-xs sm:text-sm text-slate-200">
+                            <div key={dIdx} className="flex items-center gap-2 text-xs sm:text-sm text-slate-700">
                               <CheckCircle2 className="w-4 h-4 text-[#844D98] shrink-0" />
                               <span>{d}</span>
                             </div>
@@ -450,7 +480,7 @@ export default function AgencyPage() {
                               setSelectedServices([...selectedServices, srv.id]);
                             }
                           }}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#844D98] to-[#602773] text-white text-xs sm:text-sm font-bold shadow-md hover:scale-105 active:scale-95 transition-all"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#844D98] hover:bg-[#6F2E82] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#844D98]/20 hover:scale-105 active:scale-95 transition-all"
                         >
                           <span>{isArabic ? 'طلب عرض سعر لهذه الخدمة' : 'Request Quote for This Service'}</span>
                           <ArrowRight className={`w-4 h-4 ${isArabic ? 'rotate-180' : ''}`} />
@@ -459,9 +489,9 @@ export default function AgencyPage() {
                         {srv.id === 'nfc' && (
                           <Link
                             href="/"
-                            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#DACBE3]/20 bg-white/5 hover:bg-white/10 text-white text-xs sm:text-sm font-semibold transition-all"
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-[#DACBE3] bg-white hover:bg-[#FAF7FC] text-[#301739] text-xs sm:text-sm font-bold transition-all shadow-xs"
                           >
-                            <span>{isArabic ? 'معاينة البطاقات الذكية' : 'View NFC Platform'}</span>
+                            <span>{isArabic ? 'معاينة المنصة والبطاقات' : 'Explore NFC Platform'}</span>
                             <ChevronRight className={`w-4 h-4 ${isArabic ? 'rotate-180' : ''}`} />
                           </Link>
                         )}
@@ -469,30 +499,30 @@ export default function AgencyPage() {
                     </div>
 
                     <div className="lg:col-span-5 flex justify-center">
-                      <div className="w-full max-w-md p-6 rounded-2xl bg-[#1B0C21]/80 border border-[#DACBE3]/15 space-y-4 text-start">
-                        <div className="flex items-center justify-between border-b border-[#DACBE3]/10 pb-3">
-                          <span className="text-xs font-bold uppercase tracking-wider text-[#DACBE3]">
+                      <div className="w-full max-w-md p-6 rounded-2xl bg-white border border-[#DACBE3]/50 shadow-md space-y-4 text-start">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#301739]">
                             {isArabic ? 'معايير الجودة' : 'Execution Standards'}
                           </span>
                           <div className="flex items-center gap-1">
                             {[1, 2, 3, 4, 5].map(s => (
-                              <Star key={s} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              <Star key={s} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                             ))}
                           </div>
                         </div>
 
-                        <ul className="space-y-3 text-xs text-slate-300">
-                          <li className="flex items-start gap-2">
-                            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                        <ul className="space-y-3 text-xs text-slate-600">
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
                             <span>{isArabic ? 'فريق عمل متمرس ومصمم أول مخصص لمشروعك' : 'Dedicated Senior Art Director & Lead Engineer'}</span>
                           </li>
-                          <li className="flex items-start gap-2">
-                            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
-                            <span>{isArabic ? 'قناة تواصل مباشرة عبر واتساب لمتابعة المراحل' : 'Direct WhatsApp & Slack communication channel'}</span>
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                            <span>{isArabic ? 'قناة تواصل مباشرة عبر واتساب لمتابعة المراحل' : 'Direct WhatsApp communication channel with lead team'}</span>
                           </li>
-                          <li className="flex items-start gap-2">
-                            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
-                            <span>{isArabic ? 'تسليم كامل الملفات المصدرية وحقوق الملكية' : 'Full intellectual property & source file delivery'}</span>
+                          <li className="flex items-start gap-2.5">
+                            <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                            <span>{isArabic ? 'تسليم كامل الملفات المصدرية وحقوق الملكية الفكرية' : 'Full intellectual property & source file delivery'}</span>
                           </li>
                         </ul>
                       </div>
@@ -508,20 +538,20 @@ export default function AgencyPage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          PROCESS WORKFLOW
+          PROCESS WORKFLOW (eSoft Style)
       ═══════════════════════════════════════ */}
-      <section id="process" className="py-24 relative border-t border-[#DACBE3]/10 bg-gradient-to-b from-[#16081B] via-[#220D2B] to-[#16081B]">
+      <section id="process" className="py-24 relative bg-[#FAF7FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#844D98]/20 border border-[#844D98]/40 text-xs font-bold text-[#DACBE3]">
-              <Award className="w-3.5 h-3.5 text-[#DACBE3]" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#DACBE3]/60 text-xs font-bold text-[#844D98] shadow-xs">
+              <Award className="w-3.5 h-3.5 text-[#844D98]" />
               <span>{isArabic ? 'منهجيتنا المعتمدة' : 'Disciplined Methodology'}</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white">
+            <h2 className="text-3xl sm:text-5xl font-black text-[#301739]">
               {t.processTitle}
             </h2>
-            <p className="text-[#DACBE3]/80 text-base">
+            <p className="text-slate-600 text-base">
               {t.processSubtitle}
             </p>
           </div>
@@ -530,15 +560,15 @@ export default function AgencyPage() {
             {PROCESS_STEPS.map((p, idx) => (
               <div 
                 key={idx}
-                className="p-6 rounded-3xl bg-[#301739]/50 border border-[#DACBE3]/15 hover:border-[#844D98]/50 transition-all text-start group"
+                className="p-8 rounded-3xl bg-white border border-slate-100 hover:border-[#DACBE3] shadow-sm hover:shadow-xl hover:shadow-purple-950/5 card-hover-motion text-start group transition-all"
               >
-                <div className="text-3xl font-black font-mono text-[#DACBE3]/40 group-hover:text-[#844D98] transition-colors mb-3">
+                <div className="text-3xl font-black font-mono text-[#844D98]/40 group-hover:text-[#844D98] transition-colors mb-3">
                   {p.step}
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">
+                <h3 className="text-lg font-bold text-[#301739] mb-2">
                   {isArabic ? p.titleAr : p.titleEn}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   {isArabic ? p.descAr : p.descEn}
                 </p>
               </div>
@@ -549,36 +579,36 @@ export default function AgencyPage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          PROJECT INQUIRY FORM
+          PROJECT INQUIRY FORM (White eSoft Card)
       ═══════════════════════════════════════ */}
-      <section id="quote" className="py-24 relative border-t border-[#DACBE3]/10 bg-[#120716]">
+      <section id="quote" className="py-24 relative bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center space-y-4 mb-12">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#DACBE3]">
-              {isArabic ? 'طلب استشارة ومقترح' : 'Direct Inquiry'}
+            <span className="text-xs font-mono uppercase tracking-widest text-[#844D98] font-bold">
+              {isArabic ? 'طلب استشارة ومقترح' : 'Direct Proposal Inquiry'}
             </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-white">
+            <h2 className="text-3xl sm:text-5xl font-black text-[#301739]">
               {t.quoteTitle}
             </h2>
-            <p className="text-[#DACBE3]/80 text-base max-w-xl mx-auto">
+            <p className="text-slate-600 text-base max-w-xl mx-auto">
               {t.quoteSubtitle}
             </p>
           </div>
 
-          <div className="rounded-3xl bg-[#301739]/60 border border-[#DACBE3]/20 p-6 sm:p-10 shadow-2xl">
+          <div className="rounded-3xl bg-white border border-[#DACBE3]/60 p-6 sm:p-10 shadow-xl shadow-purple-950/5">
             {submitted ? (
               <div className="text-center py-12 space-y-4">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
                   <Check className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">
-                  {isArabic ? 'تم فتح محادثة الواتساب بنجاح' : 'Inquiry Formatted for WhatsApp'}
+                <h3 className="text-2xl font-bold text-[#301739]">
+                  {isArabic ? 'تم تجهيز الرسالة ومشاركتها عبر واتساب' : 'Inquiry Ready on WhatsApp'}
                 </h3>
-                <p className="text-slate-300 text-sm max-w-md mx-auto">
+                <p className="text-slate-600 text-sm max-w-md mx-auto">
                   {isArabic 
                     ? 'تم إرسال مواصفات مشروعك إلى استوديو مراكش (+212 778-481250) وسيتواصل معك الفريق فوراً.'
-                    : 'Our team on WhatsApp (+212 778-481250) has received your request.'
+                    : 'Our team on WhatsApp (+212 778-481250) is ready to discuss your project.'
                   }
                 </p>
               </div>
@@ -587,7 +617,7 @@ export default function AgencyPage() {
                 
                 {/* Services Picker */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#DACBE3] mb-3">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#301739] mb-3">
                     {isArabic ? '1. اختر الخدمات المطلوبة:' : '1. Select Services Required:'}
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -597,18 +627,18 @@ export default function AgencyPage() {
                         <div
                           key={srv.id}
                           onClick={() => toggleService(srv.id)}
-                          className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-2.5 ${
+                          className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
                             isChecked 
-                              ? 'border-[#844D98] bg-[#844D98]/20 text-white shadow' 
-                              : 'border-[#DACBE3]/15 bg-white/5 text-[#DACBE3] hover:border-[#DACBE3]/30'
+                              ? 'border-[#844D98] bg-[#FAF7FC] text-[#301739] shadow-xs' 
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-[#DACBE3]'
                           }`}
                         >
                           <div className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] ${
-                            isChecked ? 'border-[#844D98] bg-[#844D98] text-white' : 'border-[#DACBE3]/30'
+                            isChecked ? 'border-[#844D98] bg-[#844D98] text-white' : 'border-slate-300'
                           }`}>
                             {isChecked && <Check className="w-3 h-3" />}
                           </div>
-                          <span className="text-xs sm:text-sm font-semibold">
+                          <span className="text-xs sm:text-sm font-bold">
                             {isArabic ? srv.titleAr : srv.titleEn}
                           </span>
                         </div>
@@ -620,7 +650,7 @@ export default function AgencyPage() {
                 {/* Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#DACBE3] mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                       {isArabic ? 'الاسم / اسم الشركة' : 'Your Name / Company'}
                     </label>
                     <input
@@ -629,12 +659,12 @@ export default function AgencyPage() {
                       placeholder="e.g. John Doe / Brand"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#1B0C21] border border-[#DACBE3]/20 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#844D98]"
+                      className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-[#844D98] focus:ring-2 focus:ring-[#844D98]/10"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#DACBE3] mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                       {isArabic ? 'رقم الهاتف / الواتساب' : 'Phone / WhatsApp'}
                     </label>
                     <input
@@ -643,13 +673,13 @@ export default function AgencyPage() {
                       placeholder="+212 ... / +1 ..."
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#1B0C21] border border-[#DACBE3]/20 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#844D98]"
+                      className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-[#844D98] focus:ring-2 focus:ring-[#844D98]/10"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[#DACBE3] mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                     {isArabic ? 'نبذة عن المشروع والأهداف' : 'Project Overview & Goals'}
                   </label>
                   <textarea
@@ -657,13 +687,13 @@ export default function AgencyPage() {
                     placeholder={isArabic ? 'اشرح ما ترغب في إنجازه، روابط مرجعية، أو الموعد المستهدف...' : 'Describe what you want to achieve, timeline, references...'}
                     value={projectNotes}
                     onChange={(e) => setProjectNotes(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-[#1B0C21] border border-[#DACBE3]/20 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#844D98] resize-none"
+                    className="w-full px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-[#844D98] focus:ring-2 focus:ring-[#844D98]/10 resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#844D98] via-[#6F2E82] to-[#301739] text-white font-bold text-base shadow-2xl shadow-[#844D98]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-full bg-[#844D98] hover:bg-[#6F2E82] text-white font-bold text-base shadow-xl shadow-[#844D98]/25 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
                   <span>{isArabic ? 'إرسال الطلب والتواصل عبر واتساب' : 'Submit & Connect via WhatsApp'}</span>
@@ -677,15 +707,15 @@ export default function AgencyPage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          FOOTER
+          FOOTER (eSoft Style)
       ═══════════════════════════════════════ */}
-      <footer className="border-t border-[#DACBE3]/10 bg-[#120716] py-12">
+      <footer className="border-t border-slate-100 bg-[#FAF7FC] py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-slate-500">© 2026 Brandxpere. All rights reserved. Marrakech, Morocco.</p>
-          <div className="flex items-center gap-4 text-xs text-[#DACBE3]/70">
-            <Link href="/" className="hover:text-white">{t.nav.home}</Link>
-            <Link href="/pricing" className="hover:text-white">{t.nav.pricing}</Link>
-            <Link href="/contact" className="hover:text-white">{t.nav.contact}</Link>
+          <p className="text-xs text-slate-500 font-medium">© 2026 Brandxpere. All rights reserved. Marrakech, Morocco.</p>
+          <div className="flex items-center gap-6 text-xs text-slate-600 font-semibold">
+            <Link href="/" className="hover:text-[#844D98] transition-colors">{t.nav.home}</Link>
+            <Link href="/pricing" className="hover:text-[#844D98] transition-colors">{t.nav.pricing}</Link>
+            <Link href="/contact" className="hover:text-[#844D98] transition-colors">{t.nav.contact}</Link>
           </div>
         </div>
       </footer>
