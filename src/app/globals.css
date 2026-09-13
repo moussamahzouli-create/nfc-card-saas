@@ -16,9 +16,26 @@
   --theme-text:         #111827;
   --theme-muted:        #6B7280;
   --theme-border:       #E5E7EB;
-  --theme-radius:       12px;
   --theme-font:         Inter, system-ui, sans-serif;
   --theme-heading-font: Inter, system-ui, sans-serif;
+  /* Official Brandxpere Brand Guidelines Palette (#301739, #DACBE3, #844D98) */
+  --brand-plum:         #301739;
+  --brand-lavender:     #DACBE3;
+  --brand-purple:       #844D98;
+  --brand-dark:         #1B0C21;
+}
+
+/* Bilingual Font & Direction Engine */
+html[dir="rtl"], [dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--font-cairo), system-ui, -apple-system, sans-serif;
+}
+
+html[dir="ltr"], [dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+  font-family: var(--font-poppins), system-ui, -apple-system, sans-serif;
 }
 
 /* ── Base resets ───────────────────────────── */

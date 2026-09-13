@@ -1,21 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins, Cairo } from "next/font/google";
 import { LanguageProvider } from "@/lib/i18n";
 import Script from "next/script";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const cairo = Cairo({
+  weight: ["400", "500", "600", "700", "800", "900"],
+  subsets: ["arabic", "latin"],
+  variable: "--font-cairo",
+  display: "swap",
 });
 
 export const viewport: Viewport = {
-  themeColor: "#070714",
+  themeColor: "#301739",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -268,9 +272,8 @@ const jsonLdData = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="ar"
-      dir="ltr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="en"
+      className={`${poppins.variable} ${cairo.variable} h-full antialiased`}
     >
       <head>
         <meta name="google-site-verification" content="googled1ef1ac176a1f8e1.html" />
@@ -281,7 +284,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#1B0C21] text-white">
         <LanguageProvider>
           {children}
         </LanguageProvider>
