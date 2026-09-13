@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "brandxpere - NFC Digital Business Cards | بطاقات الأعمال الذكية",
-  description: "Create your premium digital business profile and connect it to physical NFC cards. Marrakech, Maroc. Tel & WhatsApp: +212 778-481250. Instagram: @brandxpere",
+  title: "BRANDXPER | Premium Digital Agency & Smart NFC Cards | وكالة رقمية وبطاقات الأعمال الذكية",
+  description: "BRANDXPER is a world-class digital agency specializing in branding, UX engineering, growth marketing, cinematic media, and next-gen NFC smart business cards. Marrakech, Maroc. Tel & WhatsApp: +212 778-481250. Instagram: @brandxpere",
   icons: {
     icon: '/brandxpere-icon.png',
     shortcut: '/brandxpere-icon.png',

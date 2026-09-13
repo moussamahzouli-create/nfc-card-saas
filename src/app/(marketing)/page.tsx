@@ -7,9 +7,64 @@ import {
   Mail, Globe, Phone, MessageSquare, Star, Download, 
   QrCode, Wifi, Users, BarChart3, Palette, Check, 
   ArrowRight, Play, MapPin, Clock,
-  Sparkles, Award, TrendingUp, MessageCircle
+  Sparkles, Award, TrendingUp, MessageCircle,
+  Monitor, Cpu, Video, Send, CheckCircle2
 } from 'lucide-react';
 import { InstagramIcon } from '@/components/BrandLogo';
+
+const AGENCY_PILLARS = [
+  {
+    id: 'branding',
+    title: 'Branding & Visual Identity',
+    tagline: 'Iconic Brand Systems',
+    desc: 'Bespoke logo marks, color psychology, luxury packaging, and complete design guidelines that command premium positioning.',
+    icon: Palette,
+    gradient: 'from-violet-500 to-fuchsia-500',
+    color: 'text-violet-400',
+    borderGlow: 'hover:border-violet-500/40 hover:shadow-violet-500/20',
+  },
+  {
+    id: 'web-dev',
+    title: 'UX Engineering & Web Apps',
+    tagline: 'Custom Next.js Platforms',
+    desc: 'High-performance web apps, custom SaaS platforms, and luxury e-commerce portals built on Next.js 15 with 99+ speed scores.',
+    icon: Monitor,
+    gradient: 'from-blue-500 to-cyan-500',
+    color: 'text-cyan-400',
+    borderGlow: 'hover:border-blue-500/40 hover:shadow-blue-500/20',
+  },
+  {
+    id: 'nfc-flagship',
+    title: 'Smart NFC & Connected Identity',
+    tagline: 'Flagship Smart Hardware',
+    desc: 'Laser-engraved matte black and metal NFC cards linked directly to cloud digital profiles. Instant sharing with zero apps required.',
+    icon: Cpu,
+    gradient: 'from-amber-400 to-orange-500',
+    color: 'text-amber-400',
+    borderGlow: 'hover:border-amber-500/40 hover:shadow-amber-500/20',
+    badge: 'Flagship Product'
+  },
+  {
+    id: 'growth-marketing',
+    title: 'Growth Marketing & Ads',
+    tagline: 'High-ROAS Acquisition',
+    desc: 'Data-driven Meta and Google ad campaigns, high-converting sales funnels, and technical SEO domination for rapid scaling.',
+    icon: TrendingUp,
+    gradient: 'from-emerald-500 to-teal-500',
+    color: 'text-emerald-400',
+    borderGlow: 'hover:border-emerald-500/40 hover:shadow-emerald-500/20',
+  },
+  {
+    id: 'media-production',
+    title: 'Cinematic Media & 3D Motion',
+    tagline: 'Studio-Grade Visuals',
+    desc: 'High-definition commercial video production, 3D photorealistic product renders, and high-retention social content.',
+    icon: Video,
+    gradient: 'from-rose-500 to-pink-500',
+    color: 'text-rose-400',
+    borderGlow: 'hover:border-rose-500/40 hover:shadow-rose-500/20',
+  },
+];
 
 const FEATURES = [
   {
@@ -117,15 +172,13 @@ function CountUp({ end, duration = 2000 }: { end: number; duration?: number }) {
 }
 
 export default function MarketingPage() {
-  const [activeTab, setActiveTab] = useState(0);
-
   return (
     <div className="flex flex-col min-h-screen bg-[#070714] text-white overflow-x-hidden">
 
       {/* ═══════════════════════════════════════
           HEADER / NAVBAR
       ═══════════════════════════════════════ */}
-      <header className="fixed top-0 w-full z-50 glass-dark border-b border-white/5">
+      <header className="fixed top-0 w-full z-50 glass-dark border-b border-white/5 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
             <img
@@ -140,29 +193,50 @@ export default function MarketingPage() {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-400">
-            {['Features', 'Templates', 'Pricing', 'Contact'].map((item) => (
-              <Link key={item} href={`/${item.toLowerCase()}`} className="hover:text-white transition-colors hover:text-shadow-glow">
-                {item}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+            <Link 
+              href="/agency" 
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-500/20 transition-all font-semibold"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>Agency Services</span>
+            </Link>
+            <a href="#agency-services" className="hover:text-white transition-colors">
+              Our Pillars
+            </a>
+            <a href="#features" className="hover:text-white transition-colors">
+              NFC Platform
+            </a>
+            <Link href="/pricing" className="hover:text-white transition-colors">
+              Pricing
+            </Link>
+            <Link href="/contact" className="hover:text-white transition-colors">
+              Contact
+            </Link>
             <a
               href="https://www.instagram.com/brandxpere/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 hover:text-pink-300 hover:bg-pink-500/20 transition-all text-xs font-semibold"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 hover:text-pink-300 hover:bg-pink-500/20 transition-all text-xs font-semibold"
             >
-              <InstagramIcon className="w-3.5 h-3.5" />
+              <InstagramIcon className="w-3 h-3" />
               <span>Instagram</span>
             </a>
           </nav>
 
           <div className="flex items-center gap-3">
+            <Link 
+              href="/agency#quote"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-200 transition-all"
+            >
+              <Send className="w-3.5 h-3.5 text-purple-400" />
+              <span>Get a Quote</span>
+            </Link>
             <Link href="/auth/login" className="hidden sm:block text-sm font-semibold text-slate-300 hover:text-white transition-colors">
               Sign In
             </Link>
             <Link href="/auth/register" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all duration-300">
-              Get Started Free
+              <span>Start Free</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -170,15 +244,14 @@ export default function MarketingPage() {
       </header>
 
       {/* ═══════════════════════════════════════
-          HERO SECTION
+          HERO SECTION (UNIFIED AGENCY + NFC)
       ═══════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">
         {/* Background animated blobs */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] animate-blob" />
-          <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-blue-600/15 rounded-full blur-[100px] animate-blob delay-2000" />
-          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-violet-600/15 rounded-full blur-[100px] animate-blob delay-3000" />
-          {/* Subtle grid */}
+          <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-purple-600/15 rounded-full blur-[100px] animate-blob delay-2000" />
+          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-blue-600/15 rounded-full blur-[100px] animate-blob delay-3000" />
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiA2aDZ2LTZoLTZ2Nmh6bTAtNmg2di02aC02djZ6bTYtNmg2di02aC02djZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-40" />
         </div>
 
@@ -189,20 +262,20 @@ export default function MarketingPage() {
             <div className="space-y-8 animate-slide-up">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass neon-border text-xs font-bold text-indigo-300">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                <span>The #1 Digital Business Card Platform</span>
-                <span className="px-2 py-0.5 bg-indigo-600/40 rounded-full text-indigo-200 text-[10px]">NEW</span>
+                <span>Digital Agency & Smart NFC Hardware</span>
+                <span className="px-2 py-0.5 bg-indigo-600/40 rounded-full text-indigo-200 text-[10px] font-mono uppercase">Unified</span>
               </div>
 
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-tight">
-                <span className="gradient-text">Your Digital</span>
+                <span className="gradient-text">Premium Agency</span>
                 <br />
-                <span className="text-white">Business Card,</span>
+                <span className="text-white">& Smart Cards,</span>
                 <br />
-                <span className="gradient-text-blue">Reimagined.</span>
+                <span className="gradient-text-blue">Engineered.</span>
               </h1>
 
-              <p className="text-lg sm:text-xl text-slate-400 max-w-lg leading-relaxed">
-                Create stunning digital profiles, program NFC cards, and share your identity in seconds — no app needed.
+              <p className="text-lg sm:text-xl text-slate-300 max-w-lg leading-relaxed">
+                BRANDXPER combines high-converting branding, custom Next.js web applications, and growth marketing with next-generation NFC business cards.
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -211,22 +284,22 @@ export default function MarketingPage() {
                   className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-base shadow-2xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300"
                 >
                   <Zap className="w-5 h-5" />
-                  Create Free Card
+                  <span>Create Free Card</span>
                 </Link>
                 <Link
-                  href="/pricing"
-                  className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl glass neon-border text-white font-bold text-base hover:bg-white/8 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300"
+                  href="/agency"
+                  className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl glass border border-purple-500/30 hover:border-purple-500/60 text-purple-200 font-bold text-base hover:bg-purple-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-lg shadow-purple-900/20"
                 >
-                  <Play className="w-4 h-4" />
-                  View Demo
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span>Agency Services Hub</span>
                 </Link>
               </div>
 
-              {/* Social Proof */}
+              {/* Social Proof & Quick Direct Consultation */}
               <div className="flex flex-wrap items-center gap-6 pt-2">
                 <div className="flex -space-x-2">
                   {['A','B','C','D','E'].map((l,i) => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center text-[10px] font-bold">{l}</div>
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] font-bold">{l}</div>
                   ))}
                 </div>
                 <div>
@@ -234,18 +307,16 @@ export default function MarketingPage() {
                     {[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
                     <span className="text-sm font-bold ml-1">4.9/5</span>
                   </div>
-                  <p className="text-xs text-slate-400">Trusted by 50,000+ professionals</p>
+                  <p className="text-xs text-slate-400">Trusted by 50,000+ professionals & brands</p>
                 </div>
               </div>
             </div>
 
             {/* Hero Visual — Phone + Floating Card */}
             <div className="relative flex justify-center items-center h-[600px] animate-fade-in delay-300">
-              {/* Rotating ring */}
               <div className="absolute w-[400px] h-[400px] rounded-full border border-indigo-500/10 animate-spin-slow" />
-              <div className="absolute w-[320px] h-[320px] rounded-full border border-blue-500/10 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '15s' }} />
+              <div className="absolute w-[320px] h-[320px] rounded-full border border-purple-500/10 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '15s' }} />
 
-              {/* Ambient glow */}
               <div className="absolute w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl" />
 
               {/* iPhone Frame */}
@@ -257,35 +328,30 @@ export default function MarketingPage() {
 
                 {/* Screen Content */}
                 <div className="absolute inset-0 bg-gradient-to-b from-[#0c0c20] via-[#080818] to-[#0c0c20] overflow-y-auto pt-8 pb-6 px-4 flex flex-col items-center scrollbar-hide">
-                  {/* Ambient inside screen */}
                   <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-indigo-900/30 to-transparent pointer-events-none" />
-
-                  {/* Cover strip */}
-                  <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-indigo-900 to-blue-900 opacity-60" />
+                  <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-indigo-900 to-purple-900 opacity-60" />
 
                   {/* Avatar with glow ring */}
                   <div className="relative mt-12 z-10">
-                    <div className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full blur opacity-70 animate-pulse" />
-                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-800 to-blue-800 border-2 border-slate-900 flex items-center justify-center font-extrabold text-2xl text-indigo-200 shadow-xl z-10">
-                      JD
+                    <div className="absolute -inset-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur opacity-70 animate-pulse" />
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-800 to-purple-800 border-2 border-slate-900 flex items-center justify-center font-extrabold text-2xl text-indigo-200 shadow-xl z-10">
+                      BX
                     </div>
                   </div>
 
-                  <h3 className="text-base font-extrabold mt-3 gradient-text z-10 relative">Jane Doe</h3>
-                  <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest z-10 relative">VP of Sales · Acme Corp</p>
-                  <p className="text-[10px] text-slate-400 text-center mt-2 max-w-[180px] leading-relaxed z-10 relative">Building enterprise partnerships across EMEA and APAC regions.</p>
+                  <h3 className="text-base font-extrabold mt-3 gradient-text z-10 relative">BRANDXPER</h3>
+                  <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest z-10 relative">Digital Agency & Smart NFC</p>
+                  <p className="text-[10px] text-slate-400 text-center mt-2 max-w-[180px] leading-relaxed z-10 relative">Crafting iconic brand identities, bespoke web platforms & connected smart cards.</p>
 
-                  {/* Save Contact Button */}
-                  <button className="w-full mt-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:scale-[1.02] transition-transform z-10 relative">
+                  <button className="w-full mt-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:scale-[1.02] transition-transform z-10 relative">
                     💾 Save Contact
                   </button>
 
-                  {/* Action Grid */}
                   <div className="grid grid-cols-3 gap-2 w-full mt-4 z-10 relative">
                     {[
                       { icon: Phone, label: 'Call', color: 'text-emerald-400' },
                       { icon: Mail, label: 'Email', color: 'text-blue-400' },
-                      { icon: Globe, label: 'Web', color: 'text-violet-400' },
+                      { icon: Globe, label: 'Web', color: 'text-purple-400' },
                     ].map(({ icon: Icon, label, color }) => (
                       <div key={label} className="flex flex-col items-center gap-1 p-2.5 glass rounded-xl hover:scale-105 transition-transform cursor-pointer">
                         <Icon className={`w-4 h-4 ${color}`} />
@@ -294,12 +360,11 @@ export default function MarketingPage() {
                     ))}
                   </div>
 
-                  {/* Contact Rows */}
                   <div className="w-full mt-3 space-y-2 z-10 relative">
                     {[
-                      { icon: Phone, value: '+1 234 567 8900', color: 'text-emerald-400' },
-                      { icon: Mail, value: 'jane@acme.com', color: 'text-blue-400' },
-                      { icon: MapPin, value: 'San Francisco, CA', color: 'text-rose-400' },
+                      { icon: Phone, value: '+212 778-481250', color: 'text-emerald-400' },
+                      { icon: Mail, value: 'BRANDXPER@GMAIL.COM', color: 'text-blue-400' },
+                      { icon: MapPin, value: 'Marrakech, Maroc', color: 'text-rose-400' },
                     ].map(({ icon: Icon, value, color }) => (
                       <div key={value} className="flex items-center gap-2.5 p-2.5 glass rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
                         <Icon className={`w-3.5 h-3.5 ${color} shrink-0`} />
@@ -308,9 +373,8 @@ export default function MarketingPage() {
                     ))}
                   </div>
 
-                  {/* Social Row */}
                   <div className="flex gap-2 mt-4 z-10 relative">
-                    {['in', 'ig', 'tw', 'wa'].map((s, i) => (
+                    {['in', 'ig', 'tw', 'wa'].map((s) => (
                       <div key={s} className="w-8 h-8 rounded-full glass border border-white/10 flex items-center justify-center text-[9px] font-extrabold text-slate-300 hover:scale-110 transition-transform cursor-pointer">
                         {s.toUpperCase()}
                       </div>
@@ -321,16 +385,16 @@ export default function MarketingPage() {
 
               {/* Floating NFC Card */}
               <div className="absolute bottom-8 right-0 w-56 h-36 z-20 animate-card-float delay-1000">
-                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-indigo-900/90 to-blue-900/90 glass-dark neon-border p-4 flex flex-col justify-between shadow-2xl shadow-indigo-900/50">
+                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-indigo-900/90 to-purple-900/90 glass-dark neon-border p-4 flex flex-col justify-between shadow-2xl shadow-indigo-900/50">
                   <div className="flex justify-between items-center">
                     <Activity className="w-5 h-5 text-indigo-400" />
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">NFC CARD</span>
-                    <Wifi className="w-4 h-4 text-blue-400" />
+                    <Wifi className="w-4 h-4 text-purple-400" />
                   </div>
                   <div>
-                    <div className="text-xs font-extrabold text-white">ACME CORP</div>
+                    <div className="text-xs font-extrabold text-white">BRANDXPER STUDIO</div>
                     <div className="flex justify-between items-center mt-1">
-                      <span className="text-[9px] text-slate-400">Jane Doe</span>
+                      <span className="text-[9px] text-slate-400">Marrakech, Morocco</span>
                       <div className="flex gap-0.5">
                         <div className="w-1 h-3 bg-indigo-400 rounded-sm opacity-40" />
                         <div className="w-1 h-4 bg-indigo-400 rounded-sm opacity-60" />
@@ -349,13 +413,14 @@ export default function MarketingPage() {
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-400" />
                     <div>
-                      <div className="text-[10px] text-slate-400">Profile Views</div>
-                      <div className="text-sm font-extrabold text-emerald-400">+142%</div>
+                      <div className="text-[10px] text-slate-400">Interaction Growth</div>
+                      <div className="text-sm font-extrabold text-emerald-400">+184%</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
@@ -367,10 +432,10 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { value: 50000, suffix: '+', label: 'Active Users', color: 'text-indigo-400' },
-              { value: 2000000, suffix: '+', label: 'Cards Scanned', color: 'text-blue-400' },
-              { value: 150, suffix: '+', label: 'Countries', color: 'text-violet-400' },
-              { value: 99, suffix: '.9%', label: 'Uptime SLA', color: 'text-emerald-400' },
+              { value: 150, suffix: '+', label: 'Delivered Projects', color: 'text-indigo-400' },
+              { value: 50000, suffix: '+', label: 'NFC Profiles & Taps', color: 'text-purple-400' },
+              { value: 99, suffix: '.8%', label: 'Client Satisfaction', color: 'text-emerald-400' },
+              { value: 8, suffix: '.4x', label: 'Average Client ROAS', color: 'text-amber-400' },
             ].map(({ value, suffix, label, color }) => (
               <div key={label} className="space-y-1">
                 <div className={`text-3xl sm:text-4xl font-black ${color}`}>
@@ -384,27 +449,140 @@ export default function MarketingPage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          FEATURES GRID
+          AGENCY PILLARS SHOWCASE SECTION
       ═══════════════════════════════════════ */}
-      <section className="py-28 relative overflow-hidden">
+      <section id="agency-services" className="py-28 relative overflow-hidden bg-gradient-to-b from-[#070714] via-[#090a1f] to-[#070714]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center space-y-4 mb-16 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass border border-purple-500/30 text-xs font-bold text-purple-300">
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>Full-Service Digital Agency & Innovation Lab</span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
+              Five Pillars of <span className="gradient-text">Digital Excellence</span>
+            </h2>
+            <p className="text-slate-400 text-base sm:text-lg">
+              We bridge creative branding, bespoke high-performance code, and connected smart NFC hardware into one unified agency powerhouse.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {AGENCY_PILLARS.map((pillar) => {
+              const Icon = pillar.icon;
+              return (
+                <div
+                  key={pillar.id}
+                  className={`rounded-3xl glass border border-white/10 p-7 hover:border-white/20 transition-all duration-300 flex flex-col justify-between group ${pillar.badge ? 'lg:col-span-1 border-amber-500/30 bg-amber-500/[0.02]' : ''}`}
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${pillar.gradient} flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      {pillar.badge ? (
+                        <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+                          {pillar.badge}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-mono text-slate-500 uppercase">
+                          {pillar.tagline}
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl font-bold text-white group-hover:text-indigo-300 transition-colors">
+                        {pillar.title}
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                        {pillar.desc}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 mt-6 border-t border-white/5 flex items-center justify-between">
+                    <Link
+                      href="/agency"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                      <span>Explore Service</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <a
+                      href={`https://wa.me/212778481250?text=Hello%20BRANDXPER%20Team%2C%20I%20am%20interested%20in%20${encodeURIComponent(pillar.title)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold flex items-center gap-1"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>Inquire</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Custom CTA Card */}
+            <div className="rounded-3xl bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-[#070714] border border-purple-500/30 p-7 flex flex-col justify-between">
+              <div className="space-y-4">
+                <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[10px] font-bold uppercase tracking-wider inline-block">
+                  Tailored Solutions
+                </span>
+                <h3 className="text-xl font-bold text-white">
+                  Need a Comprehensive Enterprise Project?
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  We combine full brand identity redesigns, custom Next.js web applications, and thousands of custom-engraved NFC employee cards.
+                </p>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/agency#quote"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold text-xs shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Request Full Proposal</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/agency"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl glass border border-white/10 hover:border-purple-500/40 text-white font-bold text-sm hover:bg-white/5 transition-all"
+            >
+              <span>View Full Agency Deliverables & Process</span>
+              <ArrowRight className="w-4 h-4 text-purple-400" />
+            </Link>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          NFC PLATFORM FEATURES GRID
+      ═══════════════════════════════════════ */}
+      <section id="features" className="py-28 relative overflow-hidden border-t border-white/5">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[100px]" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass neon-border text-xs font-bold text-indigo-300">
-              <Zap className="w-3.5 h-3.5" /> Everything You Need
+              <Zap className="w-3.5 h-3.5" /> Flagship NFC Platform
             </div>
-            <h2 className="text-4xl sm:text-5xl font-black gradient-text">Powerful Features</h2>
-            <p className="text-slate-400 max-w-xl mx-auto">Built for professionals who want to make an unforgettable first impression.</p>
+            <h2 className="text-4xl sm:text-5xl font-black gradient-text">Smart Card Features</h2>
+            <p className="text-slate-400 max-w-xl mx-auto">Engineered for executives, sales teams, and forward-thinking enterprises.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map(({ icon: Icon, color, glow, title, desc }, i) => (
+            {FEATURES.map(({ icon: Icon, color, glow, title, desc }) => (
               <div
                 key={title}
-                className="group glass-dark rounded-2xl p-7 hover:scale-[1.02] transition-all duration-500 cursor-pointer"
-                style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.05)` }}
+                className="group glass-dark rounded-2xl p-7 hover:scale-[1.02] transition-all duration-500 cursor-pointer border border-white/5 hover:border-white/15"
               >
                 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${color} flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}
                   style={{ boxShadow: `0 8px 20px ${glow}` }}>
@@ -423,8 +601,8 @@ export default function MarketingPage() {
       ═══════════════════════════════════════ */}
       <section className="py-20 border-y border-white/5 glass-dark overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-10">
-          <h2 className="text-3xl font-black gradient-text mb-2">Connect All Your Platforms</h2>
-          <p className="text-slate-400">50+ social networks and contact methods supported</p>
+          <h2 className="text-3xl font-black gradient-text mb-2">Connect All Your Channels</h2>
+          <p className="text-slate-400">50+ social platforms, direct messenger, payment gateways, and custom links supported</p>
         </div>
         <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto px-4">
           {SOCIAL_ICONS.map(({ name, color }) => (
@@ -442,19 +620,18 @@ export default function MarketingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass neon-border text-xs font-bold text-indigo-300 mb-4">
-              <Award className="w-3.5 h-3.5" /> Simple Process
+              <Award className="w-3.5 h-3.5" /> Rapid Setup
             </div>
             <h2 className="text-4xl sm:text-5xl font-black gradient-text">How It Works</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Connecting line */}
             <div className="hidden md:block absolute top-10 left-1/6 right-1/6 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
             
             {[
-              { step: '01', icon: Palette, title: 'Design Your Card', desc: 'Pick a template, add your info, photos, social links — takes under 2 minutes.' },
-              { step: '02', icon: QrCode, title: 'Share Instantly', desc: 'Get your unique link, QR code, and NFC-ready profile live immediately.' },
-              { step: '03', icon: BarChart3, title: 'Track & Grow', desc: 'See who viewed your card, where they came from, and which links they tapped.' },
+              { step: '01', icon: Palette, title: 'Design Your Profile', desc: 'Pick a theme, add your contact info, social accounts, and photos in under 2 minutes.' },
+              { step: '02', icon: QrCode, title: 'Share & Program NFC', desc: 'Get your unique QR code or link your card. One tap delivers your contact directly to their phone.' },
+              { step: '03', icon: BarChart3, title: 'Track & Convert', desc: 'Monitor your views, scans, and leads with built-in analytics dashboard.' },
             ].map(({ step, icon: Icon, title, desc }) => (
               <div key={step} className="relative text-center group">
                 <div className="w-20 h-20 mx-auto rounded-2xl glass-dark neon-border flex flex-col items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300">
@@ -472,7 +649,7 @@ export default function MarketingPage() {
       {/* ═══════════════════════════════════════
           PRICING
       ═══════════════════════════════════════ */}
-      <section className="py-28 relative overflow-hidden border-t border-white/5">
+      <section id="pricing" className="py-28 relative overflow-hidden border-t border-white/5">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-indigo-600/8 rounded-full blur-[120px]" />
         </div>
@@ -482,7 +659,7 @@ export default function MarketingPage() {
               <Sparkles className="w-3.5 h-3.5" /> Transparent Pricing
             </div>
             <h2 className="text-4xl sm:text-5xl font-black gradient-text">Simple Plans</h2>
-            <p className="text-slate-400 mt-3">No hidden fees. Cancel anytime.</p>
+            <p className="text-slate-400 mt-3">No hidden fees. Free forever option with instant activation.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -520,36 +697,39 @@ export default function MarketingPage() {
       </section>
 
       {/* ═══════════════════════════════════════
-          CTA BANNER
+          CTA BANNER (DUAL PATH)
       ═══════════════════════════════════════ */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/40 via-blue-900/40 to-violet-900/40 pointer-events-none" />
-        <div className="absolute inset-0 border-y border-white/5 pointer-events-none" />
+      <section className="py-24 relative overflow-hidden border-t border-white/5">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/40 via-purple-900/40 to-blue-900/40 pointer-events-none" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           <h2 className="text-4xl sm:text-5xl font-black gradient-text">
-            Start Your Digital Journey Today
+            Transform Your Brand & Identity Today
           </h2>
-          <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Join 50,000+ professionals using brandxpere to make unforgettable first impressions.
+          <p className="text-slate-300 text-lg max-w-2xl mx-auto">
+            Whether you need a full-scale digital agency for your next product launch or premium NFC smart cards for your team, BRANDXPER delivers excellence.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/auth/register" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold text-base shadow-2xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300">
               <Zap className="w-5 h-5" />
-              Create Your Free Card
+              <span>Create Your Free Card</span>
               <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link href="/agency" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl glass border border-purple-500/40 text-purple-200 font-bold text-base hover:bg-purple-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl shadow-purple-900/20">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              <span>Explore Agency Services</span>
             </Link>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════
-          FOOTER
+          FOOTER (UNIFIED)
       ═══════════════════════════════════════ */}
       <footer className="border-t border-white/5 glass-dark py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
             
-            {/* Brand Column (2 cols on lg) */}
+            {/* Brand Column */}
             <div className="lg:col-span-2 space-y-4">
               <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
                 <img
@@ -564,10 +744,9 @@ export default function MarketingPage() {
                 </span>
               </Link>
               <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
-                The premier digital business card and NFC solutions platform. Share contacts, showcase portfolios, and boost conversions effortlessly.
+                Full-service digital agency and smart NFC hardware platform. Elevating brands through world-class design, Next.js engineering, and connected identity.
               </p>
               
-              {/* Contact Snapshot */}
               <div className="space-y-2.5 pt-2 text-xs text-slate-300">
                 <a 
                   href="https://www.instagram.com/brandxpere/" 
@@ -601,25 +780,28 @@ export default function MarketingPage() {
               </div>
             </div>
 
-            {/* Column 1: Navigation */}
+            {/* Column 1: Agency Pillars */}
             <div>
-              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">Product</h4>
-              <ul className="space-y-2.5">
-                <li><Link href="#features" className="text-sm text-slate-400 hover:text-white transition-colors">Features</Link></li>
-                <li><Link href="#templates" className="text-sm text-slate-400 hover:text-white transition-colors">Templates</Link></li>
-                <li><Link href="#pricing" className="text-sm text-slate-400 hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/auth/register" className="text-sm text-slate-400 hover:text-white transition-colors">Get Started</Link></li>
+              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">Agency Services</h4>
+              <ul className="space-y-2.5 text-sm text-slate-400">
+                <li><Link href="/agency" className="hover:text-white transition-colors">Branding & Identity</Link></li>
+                <li><Link href="/agency" className="hover:text-white transition-colors">UX Web Platforms</Link></li>
+                <li><Link href="/agency" className="hover:text-white transition-colors">Connected Hardware</Link></li>
+                <li><Link href="/agency" className="hover:text-white transition-colors">Growth Marketing</Link></li>
+                <li><Link href="/agency" className="hover:text-white transition-colors">Cinematic 3D Media</Link></li>
+                <li><Link href="/agency#quote" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">Request a Quote →</Link></li>
               </ul>
             </div>
 
-            {/* Column 2: Support & Company */}
+            {/* Column 2: NFC Platform */}
             <div>
-              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">Support & Company</h4>
-              <ul className="space-y-2.5">
-                <li><Link href="/contact" className="text-sm text-slate-400 hover:text-white transition-colors">Contact Us</Link></li>
-                <li><Link href="/help" className="text-sm text-slate-400 hover:text-white transition-colors">Help Center</Link></li>
-                <li><Link href="/auth/login" className="text-sm text-slate-400 hover:text-white transition-colors">Sign In</Link></li>
-                <li><Link href="/contact" className="text-sm text-slate-400 hover:text-white transition-colors">Custom NFC Orders</Link></li>
+              <h4 className="text-xs font-extrabold text-slate-300 uppercase tracking-widest mb-4">NFC Platform</h4>
+              <ul className="space-y-2.5 text-sm text-slate-400">
+                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                <li><Link href="/pricing" className="hover:text-white transition-colors">Plans & Pricing</Link></li>
+                <li><Link href="/auth/register" className="hover:text-white transition-colors">Create Free Profile</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Custom NFC Orders</Link></li>
+                <li><Link href="/auth/login" className="hover:text-white transition-colors">Sign In</Link></li>
               </ul>
             </div>
 
@@ -629,7 +811,7 @@ export default function MarketingPage() {
                 Instant Assistance
               </span>
               <p className="text-xs text-slate-300">
-                Need immediate help or consultation? Reach our team on WhatsApp directly.
+                Need immediate consultation or custom fleet cards? Reach our team directly on WhatsApp.
               </p>
               <a
                 href="https://wa.me/212778481250?text=Hello%20BrandXper%20Team"
