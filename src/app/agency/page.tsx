@@ -277,14 +277,12 @@ export default function AgencyPage() {
       ═══════════════════════════════════════ */}
       <header className="sticky top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 transition-all shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-95 transition-opacity group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#844D98] to-[#301739] p-1.5 flex items-center justify-center border border-[#DACBE3]/30 shadow-md shadow-[#844D98]/20 group-hover:scale-105 transition-transform">
-              <img
-                src="/brandxpere-icon.png"
-                alt="brandxpere logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
+            <img
+              src="/brandxpere-icon.png"
+              alt="brandxpere logo"
+              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
+            />
             <span className="text-2xl font-black tracking-tight text-[#301739] leading-none">
               <span>brand</span>
               <span className="text-[#844D98] font-black">x</span>
