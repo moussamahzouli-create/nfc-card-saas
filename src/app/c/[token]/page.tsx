@@ -98,25 +98,73 @@ const getProfileByToken = cache(async (token: string) => {
   return { profile, card };
 });
 
-// Metadata generator for high-res social sharing cards
+// Metadata generator for high-res social sharing cards & maximum search engine visibility
 export async function generateMetadata({ params }: TokenPageProps): Promise<Metadata> {
   const { token } = await params;
   const { profile } = await getProfileByToken(token);
 
   if (!profile) {
-    return { title: 'Digital Business Card | brandxpere' };
+    return { 
+      title: 'Digital Business Card | BRANDXPER',
+      description: 'Smart NFC Digital Business Card powered by BRANDXPER.',
+    };
   }
 
-  const title = profile.name ? `${profile.name} | brandxpere` : 'Digital Card';
-  const description = [profile.jobTitle, profile.company].filter(Boolean).join(' at ') || profile.bio || 'Digital Business Card';
+  const profileName = profile.name || 'Professional Profile';
+  const title = `${profileName}${profile.jobTitle ? ' - ' + profile.jobTitle : ''}${profile.company ? ' at ' + profile.company : ''} | BRANDXPER`;
+  const primaryAddress = profile.locations?.[0]?.address;
+  const description = [
+    profile.jobTitle && profile.company ? `${profile.jobTitle} at ${profile.company}` : (profile.jobTitle || profile.company),
+    profile.bio,
+    primaryAddress ? `Location: ${primaryAddress}` : '',
+    'Smart Digital NFC Card powered by BRANDXPER.'
+  ].filter(Boolean).join(' • ');
+
+  const canonicalUrl = `https://www.brandxpere.com/c/${token}`;
+  const ogImage = profile.photoUrl || '/brandxpere-full.png';
 
   return {
+    metadataBase: new URL('https://www.brandxpere.com'),
     title,
     description,
+    keywords: [
+      profileName,
+      profile.company,
+      profile.jobTitle,
+      'بطاقة اعمال ذكية',
+      'digital business card',
+      'NFC card',
+      'brandxpere',
+    ].filter(Boolean) as string[],
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title,
       description,
-      images: profile.photoUrl ? [{ url: profile.photoUrl }] : undefined,
+      url: canonicalUrl,
+      siteName: 'BRANDXPER',
+      type: 'profile',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${profileName} Digital Business Card`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
+    robots: {
+      index: profile.isPublic !== false,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
     },
   };
 }
@@ -815,6 +863,30 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
     return !excludedComponentTypes.has(t);
   }) || [];
 
+  const profileJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: profile.name,
+    jobTitle: profile.jobTitle || undefined,
+    worksFor: profile.company
+      ? {
+          '@type': 'Organization',
+          name: profile.company,
+        }
+      : undefined,
+    description: profile.bio || undefined,
+    image: profile.photoUrl || undefined,
+    telephone: profile.phone || undefined,
+    email: profile.email || undefined,
+    url: `https://www.brandxpere.com/c/${token}`,
+    address: profile.locations?.[0]?.address
+      ? {
+          '@type': 'PostalAddress',
+          streetAddress: profile.locations[0].address,
+        }
+      : undefined,
+  };
+
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center justify-start sm:justify-center py-0 sm:py-10 px-0 sm:px-4 relative overflow-x-hidden select-none transition-colors duration-300"
@@ -825,6 +897,10 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
         color: appearance.text,
       }}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
+      />
       {/* Dynamic Ambient Blur Orbs */}
       <div
         className="fixed w-[420px] h-[420px] rounded-full blur-[140px] -top-24 -left-24 pointer-events-none opacity-40 animate-pulse"
