@@ -5,17 +5,19 @@ import Script from "next/script";
 import "./globals.css";
 
 const poppins = Poppins({
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-poppins",
   display: "swap",
+  preload: true,
 });
 
 const cairo = Cairo({
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400", "600", "700"],
   subsets: ["arabic", "latin"],
   variable: "--font-cairo",
   display: "swap",
+  preload: true,
 });
 
 export const viewport: Viewport = {
@@ -276,6 +278,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${poppins.variable} ${cairo.variable} h-full antialiased`}
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <meta name="google-site-verification" content="googled1ef1ac176a1f8e1.html" />
         <meta name="google-site-verification" content="googled1ef1ac176a1f8e1" />
         <meta name="google-site-verification" content="d1ef1ac176a1f8e1" />
