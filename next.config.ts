@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  outputFileTracingIncludes: {
-    '/**': ['./prisma/dev.db'],
-  },
   async redirects() {
     return [
       // Legacy WordPress URLs cleanup & 301 redirection

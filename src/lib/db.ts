@@ -3,36 +3,28 @@ import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 
-// Handle Vercel Serverless environment where filesystem is read-only
-function getDatabaseUrl(): string {
-  const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-  if (isServerless) {
-    const tmpDbPath = path.join('/tmp', 'dev.db');
-    if (!fs.existsSync(tmpDbPath)) {
-      const sourceDb = path.join(process.cwd(), 'prisma', 'dev.db');
-      if (fs.existsSync(sourceDb)) {
-        try {
-          fs.copyFileSync(sourceDb, tmpDbPath);
-          console.log(`[DB] Successfully copied SQLite database to ${tmpDbPath}`);
-        } catch (e) {
-          console.error(`[DB] Error copying database:`, e);
-        }
-      } else {
-        console.warn('[DB] Warning: prisma/dev.db not found at', sourceDb);
-      }
-    }
-    const url = `file:${tmpDbPath}`;
-    process.env.DATABASE_URL = url;
-    return url;
-  }
+// Default Neon PostgreSQL connection pooler string
+const NEON_DEFAULT_URL =
+  'postgresql://neondb_owner:npg_ha53JFEDUYKy@ep-misty-shape-awowluq4-pooler.c-12.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require';
 
-  const localDb = path.join(process.cwd(), 'prisma', 'dev.db');
-  const url = `file:${localDb}`;
-  process.env.DATABASE_URL = url;
-  return url;
+function getDatabaseUrl(): string {
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('postgres')) {
+    return process.env.DATABASE_URL;
+  }
+  if (process.env.POSTGRES_PRISMA_URL && process.env.POSTGRES_PRISMA_URL.startsWith('postgres')) {
+    return process.env.POSTGRES_PRISMA_URL;
+  }
+  if (process.env.POSTGRES_URL && process.env.POSTGRES_URL.startsWith('postgres')) {
+    return process.env.POSTGRES_URL;
+  }
+  if (process.env.POSTGRES_URL_NON_POOLING && process.env.POSTGRES_URL_NON_POOLING.startsWith('postgres')) {
+    return process.env.POSTGRES_URL_NON_POOLING;
+  }
+  return NEON_DEFAULT_URL;
 }
 
 const dbUrl = getDatabaseUrl();
+process.env.DATABASE_URL = dbUrl;
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -52,6 +44,7 @@ export const db =
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = db;
 }
+
 
 
 
