@@ -1,15 +1,38 @@
 import { PrismaClient } from '@prisma/client';
 
-// Ensure DATABASE_URL is set from Vercel Postgres / Neon aliases if needed
-if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('postgres')) {
-  const pgUrl =
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_URL_NON_POOLING;
-  if (pgUrl) {
-    process.env.DATABASE_URL = pgUrl;
+import fs from 'fs';
+import path from 'path';
+
+// Handle Vercel Serverless environment where filesystem is read-only
+function getDatabaseUrl(): string {
+  const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+  if (isServerless) {
+    const tmpDbPath = path.join('/tmp', 'dev.db');
+    if (!fs.existsSync(tmpDbPath)) {
+      const sourceDb = path.join(process.cwd(), 'prisma', 'dev.db');
+      if (fs.existsSync(sourceDb)) {
+        try {
+          fs.copyFileSync(sourceDb, tmpDbPath);
+          console.log(`[DB] Successfully copied SQLite database to ${tmpDbPath}`);
+        } catch (e) {
+          console.error(`[DB] Error copying database:`, e);
+        }
+      } else {
+        console.warn('[DB] Warning: prisma/dev.db not found at', sourceDb);
+      }
+    }
+    const url = `file:${tmpDbPath}`;
+    process.env.DATABASE_URL = url;
+    return url;
   }
+
+  const localDb = path.join(process.cwd(), 'prisma', 'dev.db');
+  const url = `file:${localDb}`;
+  process.env.DATABASE_URL = url;
+  return url;
 }
+
+const dbUrl = getDatabaseUrl();
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -18,9 +41,17 @@ const globalForPrisma = globalThis as unknown as {
 export const db =
   globalForPrisma.prisma ??
   new PrismaClient({
+    datasources: {
+      db: {
+        url: dbUrl,
+      },
+    },
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
-globalForPrisma.prisma = db;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = db;
+}
+
 
 
