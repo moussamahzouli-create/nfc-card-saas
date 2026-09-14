@@ -1,11 +1,14 @@
 const { execSync } = require('child_process');
 
 // Ensure DATABASE_URL is available from any Vercel Postgres / Neon alias
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL =
+if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('postgres')) {
+  const pgUrl =
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL ||
     process.env.POSTGRES_URL_NON_POOLING;
+  if (pgUrl) {
+    process.env.DATABASE_URL = pgUrl;
+  }
 }
 
 console.log('[Build] Using DATABASE_URL:', process.env.DATABASE_URL ? 'Configured' : 'NOT FOUND');

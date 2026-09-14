@@ -1,6 +1,6 @@
 const { execSync } = require('child_process');
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('postgres')) {
   process.env.DATABASE_URL =
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL ||
