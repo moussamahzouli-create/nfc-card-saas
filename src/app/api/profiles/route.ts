@@ -33,10 +33,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const showAll = req.nextUrl.searchParams.get('all') === 'true' && (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN');
+    const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+    const isFilteredToMine = req.nextUrl.searchParams.get('mine') === 'true';
 
     const profiles = await db.profile.findMany({
-      where: showAll ? undefined : { userId: user.id },
+      where: (isAdmin && !isFilteredToMine) ? undefined : { userId: user.id },
       include: {
         user: {
           select: { id: true, name: true, email: true, role: true }
