@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import ReviewsWidget from './ReviewsWidget';
+import LoyaltyWidget from './LoyaltyWidget';
 import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
 import CardImage from './CardImage';
@@ -848,9 +849,14 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
   const hasReviewComponent = profile.components?.some(c => c.type.toLowerCase() === 'googlereview' && c.isVisible);
   const shouldShowReviews = hasReviewComponent || profile.slug === 'moussa-mahzouli';
 
-  // AS REQUESTED: Exclude phone, email, whatsapp, website from otherComponents to eliminate redundant links at the bottom!
+  // 13. Loyalty Resolution (Carte de Fidélité)
+  const loyaltyComponent = profile.components?.find(c => ['loyalty', 'fidelite', 'carte_fidelite'].includes(c.type.toLowerCase()) && c.isVisible);
+  const shouldShowLoyalty = Boolean(loyaltyComponent);
+
+  // AS REQUESTED: Exclude phone, email, whatsapp, website, loyalty from otherComponents to eliminate redundant links at the bottom!
   const excludedComponentTypes = new Set([
     'googlemap', 'googlereview',
+    'loyalty', 'fidelite', 'carte_fidelite',
     'phone', 'call', 'telephone', 'mobile',
     'email', 'mail',
     'whatsapp',
@@ -1197,6 +1203,23 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
                 directMapsUrl={resolvedMapData?.directUrl}
                 directionsUrl={resolvedMapData?.directionsUrl}
                 displayAddress={resolvedMapData?.displayAddress}
+              />
+            </div>
+          )}
+
+          {/* Core Feature 3: Carte de Fidélité (Loyalty Stamp Card) */}
+          {shouldShowLoyalty && (
+            <div className="w-full mt-5">
+              <LoyaltyWidget
+                profileId={profile.id}
+                profileName={profile.name}
+                isArabic={isArabic}
+                primaryColor={appearance.primary}
+                accentColor={appearance.accent}
+                surfaceColor={appearance.surface}
+                borderColor={appearance.border}
+                textColor={appearance.text}
+                mutedColor={appearance.muted}
               />
             </div>
           )}

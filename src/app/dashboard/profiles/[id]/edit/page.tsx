@@ -8,7 +8,8 @@ import {
   User, Phone, Globe, Palette, Plus, Trash2, Check,
   AlertCircle, RefreshCw, Mail, MapPin, Clock,
   ChevronUp, ChevronDown, GripVertical, Settings,
-  Camera, Layers, Search, Zap, ExternalLink, Share2, UtensilsCrossed, FileText
+  Camera, Layers, Search, Zap, ExternalLink, Share2, UtensilsCrossed, FileText,
+  Award, Gift, Coffee, Star, Scissors
 } from 'lucide-react';
 import { INDUSTRY_TEMPLATES, type IndustryTemplate } from '@/lib/templates/industry-templates';
 import { compressImage } from '@/lib/image-compression';
@@ -48,6 +49,7 @@ function getComponentIcon(type: string) {
     case 'googlemap': return MapPin;
     case 'googlereview': return StarIcon;
     case 'menu': return UtensilsCrossed;
+    case 'loyalty': return Award;
     default: return Smartphone;
   }
 }
@@ -288,6 +290,37 @@ function CardContent({ headerStyle, primary, accent, bg, surface, textColor, mut
                         ))}
                       </div>
                     )}
+                  </div>
+                );
+              }
+
+              if (compType === 'loyalty') {
+                let settings: any = {};
+                if (comp.settingsJson) {
+                  try { settings = JSON.parse(comp.settingsJson); } catch {}
+                }
+                const targetStamps = settings.targetStamps || 10;
+                const reward = settings.rewardText || 'Cadeau ou réduction exclusive';
+
+                return (
+                  <div key={comp.id} className="w-full rounded-xl overflow-hidden border p-3 bg-slate-50/50 space-y-2" style={{ borderColor: border }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+                          style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }}>
+                          <Award className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block" style={{ color: textColor }}>{comp.title || 'Carte de Fidélité'}</span>
+                          <span className="text-[9px] opacity-60 block" style={{ color: muted }}>
+                            {targetStamps} طوابع مطلوبة للحصول على المكافأة
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold text-amber-700 bg-amber-100 shrink-0">
+                        {reward}
+                      </span>
+                    </div>
                   </div>
                 );
               }
@@ -1347,6 +1380,7 @@ export default function PremiumVisualBuilder() {
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Add Custom Blocks</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
+                    { type: 'Loyalty', title: 'Carte de Fidélité (بطاقة الوفاء)' },
                     { type: 'Menu', title: 'Menu (قائمة طعام / خدمات)' },
                     { type: 'Phone', title: 'Phone Call' },
                     { type: 'WhatsApp', title: 'WhatsApp' },
@@ -1636,6 +1670,132 @@ export default function PremiumVisualBuilder() {
                                 })()}
                               </div>
                             </div>
+                          ) : comp.type.toLowerCase() === 'loyalty' ? (
+                            (() => {
+                              let s: any = {};
+                              if (comp.settingsJson) {
+                                try { s = JSON.parse(comp.settingsJson); } catch {}
+                              }
+                              const targetStamps = s.targetStamps !== undefined ? Number(s.targetStamps) : 10;
+                              const rewardText = s.rewardText || '';
+                              const merchantPin = s.merchantPin || '1234';
+                              const stampIcon = s.stampIcon || 'coffee';
+                              const cooldownMinutes = s.cooldownMinutes !== undefined ? Number(s.cooldownMinutes) : 5;
+
+                              const updateLoyaltySettings = (newFields: any) => {
+                                const merged = { ...s, ...newFields };
+                                const jsonStr = JSON.stringify(merged);
+                                const list = [...components];
+                                list[idx].settingsJson = jsonStr;
+                                setComponents(list);
+                                updateComponent(comp.id, { settingsJson: jsonStr });
+                              };
+
+                              return (
+                                <div className="space-y-2.5 pt-1 text-right" dir="rtl">
+                                  {/* 1. Target Stamps & Icon */}
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                        عدد الطوابع للهدية
+                                      </label>
+                                      <select
+                                        value={targetStamps}
+                                        onChange={(e) => updateLoyaltySettings({ targetStamps: Number(e.target.value) })}
+                                        className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 outline-none"
+                                      >
+                                        <option value={5}>5 طوابع</option>
+                                        <option value={6}>6 طوابع</option>
+                                        <option value={8}>8 طوابع</option>
+                                        <option value={10}>10 طوابع (الموصى به)</option>
+                                        <option value={12}>12 طابع</option>
+                                        <option value={15}>15 طابع</option>
+                                      </select>
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                        شكل أيقونة الختم
+                                      </label>
+                                      <select
+                                        value={stampIcon}
+                                        onChange={(e) => updateLoyaltySettings({ stampIcon: e.target.value })}
+                                        className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 outline-none"
+                                      >
+                                        <option value="coffee">☕ قهوة (Café)</option>
+                                        <option value="star">⭐ نجمة (Étoile)</option>
+                                        <option value="gift">🎁 هدية (Cadeau)</option>
+                                        <option value="scissors">✂️ حلاقة / صالون</option>
+                                        <option value="utensils">🍔 وجبة / مطعم</option>
+                                        <option value="heart">❤️ قلب (VIP)</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  {/* 2. Reward Text */}
+                                  <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                      نص الهدية أو التخفيض (تظهر للزبون)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="مثال: قهوة مجانية، أو تخفيض 20% على طلبك القادم"
+                                      value={rewardText}
+                                      onChange={(e) => {
+                                        const merged = { ...s, rewardText: e.target.value };
+                                        const list = [...components];
+                                        list[idx].settingsJson = JSON.stringify(merged);
+                                        setComponents(list);
+                                      }}
+                                      onBlur={(e) => updateLoyaltySettings({ rewardText: e.target.value })}
+                                      className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-400"
+                                    />
+                                  </div>
+
+                                  {/* 3. Cashier PIN & Cooldown */}
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                        كود الكاشير السري (PIN)
+                                      </label>
+                                      <input
+                                        type="text"
+                                        maxLength={6}
+                                        placeholder="1234"
+                                        value={merchantPin}
+                                        onChange={(e) => {
+                                          const merged = { ...s, merchantPin: e.target.value };
+                                          const list = [...components];
+                                          list[idx].settingsJson = JSON.stringify(merged);
+                                          setComponents(list);
+                                        }}
+                                        onBlur={(e) => updateLoyaltySettings({ merchantPin: e.target.value })}
+                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono font-black text-center tracking-widest text-slate-800 outline-none focus:border-purple-500"
+                                      />
+                                      <span className="text-[9px] text-slate-400 block mt-0.5">يدخله الكاشير لإعطاء الختم</span>
+                                    </div>
+
+                                    <div>
+                                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                                        حماية التكرار (Cooldown)
+                                      </label>
+                                      <select
+                                        value={cooldownMinutes}
+                                        onChange={(e) => updateLoyaltySettings({ cooldownMinutes: Number(e.target.value) })}
+                                        className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 outline-none"
+                                      >
+                                        <option value={0}>بدون انتظار (مباشر)</option>
+                                        <option value={5}>5 دقائق</option>
+                                        <option value={15}>15 دقيقة</option>
+                                        <option value={30}>30 دقيقة</option>
+                                        <option value={60}>ساعة واحدة</option>
+                                      </select>
+                                      <span className="text-[9px] text-slate-400 block mt-0.5">منع ختمين لنفس الهاتف فجأة</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()
                           ) : comp.type.toLowerCase() !== 'googlereview' && (
                             <input
                               type="text"

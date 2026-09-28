@@ -103,6 +103,7 @@ model Profile {
   cardAssignments     CardAssignment[]
   cardEvents          CardEvent[]
   reviews             ProfileReview[]
+  loyaltyCustomers    LoyaltyCustomer[]
 
   @@index([slug])
 }
@@ -502,5 +503,37 @@ model SystemSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model LoyaltyCustomer {
+  id            String       @id @default(uuid())
+  profileId     String
+  profile       Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  phone         String
+  customerName  String?
+  stampsCount   Int          @default(0)
+  rewardsEarned Int          @default(0)
+  lastStampAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  logs          LoyaltyLog[]
+
+  @@unique([profileId, phone])
+  @@index([profileId])
+  @@index([phone])
+}
+
+model LoyaltyLog {
+  id          String           @id @default(uuid())
+  profileId   String
+  phone       String
+  customerId  String?
+  customer    LoyaltyCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  action      String           // STAMP_ADDED, REWARD_REDEEMED, RESET
+  stampsCount Int
+  createdAt   DateTime         @default(now())
+
+  @@index([profileId])
+  @@index([phone])
 }
 
