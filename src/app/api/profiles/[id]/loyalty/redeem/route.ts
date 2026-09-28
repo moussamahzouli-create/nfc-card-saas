@@ -14,7 +14,23 @@ const redeemSchema = z.object({
 });
 
 function cleanPhone(raw: string): string {
-  return raw.replace(/[\s\-\.\(\)]/g, '').trim();
+  if (!raw) return '';
+  let cleaned = raw
+    .replace(/[٠-٩]/g, d => (d.charCodeAt(0) - 1632).toString())
+    .replace(/[۰-۹]/g, d => (d.charCodeAt(0) - 1776).toString())
+    .replace(/[\s\-\.\(\)]/g, '')
+    .trim();
+
+  if (cleaned.startsWith('+212')) {
+    cleaned = '0' + cleaned.slice(4);
+  } else if (cleaned.startsWith('00212')) {
+    cleaned = '0' + cleaned.slice(5);
+  } else if (cleaned.startsWith('212') && cleaned.length >= 11) {
+    cleaned = '0' + cleaned.slice(3);
+  } else if (/^[5-7]\d{8}$/.test(cleaned)) {
+    cleaned = '0' + cleaned;
+  }
+  return cleaned;
 }
 
 // POST /api/profiles/[id]/loyalty/redeem

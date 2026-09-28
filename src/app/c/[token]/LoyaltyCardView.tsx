@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Coffee, Star, Gift, Scissors, Heart, Utensils, 
   CheckCircle2, Sparkles, Lock, ArrowRight, Phone, RefreshCw, X, ShieldCheck,
-  ChevronRight, Smartphone, User, Crown, Check
+  ChevronRight, Smartphone, User, Crown, Check, Edit3
 } from 'lucide-react';
 
 interface LoyaltyCardViewProps {
@@ -36,10 +36,16 @@ export default function LoyaltyCardView({
   const [data, setData] = useState<LoyaltyData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Customer phone identity
+  // Customer phone & name identity
   const [phoneInput, setPhoneInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [savedPhone, setSavedPhone] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+
+  // Edit Name Modal
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [editNameInput, setEditNameInput] = useState('');
+  const [updatingName, setUpdatingName] = useState(false);
 
   // Cashier PIN Modal
   const [pinModalAction, setPinModalAction] = useState<'stamp' | 'redeem' | null>(null);
@@ -86,11 +92,28 @@ export default function LoyaltyCardView({
     }
   }, [profile.id]);
 
-  // Handle phone submission
+  // Handle phone submission (Only phone is required)
   const handleEnrollPhone = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleaned = phoneInput.replace(/[\s\-\.\(\)]/g, '').trim();
-    if (cleaned.length < 8) {
+    // Normalize Arabic/Persian digits & clean whitespace
+    let cleaned = phoneInput
+      .replace(/[٠-٩]/g, d => (d.charCodeAt(0) - 1632).toString())
+      .replace(/[۰-۹]/g, d => (d.charCodeAt(0) - 1776).toString())
+      .replace(/[\s\-\.\(\)]/g, '')
+      .trim();
+
+    // Normalize Moroccan prefixes
+    if (cleaned.startsWith('+212')) {
+      cleaned = '0' + cleaned.slice(4);
+    } else if (cleaned.startsWith('00212')) {
+      cleaned = '0' + cleaned.slice(5);
+    } else if (cleaned.startsWith('212') && cleaned.length >= 11) {
+      cleaned = '0' + cleaned.slice(3);
+    } else if (/^[5-7]\d{8}$/.test(cleaned)) {
+      cleaned = '0' + cleaned;
+    }
+
+    if (cleaned.length < 6) {
       setErrorToast(isArabic ? 'يرجى إدخال رقم هاتف صحيح' : 'Veuillez entrer un numéro valide');
       setTimeout(() => setErrorToast(null), 4000);
       return;
@@ -102,7 +125,10 @@ export default function LoyaltyCardView({
       const res = await fetch(`/api/profiles/${profile.id}/loyalty`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleaned }),
+        body: JSON.stringify({ 
+          phone: cleaned,
+          customerName: nameInput.trim() || undefined,
+        }),
       });
       const result = await res.json();
       if (res.ok && result.customer) {
@@ -120,6 +146,34 @@ export default function LoyaltyCardView({
       setTimeout(() => setErrorToast(null), 4000);
     } finally {
       setIsRegistering(false);
+    }
+  };
+
+  // Update customer name on card
+  const handleUpdateName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!savedPhone || !editNameInput.trim()) return;
+    setUpdatingName(true);
+    try {
+      const res = await fetch(`/api/profiles/${profile.id}/loyalty`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: savedPhone,
+          customerName: editNameInput.trim(),
+        }),
+      });
+      const result = await res.json();
+      if (res.ok && result.customer) {
+        await fetchLoyalty(savedPhone);
+        setShowNameModal(false);
+        setSuccessToast(isArabic ? 'تم تحديث اسمك على البطاقة بنجاح !' : 'Nom mis à jour avec succès !');
+        setTimeout(() => setSuccessToast(null), 4000);
+      }
+    } catch {
+      setErrorToast('Erreur de mise à jour');
+    } finally {
+      setUpdatingName(false);
     }
   };
 
@@ -198,6 +252,21 @@ export default function LoyaltyCardView({
   const storeName = profile.company || profile.name || (isArabic ? 'متجر الشريك' : 'Commerce Partenaire');
   const cardTitle = data?.title || compSettings.title || loyaltyComp?.title || 'Carte Fidélité';
 
+  // Helper to format Moroccan phone for display (e.g. 06 12 34 56 78)
+  const formatPhone = (p?: string | null) => {
+    if (!p) return '';
+    const digits = p.replace(/\D/g, '');
+    if (digits.length === 10) {
+      return `${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
+    }
+    return p;
+  };
+
+  // Customer Name / Identity displayed on the card
+  const customerDisplayName = data?.customer?.customerName
+    || (savedPhone ? formatPhone(savedPhone) : null)
+    || (isArabic ? 'عميل VIP' : 'Client VIP');
+
   return (
     <div className="min-h-screen w-full bg-[#F6F2FD] flex flex-col items-center justify-start py-4 px-4 sm:py-8 sm:px-6 relative overflow-x-hidden font-sans text-slate-800 select-none">
       
@@ -252,14 +321,16 @@ export default function LoyaltyCardView({
             }}
           />
 
-          {/* Card Top Row: Brand Logo + NFC Badge */}
+          {/* Card Top Row: Store / Business Name + NFC Badge */}
           <div className="flex items-center justify-between relative z-10">
-            <span className="text-sm sm:text-base font-black tracking-tight text-white/95 lowercase">
-              brandxpere
-            </span>
+            <div className="flex items-center gap-1.5 max-w-[210px]">
+              <span className="text-sm sm:text-base font-black tracking-wide text-white drop-shadow-sm truncate uppercase font-sans">
+                {storeName}
+              </span>
+            </div>
 
             {/* Pill NFC Badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/25 backdrop-blur-md text-[10px] sm:text-[11px] font-black tracking-wider text-white shadow-sm">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/25 backdrop-blur-md text-[10px] sm:text-[11px] font-black tracking-wider text-white shadow-sm shrink-0">
               <Check className="w-3 h-3 text-white" strokeWidth={3} />
               <span>NFC</span>
               <span className="tracking-tighter font-mono text-xs opacity-90">)))</span>
@@ -276,13 +347,13 @@ export default function LoyaltyCardView({
             </p>
           </div>
 
-          {/* Card Bottom Row: Crown + Store Name, and The Glowing BrandXpere "X" Symbol */}
+          {/* Card Bottom Row: Crown + Customer Name, and The Glowing BrandXpere "X" Symbol */}
           <div className="flex items-end justify-between relative z-10 pt-1">
-            {/* Store Name with Crown */}
-            <div className="flex items-center gap-1.5">
-              <Crown className="w-3.5 h-3.5 text-amber-300 drop-shadow" />
-              <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate max-w-[180px]">
-                {storeName}
+            {/* Customer Name with Crown */}
+            <div className="flex items-center gap-1.5 max-w-[200px]">
+              <Crown className="w-3.5 h-3.5 text-amber-300 drop-shadow shrink-0" />
+              <span className="text-xs sm:text-sm font-extrabold text-white tracking-wide truncate">
+                {customerDisplayName}
               </span>
             </div>
 
@@ -403,28 +474,46 @@ export default function LoyaltyCardView({
               </div>
             </div>
 
-            {/* ── Case A: Customer not registered -> Phone Input ── */}
+            {/* ── Case A: Customer not registered -> Phone Input (Phone ONLY required) ── */}
             {!savedPhone ? (
-              <form onSubmit={handleEnrollPhone} className="space-y-2.5 py-2">
+              <form onSubmit={handleEnrollPhone} className="space-y-3 py-2">
                 <div className="text-center space-y-0.5 mb-1">
                   <p className="text-xs font-extrabold text-slate-800">
-                    {isArabic ? 'أدخل رقم هاتفك لعرض بطاقتك وتجميع طوابعك' : 'Entrez votre numéro pour activer votre carte'}
+                    {isArabic ? 'أدخل رقم هاتفك لتفعيل بطاقتك وتجميع طوابعك' : 'Entrez votre numéro pour activer votre carte'}
                   </p>
                   <p className="text-[10px] text-slate-500 font-medium">
-                    {isArabic ? 'يتذكره هاتفك تلقائياً للمرات القادمة' : 'Mémorisé automatiquement sur votre smartphone'}
+                    {isArabic ? 'التسجيل برقم الهاتف فقط وبضغطة واحدة' : 'Inscription rapide uniquement avec votre numéro'}
                   </p>
                 </div>
-                <div className="relative">
-                  <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400" />
-                  <input
-                    type="tel"
-                    placeholder="06 12 34 56 78"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value)}
-                    dir="ltr"
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40 text-xs font-bold text-slate-900 outline-none focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner"
-                  />
+
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400" />
+                    <input
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      required
+                      placeholder="06 12 34 56 78"
+                      value={phoneInput}
+                      onChange={(e) => setPhoneInput(e.target.value)}
+                      dir="ltr"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/40 text-xs font-bold text-slate-900 outline-none focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner placeholder:text-slate-400"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-300" />
+                    <input
+                      type="text"
+                      placeholder={isArabic ? 'اسمك الكامل (اختياري، ليظهر على البطاقة)' : 'Votre nom (optionnel, pour la carte)'}
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 rounded-xl border border-purple-100 bg-white text-xs font-medium text-slate-800 outline-none focus:border-[#7C3AED] transition-all placeholder:text-slate-400"
+                    />
+                  </div>
                 </div>
+
                 <button
                   type="submit"
                   disabled={isRegistering}
@@ -525,24 +614,43 @@ export default function LoyaltyCardView({
                   </button>
                 )}
 
-                {/* Active Phone Display */}
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold px-1 pt-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                    <span className="text-slate-600 font-mono">{savedPhone}</span>
+                {/* Active Phone & Customer Name Display */}
+                <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold px-1 pt-1 border-t border-purple-100">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0" />
+                    <span className="text-slate-700 font-mono text-xs">{formatPhone(savedPhone)}</span>
+                    {data?.customer?.customerName && (
+                      <span className="text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                        {data.customer.customerName}
+                      </span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      localStorage.removeItem(storageKey);
-                      setSavedPhone(null);
-                      setPhoneInput('');
-                      fetchLoyalty();
-                    }}
-                    className="text-purple-600 underline hover:text-purple-800 cursor-pointer"
-                  >
-                    {isArabic ? 'تغيير الرقم' : 'Changer'}
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditNameInput(data?.customer?.customerName || '');
+                        setShowNameModal(true);
+                      }}
+                      className="text-purple-600 underline hover:text-purple-800 cursor-pointer flex items-center gap-0.5"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>{data?.customer?.customerName ? (isArabic ? 'تعديل الاسم' : 'Nom') : (isArabic ? '+ أضف اسمك' : '+ Nom')}</span>
+                    </button>
+                    <span className="text-slate-300">•</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        localStorage.removeItem(storageKey);
+                        setSavedPhone(null);
+                        setPhoneInput('');
+                        fetchLoyalty();
+                      }}
+                      className="text-slate-400 underline hover:text-slate-600 cursor-pointer"
+                    >
+                      {isArabic ? 'تغيير' : 'Changer'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -692,6 +800,72 @@ export default function LoyaltyCardView({
             >
               {isArabic ? 'حسناً، فهمت' : 'J\'ai compris'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── 8. Edit Customer Name Modal ── */}
+      {showNameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-sm rounded-[28px] p-6 bg-white text-slate-800 border border-purple-100 shadow-2xl relative space-y-4">
+            <button 
+              type="button"
+              onClick={() => setShowNameModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-all text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center space-y-1 pt-1">
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-[#7C3AED] flex items-center justify-center">
+                <Crown className="w-6 h-6 text-amber-500" />
+              </div>
+              <h3 className="text-base font-black text-slate-900">
+                {isArabic ? 'اسمك على بطاقة الولاء VIP' : 'Votre nom sur la carte VIP'}
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                {isArabic ? 'سيظهر اسمك تحت التاج الذهبي على وجه البطاقة البنكية' : 'Apparaîtra sous la couronne dorée sur la carte'}
+              </p>
+            </div>
+
+            <form onSubmit={handleUpdateName} className="space-y-4">
+              <div className="relative">
+                <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400" />
+                <input
+                  type="text"
+                  autoFocus
+                  required
+                  placeholder="Ex: Ahmed Benali"
+                  value={editNameInput}
+                  onChange={(e) => setEditNameInput(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-purple-200 bg-purple-50/30 text-xs font-bold text-slate-900 outline-none focus:border-[#7C3AED] focus:bg-white transition-all shadow-inner"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNameModal(false)}
+                  className="py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all cursor-pointer"
+                >
+                  {isArabic ? 'إلغاء' : 'Annuler'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingName || !editNameInput.trim()}
+                  className="py-2.5 rounded-xl text-xs font-black text-white shadow-md hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  style={{
+                    background: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)',
+                  }}
+                >
+                  {updatingName ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <span>{isArabic ? 'حفظ الاسم' : 'Enregistrer'}</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

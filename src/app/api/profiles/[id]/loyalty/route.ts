@@ -13,9 +13,26 @@ const lookupSchema = z.object({
   customerName: z.string().max(100).optional().nullable(),
 });
 
-function cleanPhone(raw: string): string {
-  // Normalize Moroccan & international phone numbers (e.g., 06 12 34 56 78 -> 0612345678)
-  return raw.replace(/[\s\-\.\(\)]/g, '').trim();
+export function cleanPhone(raw: string): string {
+  if (!raw) return '';
+  // Convert Arabic and Persian numerals to standard ASCII digits
+  let cleaned = raw
+    .replace(/[٠-٩]/g, d => (d.charCodeAt(0) - 1632).toString())
+    .replace(/[۰-۹]/g, d => (d.charCodeAt(0) - 1776).toString())
+    .replace(/[\s\-\.\(\)]/g, '')
+    .trim();
+
+  // Normalize Moroccan international formats to standard local format (06..., 07...)
+  if (cleaned.startsWith('+212')) {
+    cleaned = '0' + cleaned.slice(4);
+  } else if (cleaned.startsWith('00212')) {
+    cleaned = '0' + cleaned.slice(5);
+  } else if (cleaned.startsWith('212') && cleaned.length >= 11) {
+    cleaned = '0' + cleaned.slice(3);
+  } else if (/^[5-7]\d{8}$/.test(cleaned)) {
+    cleaned = '0' + cleaned;
+  }
+  return cleaned;
 }
 
 // GET /api/profiles/[id]/loyalty?phone=0612345678
@@ -165,7 +182,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           rewardsEarned: 0,
         },
       });
-    } else if (customerName && !customer.customerName) {
+    } else if (customerName && customer.customerName !== customerName) {
       customer = await db.loyaltyCustomer.update({
         where: { id: customer.id },
         data: { customerName },
