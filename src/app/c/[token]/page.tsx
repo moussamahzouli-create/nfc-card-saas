@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import ReviewsWidget from './ReviewsWidget';
 import LoyaltyWidget from './LoyaltyWidget';
+import LoyaltyCardView from './LoyaltyCardView';
 import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
 import CardImage from './CardImage';
@@ -892,6 +893,11 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
         }
       : undefined,
   };
+
+  // Dedicated Digital Bank-style Loyalty Card Layout
+  if (profile.type === 'LOYALTY') {
+    return <LoyaltyCardView profile={profile} isArabic={isArabic} />;
+  }
 
   return (
     <div

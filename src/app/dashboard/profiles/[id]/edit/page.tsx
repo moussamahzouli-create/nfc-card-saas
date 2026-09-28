@@ -14,6 +14,7 @@ import {
 import { INDUSTRY_TEMPLATES, type IndustryTemplate } from '@/lib/templates/industry-templates';
 import { compressImage } from '@/lib/image-compression';
 import { parseMapsInput } from '@/lib/maps';
+import LoyaltyCardView from '@/app/c/[token]/LoyaltyCardView';
 
 /* ═══════════════════════════════
    TYPES & CONSTANTS
@@ -462,6 +463,32 @@ function LiveCardPreview({ profile, appearance, deviceView, components }: any) {
     socialLinks.some((l: any) => l.platform === s.id && l.url) ||
     (s.id === 'whatsapp' && (profile.whatsApp || profile.whatsApp2))
   );
+
+  if (profile?.type === 'LOYALTY') {
+    return (
+      <div className="flex-1 overflow-auto bg-slate-100 flex items-start justify-center p-2 sm:p-6">
+        <div
+          style={{ width: deviceView === 'desktop' ? '100%' : deviceWidth, maxWidth: '900px' }}
+          className="shadow-2xl transition-all duration-300"
+        >
+          {deviceView === 'mobile' ? (
+            <div className="rounded-[36px] border-[8px] border-slate-900 overflow-hidden shadow-2xl bg-[#F6F2FD]">
+              <div className="h-6 bg-slate-900 flex items-center justify-center">
+                <div className="w-16 h-2 bg-slate-800 rounded-full" />
+              </div>
+              <div className="scale-[0.92] origin-top -mt-2">
+                <LoyaltyCardView profile={profile} />
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-[#F6F2FD] p-4 flex justify-center">
+              <LoyaltyCardView profile={profile} />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto bg-slate-100 flex items-start justify-center p-4 sm:p-8">

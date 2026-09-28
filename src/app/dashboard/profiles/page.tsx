@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Plus, Edit, Copy, Trash, ToggleLeft, ToggleRight, Share2, 
-  AlertCircle, FileSpreadsheet, QrCode, ExternalLink, X, Check 
+  AlertCircle, FileSpreadsheet, QrCode, ExternalLink, X, Check,
+  Sparkles, Gift
 } from 'lucide-react';
 
 export default function ProfilesListPage() {
@@ -207,6 +208,13 @@ export default function ProfilesListPage() {
             </Link>
           )}
           <Link
+            href="/dashboard/profiles/new?type=LOYALTY"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>+ Carte Fidélité VIP</span>
+          </Link>
+          <Link
             href="/dashboard/profiles/new"
             className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
@@ -279,7 +287,14 @@ export default function ProfilesListPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{profile.type}</span>
+                        {profile.type === 'LOYALTY' ? (
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                            <span>Carte Fidélité</span>
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{profile.type}</span>
+                        )}
                         {profile.user && viewScope === 'all' && (
                           <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 truncate max-w-[140px]">
                             👤 {profile.user.name}

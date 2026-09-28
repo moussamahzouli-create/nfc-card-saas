@@ -136,6 +136,7 @@ const inp = 'w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 foc
 ═══════════════════════════════════════════════════════ */
 export default function CreateProfilePage() {
   const router = useRouter();
+  const [profileType, setProfileType] = useState<'PERSONAL' | 'LOYALTY'>('PERSONAL');
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedGroup, setSelectedGroup] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<IndustryTemplate | null>(null);
@@ -149,12 +150,26 @@ export default function CreateProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Detect ?type=LOYALTY from URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('type') === 'LOYALTY') {
+        setProfileType('LOYALTY');
+        setStep(3);
+      }
+    }
+  }, []);
+
   // Auto-slug
   useEffect(() => {
-    if (!slugTouched && firstName) {
-      setSlug(`${firstName} ${lastName}`.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+    if (!slugTouched) {
+      const baseName = profileType === 'LOYALTY' ? (company || firstName) : `${firstName} ${lastName}`;
+      if (baseName) {
+        setSlug(baseName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+      }
     }
-  }, [firstName, lastName, slugTouched]);
+  }, [firstName, lastName, company, profileType, slugTouched]);
 
   const groupCounts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -173,7 +188,12 @@ export default function CreateProfilePage() {
   }, [selectedGroup, templateSearch]);
 
   const handleCreate = useCallback(async () => {
-    if (!firstName.trim() || !slug.trim()) { setError('First name and URL slug are required.'); return; }
+    const isLoyalty = profileType === 'LOYALTY';
+    const effectiveName = isLoyalty ? (company.trim() || firstName.trim() || 'Carte Fidélité') : firstName.trim();
+    if (!effectiveName || !slug.trim()) { 
+      setError(isLoyalty ? 'Le nom du commerce et le lien URL sont requis.' : 'First name and URL slug are required.'); 
+      return; 
+    }
     if (!/^[a-z0-9-_]+$/.test(slug)) { setError('Slug: lowercase letters, numbers, hyphens only.'); return; }
     setLoading(true); setError('');
     try {
@@ -181,10 +201,20 @@ export default function CreateProfilePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: [firstName, lastName].filter(Boolean).join(' '),
-          slug, type: 'PERSONAL', jobTitle, company,
+          name: isLoyalty ? (company.trim() || firstName.trim()) : [firstName, lastName].filter(Boolean).join(' '),
+          slug, 
+          type: profileType, 
+          jobTitle: isLoyalty ? (jobTitle.trim() || "Vos achats vous rapprochent de plus d'avantages") : jobTitle, 
+          company: isLoyalty ? (company.trim() || firstName.trim()) : company,
           templateId: selectedTemplate?.id,
-          appearanceJson: selectedTemplate ? JSON.stringify({
+          appearanceJson: isLoyalty ? JSON.stringify({
+            primaryColor: '#581C87',
+            secondaryColor: '#7C3AED',
+            accentColor: '#A855F7',
+            backgroundColor: '#F6F2FD',
+            surfaceColor: '#FFFFFF',
+            borderRadius: '26px',
+          }) : selectedTemplate ? JSON.stringify({
             templateId: selectedTemplate.id,
             primaryColor: selectedTemplate.primary,
             backgroundColor: selectedTemplate.background,
@@ -206,7 +236,7 @@ export default function CreateProfilePage() {
       router.push(`/dashboard/profiles/${data.id}/edit`);
     } catch { setError('Network error. Try again.'); }
     finally { setLoading(false); }
-  }, [firstName, lastName, slug, jobTitle, company, selectedTemplate, router]);
+  }, [firstName, lastName, slug, jobTitle, company, selectedTemplate, profileType, router]);
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -343,8 +373,25 @@ export default function CreateProfilePage() {
           )}
 
           <div className="profile-editor-panel bg-white rounded-2xl border border-slate-200 p-8 shadow-sm" style={{ colorScheme: 'light' }}>
-            <h2 className="text-2xl font-black text-slate-900 mb-1">Your details</h2>
-            <p className="text-sm text-slate-500 mb-7">You can update everything later in the editor.</p>
+            {profileType === 'LOYALTY' ? (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">👑</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-3 py-1 rounded-full">
+                    Édition Exclusive BrandXpere
+                  </span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-1">Votre Carte de Fidélité VIP</h2>
+                <p className="text-sm text-slate-500 mb-7">
+                  Configurez votre programme de fidélité. Vos clients verront votre carte digitale luxueuse directement sur leur smartphone.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-black text-slate-900 mb-1">Your details</h2>
+                <p className="text-sm text-slate-500 mb-7">You can update everything later in the editor.</p>
+              </>
+            )}
 
             {error && (
               <div className="flex items-center gap-3 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm mb-5">
@@ -353,27 +400,60 @@ export default function CreateProfilePage() {
             )}
 
             <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">First Name *</label>
-                  <input className={inp} placeholder="Ahmed" value={firstName} onChange={e => setFirstName(e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Last Name</label>
-                  <input className={inp} placeholder="Al-Rashid" value={lastName} onChange={e => setLastName(e.target.value)} />
-                </div>
-              </div>
+              {profileType === 'LOYALTY' ? (
+                <>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Nom du Commerce ou de l&apos;Entreprise (اسم المحل / المتجر) *
+                    </label>
+                    <input 
+                      className={inp} 
+                      placeholder="Ex: Café Atlas, Boutique Chic, Fahd Lhaddaj..." 
+                      value={company} 
+                      onChange={e => { 
+                        setCompany(e.target.value); 
+                        setFirstName(e.target.value); 
+                      }} 
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Job Title</label>
-                <input className={inp} placeholder={selectedTemplate ? `e.g. ${selectedTemplate.industry}` : 'CEO, Doctor, Designer…'}
-                  value={jobTitle} onChange={e => setJobTitle(e.target.value)} />
-              </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                      Slogan de Fidélité (العبارة الترحيبية على البطاقة)
+                    </label>
+                    <input 
+                      className={inp} 
+                      placeholder="Vos achats vous rapprochent de plus d'avantages" 
+                      value={jobTitle} 
+                      onChange={e => setJobTitle(e.target.value)} 
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">First Name *</label>
+                      <input className={inp} placeholder="Ahmed" value={firstName} onChange={e => setFirstName(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Last Name</label>
+                      <input className={inp} placeholder="Al-Rashid" value={lastName} onChange={e => setLastName(e.target.value)} />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Company / Business</label>
-                <input className={inp} placeholder="Acme Corp" value={company} onChange={e => setCompany(e.target.value)} />
-              </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Job Title</label>
+                    <input className={inp} placeholder={selectedTemplate ? `e.g. ${selectedTemplate.industry}` : 'CEO, Doctor, Designer…'}
+                      value={jobTitle} onChange={e => setJobTitle(e.target.value)} />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Company / Business</label>
+                    <input className={inp} placeholder="Acme Corp" value={company} onChange={e => setCompany(e.target.value)} />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Public Card URL *</label>
@@ -383,27 +463,32 @@ export default function CreateProfilePage() {
                     placeholder="your-name" value={slug}
                     onChange={e => { setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '')); setSlugTouched(true); }} />
                   <button type="button" onClick={() => {
-                    const b = `${firstName}-${lastName}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const base = profileType === 'LOYALTY' ? (company || 'carte-fidelite') : `${firstName}-${lastName}`;
+                    const b = base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                     setSlug(b + '-' + Math.random().toString(36).slice(2, 5));
                     setSlugTouched(true);
                   }} className="px-3 py-3 text-slate-400 hover:text-slate-700 transition-colors" title="Auto-generate">
                     <RefreshCw className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 font-mono mt-1">connectcard.io/c/{slug || 'your-slug'}</p>
+                <p className="text-[11px] text-slate-400 font-mono mt-1">brandxpere.com/c/{slug || 'your-slug'}</p>
               </div>
             </div>
 
             <div className="flex gap-3 mt-8">
-              <button type="button" onClick={() => setStep(2)}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold text-sm hover:border-slate-400 transition-all">
-                <ArrowLeft className="w-4 h-4" /> Back
-              </button>
+              {profileType !== 'LOYALTY' && (
+                <button type="button" onClick={() => setStep(2)}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold text-sm hover:border-slate-400 transition-all cursor-pointer">
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+              )}
               <button type="button" onClick={handleCreate}
-                disabled={loading || !firstName.trim() || !slug.trim()}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-slate-900 text-white font-extrabold text-sm hover:bg-slate-800 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                disabled={loading || (!company.trim() && !firstName.trim()) || !slug.trim()}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-extrabold text-sm hover:brightness-110 hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer">
                 {loading
-                  ? <><RefreshCw className="w-4 h-4 animate-spin" /> Creating…</>
+                  ? <><RefreshCw className="w-4 h-4 animate-spin" /> Création…</>
+                  : profileType === 'LOYALTY'
+                  ? <><Sparkles className="w-4 h-4 text-amber-300" /> Créer ma Carte Fidélité & Ouvrir l&apos;éditeur</>
                   : <><Zap className="w-4 h-4" /> Create Card & Open Editor</>}
               </button>
             </div>

@@ -6,7 +6,7 @@ import { z } from 'zod';
 const createProfileSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(2).regex(/^[a-zA-Z0-9-_]+$/, { message: 'Slug can only contain alphanumeric characters, hyphens, and underscores' }),
-  type: z.enum(['PERSONAL', 'BUSINESS', 'PROFESSIONAL', 'COMPANY']).default('PERSONAL'),
+  type: z.enum(['PERSONAL', 'BUSINESS', 'PROFESSIONAL', 'COMPANY', 'LOYALTY']).default('PERSONAL'),
   organizationId: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
@@ -177,6 +177,28 @@ export async function POST(req: NextRequest) {
         isPublic: true,
       },
     });
+
+    // If type is LOYALTY, automatically create the Loyalty component
+    if (type === 'LOYALTY') {
+      try {
+        await db.profileComponent.create({
+          data: {
+            profileId: profile.id,
+            type: 'Loyalty',
+            title: 'Carte de Fidélité',
+            settingsJson: JSON.stringify({
+              targetStamps: 10,
+              rewardText: 'Cadeau ou réduction exclusive',
+              merchantPin: '1234',
+              stampIcon: 'coffee',
+              cooldownMinutes: 5,
+            }),
+          },
+        });
+      } catch (loyaltyErr) {
+        console.warn('Could not auto-create Loyalty component:', loyaltyErr);
+      }
+    }
 
     return NextResponse.json(profile, { status: 201 });
   } catch (error: any) {
