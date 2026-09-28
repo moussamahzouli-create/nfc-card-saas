@@ -181,13 +181,22 @@ export default function LoyaltyCardView({
     }
   };
 
-  const targetStamps = data?.targetStamps || 10;
+  // Fallback to profile.components for instant real-time live preview responsiveness
+  const loyaltyComp = profile?.components?.find?.((c: any) => 
+    ['loyalty', 'fidelite', 'carte_fidelite'].includes(c.type?.toLowerCase())
+  );
+  let compSettings: any = {};
+  if (loyaltyComp?.settingsJson) {
+    try { compSettings = JSON.parse(loyaltyComp.settingsJson); } catch {}
+  }
+
+  const targetStamps = data?.targetStamps || (compSettings.targetStamps ? Number(compSettings.targetStamps) : 10);
   const currentStamps = data?.customer?.stampsCount || 0;
   const isRewardReady = currentStamps >= targetStamps;
-  const rewardText = data?.rewardText || (isArabic ? 'قهوة أو هدية مجانية' : 'Cadeau ou réduction exclusive');
-  const stampIcon = data?.stampIcon || 'coffee';
-  const storeName = profile.company || profile.name || 'BrandXpere';
-  const cardTitle = data?.title || 'Carte Fidélité';
+  const rewardText = data?.rewardText || compSettings.rewardText || (isArabic ? 'قهوة أو هدية مجانية' : 'Cadeau ou réduction exclusive');
+  const stampIcon = data?.stampIcon || compSettings.stampIcon || 'coffee';
+  const storeName = profile.company || profile.name || (isArabic ? 'متجر الشريك' : 'Commerce Partenaire');
+  const cardTitle = data?.title || compSettings.title || loyaltyComp?.title || 'Carte Fidélité';
 
   return (
     <div className="min-h-screen w-full bg-[#F6F2FD] flex flex-col items-center justify-start py-4 px-4 sm:py-8 sm:px-6 relative overflow-x-hidden font-sans text-slate-800 select-none">

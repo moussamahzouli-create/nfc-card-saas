@@ -24,6 +24,7 @@ const updateProfileSchema = z.object({
   coverUrl: z.string().nullable().optional(),
   isPublic: z.boolean().optional(),
   showOnSearchEngines: z.boolean().optional(),
+  type: z.string().optional(),
   socialLinks: z.array(z.any()).optional(),
 });
 
@@ -172,6 +173,36 @@ export async function PUT(req: NextRequest, { params }: Params) {
       where: { id },
       data: updateData,
     });
+
+    // If profile type is LOYALTY, ensure a Loyalty component exists
+    if (updateData.type === 'LOYALTY') {
+      try {
+        const existingComp = await db.profileComponent.findFirst({
+          where: {
+            profileId: id,
+            type: { in: ['Loyalty', 'loyalty'] },
+          },
+        });
+        if (!existingComp) {
+          await db.profileComponent.create({
+            data: {
+              profileId: id,
+              type: 'Loyalty',
+              title: 'Carte de Fidélité VIP',
+              settingsJson: JSON.stringify({
+                targetStamps: 10,
+                rewardText: 'Cadeau ou réduction exclusive',
+                merchantPin: '1234',
+                stampIcon: 'coffee',
+                cooldownMinutes: 5,
+              }),
+            },
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to ensure Loyalty component on profile update:', err);
+      }
+    }
 
     // Synchronize social links if provided in payload
     if (socialLinks !== undefined && Array.isArray(socialLinks)) {
