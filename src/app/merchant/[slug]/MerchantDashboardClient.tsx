@@ -969,10 +969,20 @@ function SettingsTab({ data, profileId, onRefresh }: { data: DashboardData; prof
   };
 
   const handleLogout = async () => {
-    await fetch('/api/merchant/auth', { method: 'DELETE' });
-    await fetch(`/api/profiles/${profileId}/loyalty/merchant/auth`, { method: 'DELETE' });
-    window.location.href = `/merchant/login?store=${data.profile.slug}`;
+    try {
+      // Clear universal merchant_session cookie
+      await fetch('/api/merchant/auth', { method: 'DELETE' });
+      // Clear profile-specific cookie for backwards compat
+      await fetch(`/api/profiles/${profileId}/loyalty/merchant/auth`, { method: 'DELETE' });
+    } catch {
+      // Even if fetch fails, redirect to login
+    }
+    // Small delay to ensure Set-Cookie headers are applied before navigation
+    setTimeout(() => {
+      window.location.replace(`/merchant/login?store=${encodeURIComponent(data.profile.slug)}`);
+    }, 100);
   };
+
 
   return (
     <div className="space-y-4">
