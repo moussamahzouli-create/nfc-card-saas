@@ -658,7 +658,7 @@ export default function LoyaltyCardView({
         </div>
 
         {/* ── 5. Security Footer ── */}
-        <footer className="text-center space-y-0.5 pt-1 pb-4">
+        <footer className="text-center space-y-1.5 pt-1 pb-4">
           <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-slate-500">
             <Lock className="w-3 h-3 text-purple-500" />
             <span>{isArabic ? 'بياناتك مشفرة ومحمية بأمان' : 'Vos données sont sécurisées et cryptées'}</span>
@@ -666,6 +666,15 @@ export default function LoyaltyCardView({
           <p className="text-[9px] font-medium text-slate-400">
             BrandXpere • {isArabic ? 'وفاء آمن ومحمي' : 'Fidélité sécurisée'}
           </p>
+          <div className="pt-1.5">
+            <a
+              href={`/c/${profile.slug}/merchant`}
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600/70 hover:text-purple-700 hover:underline transition-colors"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              <span>{isArabic ? 'بوابة التاجر والكاشير 🔐' : 'Espace Commerçant & Caisse 🔐'}</span>
+            </a>
+          </div>
         </footer>
       </div>
 

@@ -333,6 +333,17 @@ export default function ProfilesListPage() {
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2">
+                  {profile.type === 'LOYALTY' && (
+                    <Link
+                      href={`/dashboard/loyalty/${profile.id}`}
+                      className="w-full mb-1 inline-flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-purple-700 via-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-700 text-white rounded-xl font-black text-xs shadow-sm shadow-purple-500/20 cursor-pointer transition-all"
+                      title="Ouvrir le Tableau de Bord Fidélité & Clients"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Espace Fidélité & Clients 👑</span>
+                    </Link>
+                  )}
+
                   <Link
                     href={`/dashboard/profiles/${profile.id}/edit`}
                     className="flex-grow inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-950 rounded-xl font-bold text-xs cursor-pointer transition-all"
