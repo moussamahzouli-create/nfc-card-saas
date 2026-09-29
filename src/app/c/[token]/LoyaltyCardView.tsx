@@ -666,15 +666,16 @@ export default function LoyaltyCardView({
           <p className="text-[9px] font-medium text-slate-400">
             BrandXpere • {isArabic ? 'وفاء آمن ومحمي' : 'Fidélité sécurisée'}
           </p>
-          <div className="pt-1.5">
+          <div className="pt-1.5 flex items-center justify-center gap-3">
             <a
-              href={`/c/${profile.slug}/merchant`}
+              href={`/merchant/${profile.slug}`}
               className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-600/70 hover:text-purple-700 hover:underline transition-colors"
             >
               <ShieldCheck className="w-3 h-3" />
-              <span>{isArabic ? 'بوابة التاجر والكاشير 🔐' : 'Espace Commerçant & Caisse 🔐'}</span>
+              <span>{isArabic ? 'بوابة التاجر والكاشير 🔐' : 'Espace Commerçant 🔐'}</span>
             </a>
           </div>
+
         </footer>
       </div>
 

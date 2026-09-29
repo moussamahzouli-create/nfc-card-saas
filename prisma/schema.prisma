@@ -517,6 +517,7 @@ model LoyaltyCustomer {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   logs          LoyaltyLog[]
+  tags          CustomerTag[]
 
   @@unique([profileId, phone])
   @@index([profileId])
@@ -537,3 +538,44 @@ model LoyaltyLog {
   @@index([phone])
 }
 
+model CustomerTag {
+  id         String          @id @default(uuid())
+  profileId  String
+  customerId String
+  customer   LoyaltyCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tag        String
+  createdAt  DateTime        @default(now())
+
+  @@unique([customerId, tag])
+  @@index([profileId])
+}
+
+model Campaign {
+  id             String    @id @default(uuid())
+  profileId      String
+  name           String
+  segment        String    // all, new, active, loyal, almost_reward, inactive, reward_ready
+  message        String
+  channel        String    // whatsapp, sms, email
+  status         String    @default("DRAFT") // DRAFT, SENT, FAILED
+  recipientCount Int       @default(0)
+  sentAt         DateTime?
+  scheduledAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([profileId])
+}
+
+model MerchantNotification {
+  id        String   @id @default(uuid())
+  profileId String
+  type      String   // new_customer, stamp_added, reward_redeemed, campaign_sent
+  message   String
+  isRead    Boolean  @default(false)
+  metadata  String?  // JSON
+  createdAt DateTime @default(now())
+
+  @@index([profileId])
+  @@index([isRead])
+}
