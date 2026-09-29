@@ -53,7 +53,7 @@ function timeAgo(dateStr: string): string {
   return `il y a ${Math.floor(days / 30)} mois`;
 }
 function fmtDate(d: string) { return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); }
-function maskPhone(p: string) { return p.length <= 4 ? p : p.slice(0, -4).replace(/\d/g, '•') + p.slice(-4); }
+function maskPhone(p: string) { return p; } // Full phone number displayed for authorized merchant
 function pctChange(curr: number, prev: number) { if (!prev) return curr > 0 ? 100 : 0; return Math.round(((curr - prev) / prev) * 100); }
 
 // ─── UI ATOMS ──────────────────────────────────────────────────────────────────
@@ -155,10 +155,52 @@ function CustomerDrawer({ customer, profileId, targetStamps, storeName, onClose,
   const [confirm, setConfirm] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [addingTag, setAddingTag] = useState('');
-
   const PRESET_TAGS = ['VIP', 'Régulier', 'Anniversaire', 'Potentiel VIP', 'À relancer'];
 
+  // WhatsApp Message Composer state
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [waMessage, setWaMessage] = useState('');
+  const [waSending, setWaSending] = useState(false);
+  const [waStatus, setWaStatus] = useState<{ type: 'success' | 'error'; message: string; notConnected?: boolean } | null>(null);
+
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(null), 3000); };
+
+  const handleSendWhatsApp = async () => {
+    if (!waMessage.trim()) return;
+    setWaSending(true);
+    setWaStatus(null);
+    try {
+      const res = await fetch(`/api/merchant/${profileId}/messaging/send-whatsapp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: customer.id,
+          phone: customer.phone,
+          message: waMessage.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setWaStatus({ type: 'success', message: 'Message WhatsApp envoyé avec succès !' });
+        showToast('Message WhatsApp envoyé avec succès');
+        setTimeout(() => {
+          setShowWhatsAppModal(false);
+          setWaMessage('');
+          setWaStatus(null);
+        }, 2000);
+      } else {
+        setWaStatus({
+          type: 'error',
+          message: json.error || "Échec de l'envoi WhatsApp",
+          notConnected: !!json.providerNotConnected,
+        });
+      }
+    } catch {
+      setWaStatus({ type: 'error', message: 'Erreur de connexion au service' });
+    } finally {
+      setWaSending(false);
+    }
+  };
 
   useEffect(() => {
     // Load logs
@@ -213,7 +255,7 @@ function CustomerDrawer({ customer, profileId, targetStamps, storeName, onClose,
       <div className="relative w-full sm:max-w-md bg-gradient-to-br from-purple-950 to-indigo-950 border border-purple-700/40 sm:rounded-3xl rounded-t-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
         {toast && <div className="absolute top-4 left-4 right-4 bg-green-500/20 border border-green-500/40 text-green-300 rounded-xl px-4 py-2 text-sm text-center z-10">{toast}</div>}
 
-        {/* Header */}
+        {/* Header - Full customer phone number displayed */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-purple-800/50 flex items-center justify-center">
@@ -221,13 +263,25 @@ function CustomerDrawer({ customer, profileId, targetStamps, storeName, onClose,
             </div>
             <div>
               <div className="text-white font-bold">{customer.customerName || 'Client sans nom'}</div>
-              <div className="text-purple-400 text-sm font-mono">{maskPhone(customer.phone)}</div>
+              <div className="text-emerald-400 text-sm font-mono font-semibold">{customer.phone}</div>
             </div>
           </div>
           <button onClick={onClose} className="text-purple-400 hover:text-white p-2 rounded-xl hover:bg-white/10"><X size={20} /></button>
         </div>
 
         <div className="mb-3"><SegmentBadge c={customer} /></div>
+
+        {/* Send WhatsApp Button */}
+        <button
+          onClick={() => {
+            setWaMessage(`Bonjour ${customer.customerName || ''}, nous vous remercions de votre fidélité chez ${storeName} ! ✨`);
+            setShowWhatsAppModal(true);
+          }}
+          className="w-full mb-4 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-semibold rounded-2xl py-3 text-sm transition-all shadow-md shadow-emerald-950/40"
+        >
+          <MessageSquare size={17} />
+          <span>Envoyer WhatsApp</span>
+        </button>
 
         {/* Progress */}
         <div className="bg-purple-900/30 rounded-2xl border border-purple-700/30 p-4 mb-4">
@@ -333,6 +387,105 @@ function CustomerDrawer({ customer, profileId, targetStamps, storeName, onClose,
                   <span className="text-purple-500">{timeAgo(l.createdAt)}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* WhatsApp Modal Composer */}
+        {showWhatsAppModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowWhatsAppModal(false)} />
+            <div className="relative w-full max-w-sm bg-gradient-to-br from-purple-950 via-[#1d0b33] to-indigo-950 border border-purple-700/50 rounded-3xl p-5 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-purple-800/40 pb-3">
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
+                  <MessageSquare size={18} className="text-emerald-400" />
+                  <span>Envoyer un message WhatsApp</span>
+                </div>
+                <button onClick={() => setShowWhatsAppModal(false)} className="text-purple-400 hover:text-white p-1 rounded-lg">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div>
+                <label className="text-purple-400 text-xs font-medium block mb-1">Destinataire</label>
+                <div className="bg-purple-900/40 border border-purple-700/30 rounded-xl p-2.5">
+                  <div className="text-white font-semibold text-sm">{customer.customerName || 'Client'}</div>
+                  <div className="text-emerald-400 font-mono text-xs font-medium">{customer.phone}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-purple-400 text-xs font-medium block mb-1.5">Message</label>
+                <textarea
+                  value={waMessage}
+                  onChange={e => setWaMessage(e.target.value)}
+                  placeholder="Écrivez votre message..."
+                  rows={4}
+                  className="w-full bg-purple-900/30 border border-purple-700/40 text-white placeholder-purple-500 rounded-xl p-3 text-xs outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              {/* Quick templates */}
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setWaMessage(`Bonjour ${customer.customerName || ''}, votre récompense vous attend chez ${storeName} ! 🎁`)}
+                  className="text-[11px] bg-purple-900/50 hover:bg-purple-800/60 border border-purple-700/40 text-purple-300 rounded-lg px-2.5 py-1 transition-colors"
+                >
+                  🎁 Récompense prête
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWaMessage(`Bonjour ${customer.customerName || ''}, vous avez ${customer.stampsCount}/${targetStamps} tampons chez ${storeName}. Vous y êtes presque ! ⭐`)}
+                  className="text-[11px] bg-purple-900/50 hover:bg-purple-800/60 border border-purple-700/40 text-purple-300 rounded-lg px-2.5 py-1 transition-colors"
+                >
+                  ⭐ Solde tampons
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWaMessage(`Bonjour ${customer.customerName || ''}, toute l'équipe de ${storeName} espère vous revoir très bientôt ! 😊`)}
+                  className="text-[11px] bg-purple-900/50 hover:bg-purple-800/60 border border-purple-700/40 text-purple-300 rounded-lg px-2.5 py-1 transition-colors"
+                >
+                  👋 Invitation
+                </button>
+              </div>
+
+              {waStatus && (
+                <div className={`p-3 rounded-xl text-xs space-y-1 ${waStatus.type === 'success' ? 'bg-emerald-950/60 border border-emerald-500/50 text-emerald-200' : 'bg-red-950/60 border border-red-500/50 text-red-200'}`}>
+                  <div className="font-semibold flex items-center gap-1.5">
+                    {waStatus.type === 'success' ? <CheckCircle2 size={14} className="text-emerald-400" /> : <AlertCircle size={14} className="text-red-400" />}
+                    <span>{waStatus.message}</span>
+                  </div>
+                  {waStatus.notConnected && (
+                    <p className="text-[11px] text-purple-300 pt-0.5">
+                      Configurez votre compte WhatsApp Business Cloud dans l'onglet <strong>Réglages → Fournisseurs de messagerie</strong>.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleSendWhatsApp}
+                  disabled={waSending || !waMessage.trim()}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm flex items-center justify-center gap-2 transition-all shadow-md"
+                >
+                  {waSending ? <RefreshCw size={15} className="animate-spin" /> : <Send size={15} />}
+                  <span>{waSending ? 'Envoi via WhatsApp Business...' : 'Envoyer via WhatsApp Business'}</span>
+                </button>
+
+                {/* Direct wa.me fallback */}
+                <a
+                  href={`https://wa.me/${customer.phone.replace(/[\s\-\(\)\+]/g, '').replace(/^0/, '212')}?text=${encodeURIComponent(waMessage.trim())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-purple-900/40 hover:bg-purple-800/50 border border-purple-700/30 text-purple-300 text-xs py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <span>Ouvrir dans WhatsApp Web / App (Direct)</span>
+                  <ChevronRight size={13} />
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -940,6 +1093,465 @@ function AutomationsTab({ profileId, storeName }: { profileId: string; storeName
   );
 }
 
+// ─── MESSAGING PROVIDERS SECTION ──────────────────────────────────────────────
+
+function MessagingProvidersSection({ profileId }: { profileId: string }) {
+  const [loading, setLoading] = useState(true);
+  const [providers, setProviders] = useState({
+    whatsapp: {
+      provider: 'meta_cloud',
+      phoneNumberId: '',
+      wabaId: '',
+      accessToken: '',
+      accessTokenMasked: '',
+      displayPhoneNumber: '',
+      connected: false,
+    },
+    sms: {
+      provider: 'twilio',
+      accountSid: '',
+      authToken: '',
+      authTokenMasked: '',
+      senderId: '',
+      connected: false,
+    },
+    email: {
+      provider: 'sendgrid',
+      apiKey: '',
+      apiKeyMasked: '',
+      fromEmail: '',
+      fromName: '',
+      connected: false,
+    },
+  });
+
+  const [activeAccordion, setActiveAccordion] = useState<'whatsapp' | 'sms' | 'email' | null>('whatsapp');
+  const [showWaToken, setShowWaToken] = useState(false);
+  const [showSmsToken, setShowSmsToken] = useState(false);
+  const [showEmailKey, setShowEmailKey] = useState(false);
+
+  const [testing, setTesting] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ channel: string; success: boolean; message: string } | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/merchant/${profileId}/messaging/providers`)
+      .then(r => r.json())
+      .then(j => {
+        if (j.providers) {
+          setProviders(prev => ({
+            whatsapp: { ...prev.whatsapp, ...j.providers.whatsapp },
+            sms: { ...prev.sms, ...j.providers.sms },
+            email: { ...prev.email, ...j.providers.email },
+          }));
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [profileId]);
+
+  const handleTest = async (channel: 'whatsapp' | 'sms' | 'email') => {
+    setTesting(channel);
+    setFeedback(null);
+    try {
+      const config = providers[channel];
+      const res = await fetch(`/api/merchant/${profileId}/messaging/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel, config }),
+      });
+      const json = await res.json();
+      setFeedback({ channel, success: !!json.success, message: json.message || json.error });
+      if (json.success) {
+        setProviders(prev => ({
+          ...prev,
+          [channel]: { ...prev[channel], connected: true },
+        }));
+      }
+    } catch (e: any) {
+      setFeedback({ channel, success: false, message: e.message || 'Erreur lors du test' });
+    } finally {
+      setTesting(null);
+    }
+  };
+
+  const handleSave = async (channel: 'whatsapp' | 'sms' | 'email') => {
+    setSaving(channel);
+    setFeedback(null);
+    try {
+      const payload = { [channel]: providers[channel] };
+      const res = await fetch(`/api/merchant/${profileId}/messaging/providers`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setFeedback({ channel, success: true, message: 'Configuration enregistrée avec succès' });
+        // Refresh to update masked tokens
+        const refreshed = await fetch(`/api/merchant/${profileId}/messaging/providers`).then(r => r.json());
+        if (refreshed?.providers?.[channel]) {
+          setProviders(prev => ({
+            ...prev,
+            [channel]: { ...prev[channel], ...refreshed.providers[channel], accessToken: '', authToken: '', apiKey: '' },
+          }));
+        }
+      } else {
+        setFeedback({ channel, success: false, message: json.error || 'Erreur lors de l’enregistrement' });
+      }
+    } catch (e: any) {
+      setFeedback({ channel, success: false, message: e.message || 'Erreur réseau' });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div className="bg-purple-900/20 rounded-2xl border border-purple-700/30 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-purple-300 text-sm font-semibold">Fournisseurs de messagerie</h3>
+          <p className="text-purple-400 text-xs">Configurez WhatsApp Business, SMS et Email pour votre commerce</p>
+        </div>
+      </div>
+
+      {feedback && (
+        <div className={`p-3 rounded-xl text-xs flex items-center gap-2 ${feedback.success ? 'bg-emerald-950/60 border border-emerald-500/50 text-emerald-200' : 'bg-red-950/60 border border-red-500/50 text-red-200'}`}>
+          {feedback.success ? <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" /> : <AlertCircle size={15} className="text-red-400 flex-shrink-0" />}
+          <span>{feedback.message}</span>
+        </div>
+      )}
+
+      {/* WhatsApp Business Card */}
+      <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 transition-all">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">💬</span>
+            <div>
+              <div className="text-white font-semibold text-sm">WhatsApp Business</div>
+              <div className="text-purple-400 text-[11px]">Meta Cloud API</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-medium ${providers.whatsapp.connected ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300' : 'bg-gray-900/40 border-gray-700/40 text-gray-400'}`}>
+              {providers.whatsapp.connected ? '● Connecté' : '○ Non connecté'}
+            </span>
+            <button
+              onClick={() => setActiveAccordion(activeAccordion === 'whatsapp' ? null : 'whatsapp')}
+              className="text-xs text-purple-300 hover:text-white bg-purple-800/40 hover:bg-purple-700/50 border border-purple-600/30 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              {activeAccordion === 'whatsapp' ? 'Fermer' : 'Configurer'}
+            </button>
+          </div>
+        </div>
+
+        {activeAccordion === 'whatsapp' && (
+          <div className="mt-3 pt-3 border-t border-purple-800/30 space-y-3">
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">ID de numéro de téléphone Meta (Phone Number ID)</label>
+              <input
+                type="text"
+                value={providers.whatsapp.phoneNumberId}
+                onChange={e => setProviders(prev => ({ ...prev, whatsapp: { ...prev.whatsapp, phoneNumberId: e.target.value } }))}
+                placeholder="Ex: 104829103859201"
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">ID Compte WhatsApp Business (WABA ID)</label>
+              <input
+                type="text"
+                value={providers.whatsapp.wabaId}
+                onChange={e => setProviders(prev => ({ ...prev, whatsapp: { ...prev.whatsapp, wabaId: e.target.value } }))}
+                placeholder="Ex: 294018291039482"
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">Numéro WhatsApp expéditeur affiché</label>
+              <input
+                type="text"
+                value={providers.whatsapp.displayPhoneNumber}
+                onChange={e => setProviders(prev => ({ ...prev, whatsapp: { ...prev.whatsapp, displayPhoneNumber: e.target.value } }))}
+                placeholder="Ex: +212 612345678"
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-purple-300 text-xs font-medium">Jeton d'accès permanent Meta (Access Token)</label>
+                {providers.whatsapp.accessTokenMasked && (
+                  <span className="text-[10px] text-emerald-400">Jeton enregistré : {providers.whatsapp.accessTokenMasked}</span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showWaToken ? 'text' : 'password'}
+                  value={providers.whatsapp.accessToken}
+                  onChange={e => setProviders(prev => ({ ...prev, whatsapp: { ...prev.whatsapp, accessToken: e.target.value } }))}
+                  placeholder={providers.whatsapp.accessTokenMasked ? 'Entrez un nouveau jeton pour modifier' : 'EAAG...'}
+                  className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:border-purple-500 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowWaToken(!showWaToken)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white"
+                >
+                  {showWaToken ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+              <p className="text-[10px] text-purple-500 mt-1">Vos identifiants sont chiffrés et stockés de manière isolée pour votre commerce.</p>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleTest('whatsapp')}
+                disabled={testing === 'whatsapp'}
+                className="flex-1 bg-purple-800/50 hover:bg-purple-700/60 border border-purple-600/40 text-purple-200 rounded-xl py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+              >
+                {testing === 'whatsapp' ? <RefreshCw size={12} className="animate-spin" /> : <Zap size={12} className="text-amber-400" />}
+                <span>Tester la connexion</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave('whatsapp')}
+                disabled={saving === 'whatsapp'}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+              >
+                {saving === 'whatsapp' ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
+                <span>Enregistrer WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SMS Card */}
+      <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 transition-all">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">📱</span>
+            <div>
+              <div className="text-white font-semibold text-sm">Fournisseur SMS</div>
+              <div className="text-purple-400 text-[11px]">Twilio / Infobip / Personnalisé</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-medium ${providers.sms.connected ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300' : 'bg-gray-900/40 border-gray-700/40 text-gray-400'}`}>
+              {providers.sms.connected ? '● Connecté' : '○ Non connecté'}
+            </span>
+            <button
+              onClick={() => setActiveAccordion(activeAccordion === 'sms' ? null : 'sms')}
+              className="text-xs text-purple-300 hover:text-white bg-purple-800/40 hover:bg-purple-700/50 border border-purple-600/30 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              {activeAccordion === 'sms' ? 'Fermer' : 'Configurer'}
+            </button>
+          </div>
+        </div>
+
+        {activeAccordion === 'sms' && (
+          <div className="mt-3 pt-3 border-t border-purple-800/30 space-y-3">
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">Fournisseur SMS</label>
+              <select
+                value={providers.sms.provider}
+                onChange={e => setProviders(prev => ({ ...prev, sms: { ...prev.sms, provider: e.target.value as any } }))}
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500"
+              >
+                <option value="twilio">Twilio</option>
+                <option value="infobip">Infobip</option>
+                <option value="custom">Passerelle SMS personnalisée</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">Account SID / Clé API</label>
+              <input
+                type="text"
+                value={providers.sms.accountSid}
+                onChange={e => setProviders(prev => ({ ...prev, sms: { ...prev.sms, accountSid: e.target.value } }))}
+                placeholder="Ex: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-purple-300 text-xs font-medium">Auth Token / Secret</label>
+                {providers.sms.authTokenMasked && (
+                  <span className="text-[10px] text-emerald-400">Token enregistré : {providers.sms.authTokenMasked}</span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showSmsToken ? 'text' : 'password'}
+                  value={providers.sms.authToken}
+                  onChange={e => setProviders(prev => ({ ...prev, sms: { ...prev.sms, authToken: e.target.value } }))}
+                  placeholder={providers.sms.authTokenMasked ? 'Entrez un nouveau token pour modifier' : 'Auth Token'}
+                  className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:border-purple-500 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSmsToken(!showSmsToken)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white"
+                >
+                  {showSmsToken ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">Sender ID / Numéro d'envoi</label>
+              <input
+                type="text"
+                value={providers.sms.senderId}
+                onChange={e => setProviders(prev => ({ ...prev, sms: { ...prev.sms, senderId: e.target.value } }))}
+                placeholder="Ex: BrandXper ou +1234567890"
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleTest('sms')}
+                disabled={testing === 'sms'}
+                className="flex-1 bg-purple-800/50 hover:bg-purple-700/60 border border-purple-600/40 text-purple-200 rounded-xl py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+              >
+                {testing === 'sms' ? <RefreshCw size={12} className="animate-spin" /> : <Zap size={12} className="text-amber-400" />}
+                <span>Tester la connexion</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave('sms')}
+                disabled={saving === 'sms'}
+                className="flex-1 bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+              >
+                {saving === 'sms' ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
+                <span>Enregistrer SMS</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Email Card */}
+      <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 transition-all">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">✉️</span>
+            <div>
+              <div className="text-white font-semibold text-sm">Fournisseur Email</div>
+              <div className="text-purple-400 text-[11px]">SendGrid / Resend / SMTP</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-medium ${providers.email.connected ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300' : 'bg-gray-900/40 border-gray-700/40 text-gray-400'}`}>
+              {providers.email.connected ? '● Connecté' : '○ Non connecté'}
+            </span>
+            <button
+              onClick={() => setActiveAccordion(activeAccordion === 'email' ? null : 'email')}
+              className="text-xs text-purple-300 hover:text-white bg-purple-800/40 hover:bg-purple-700/50 border border-purple-600/30 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              {activeAccordion === 'email' ? 'Fermer' : 'Configurer'}
+            </button>
+          </div>
+        </div>
+
+        {activeAccordion === 'email' && (
+          <div className="mt-3 pt-3 border-t border-purple-800/30 space-y-3">
+            <div>
+              <label className="text-purple-300 text-xs font-medium block mb-1">Fournisseur Email</label>
+              <select
+                value={providers.email.provider}
+                onChange={e => setProviders(prev => ({ ...prev, email: { ...prev.email, provider: e.target.value as any } }))}
+                className="w-full bg-purple-900/50 border border-purple-700/40 text-white rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500"
+              >
+                <option value="sendgrid">SendGrid</option>
+                <option value="resend">Resend</option>
+                <option value="smtp">Serveur SMTP</option>
+              </select>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-purple-300 text-xs font-medium">Clé API / Mot de passe</label>
+                {providers.email.apiKeyMasked && (
+                  <span className="text-[10px] text-emerald-400">Clé enregistrée : {providers.email.apiKeyMasked}</span>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showEmailKey ? 'text' : 'password'}
+                  value={providers.email.apiKey}
+                  onChange={e => setProviders(prev => ({ ...prev, email: { ...prev.email, apiKey: e.target.value } }))}
+                  placeholder={providers.email.apiKeyMasked ? 'Entrez une nouvelle clé pour modifier' : 'SG.xxxx... ou re_xxxx...'}
+                  className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 pr-9 text-xs outline-none focus:border-purple-500 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowEmailKey(!showEmailKey)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-purple-400 hover:text-white"
+                >
+                  {showEmailKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-purple-300 text-xs font-medium block mb-1">Nom d'expéditeur</label>
+                <input
+                  type="text"
+                  value={providers.email.fromName}
+                  onChange={e => setProviders(prev => ({ ...prev, email: { ...prev.email, fromName: e.target.value } }))}
+                  placeholder="Ex: Mon Restaurant"
+                  className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="text-purple-300 text-xs font-medium block mb-1">Email d'envoi vérifié</label>
+                <input
+                  type="email"
+                  value={providers.email.fromEmail}
+                  onChange={e => setProviders(prev => ({ ...prev, email: { ...prev.email, fromEmail: e.target.value } }))}
+                  placeholder="contact@moncommerce.com"
+                  className="w-full bg-purple-900/50 border border-purple-700/40 text-white placeholder-purple-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleTest('email')}
+                disabled={testing === 'email'}
+                className="flex-1 bg-purple-800/50 hover:bg-purple-700/60 border border-purple-600/40 text-purple-200 rounded-xl py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+              >
+                {testing === 'email' ? <RefreshCw size={12} className="animate-spin" /> : <Zap size={12} className="text-amber-400" />}
+                <span>Tester la connexion</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSave('email')}
+                disabled={saving === 'email'}
+                className="flex-1 bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-md"
+              >
+                {saving === 'email' ? <RefreshCw size={12} className="animate-spin" /> : <Check size={12} />}
+                <span>Enregistrer Email</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── SETTINGS TAB ──────────────────────────────────────────────────────────────
 
 function SettingsTab({ data, profileId, onRefresh }: { data: DashboardData; profileId: string; onRefresh: () => void }) {
@@ -1043,23 +1655,8 @@ function SettingsTab({ data, profileId, onRefresh }: { data: DashboardData; prof
         </button>
       </div>
 
-      {/* Messaging providers */}
-      <div className="bg-purple-900/20 rounded-2xl border border-purple-700/30 p-4">
-        <h3 className="text-purple-300 text-sm font-semibold mb-3">Fournisseurs de messagerie</h3>
-        {[
-          { label: 'WhatsApp Business', icon: '💬', status: 'not_connected' },
-          { label: 'SMS (Twilio / autre)', icon: '📱', status: 'not_connected' },
-          { label: 'Email (SendGrid / autre)', icon: '✉️', status: 'not_connected' },
-        ].map(p => (
-          <div key={p.label} className="flex items-center justify-between py-2.5 border-b border-purple-800/30 last:border-0">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{p.icon}</span>
-              <span className="text-white text-sm">{p.label}</span>
-            </div>
-            <span className="text-xs text-gray-500 bg-gray-900/30 border border-gray-700/30 rounded-full px-2 py-0.5">Non connecté</span>
-          </div>
-        ))}
-      </div>
+      {/* Messaging providers (WhatsApp Business, SMS, Email) */}
+      <MessagingProvidersSection profileId={profileId} />
 
       {/* Logout */}
       <button onClick={handleLogout}
@@ -1370,7 +1967,7 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
                         {log.action === 'STAMP_ADDED' && <Star size={13} className="text-purple-400 flex-shrink-0" />}
                         {log.action === 'REWARD_REDEEMED' && <Gift size={13} className="text-amber-400 flex-shrink-0" />}
                         {log.action === 'RESET' && <RefreshCw size={13} className="text-gray-400 flex-shrink-0" />}
-                        <span className="text-gray-300 font-mono text-xs">{maskPhone(log.phone)}</span>
+                        <span className="text-emerald-400/90 font-mono text-xs">{log.phone}</span>
                         <span className="text-purple-500 text-xs">{log.action === 'STAMP_ADDED' ? '+1 tampon' : log.action === 'REWARD_REDEEMED' ? 'Récompense' : 'Reset'}</span>
                       </div>
                       <span className="text-purple-500 text-xs">{timeAgo(log.createdAt)}</span>
@@ -1416,7 +2013,7 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
                       <div className="w-9 h-9 rounded-xl bg-purple-800/50 flex items-center justify-center"><User size={16} className="text-purple-300" /></div>
                       <div>
                         <div className="text-white font-medium text-sm">{c.customerName || 'Client sans nom'}</div>
-                        <div className="text-purple-400 text-xs font-mono">{maskPhone(c.phone)}</div>
+                        <div className="text-emerald-400 font-mono text-xs font-medium">{c.phone}</div>
                       </div>
                     </div>
                     <SegmentBadge c={c} />
@@ -1448,9 +2045,10 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
                         <div className="text-white text-sm font-medium">
                           {log.action === 'STAMP_ADDED' ? `Tampon ajouté (${log.stampsCount} total)` : log.action === 'REWARD_REDEEMED' ? 'Récompense utilisée' : 'Carte réinitialisée'}
                         </div>
-                        <div className="text-purple-400 text-xs font-mono">{maskPhone(log.phone)}</div>
+                        <div className="text-emerald-400/90 font-mono text-xs">{log.phone}</div>
                       </div>
                     </div>
+
                     <div className="text-right">
                       <div className="text-purple-400 text-xs">{timeAgo(log.createdAt)}</div>
                       <div className="text-purple-600 text-xs">{fmtDate(log.createdAt)}</div>
