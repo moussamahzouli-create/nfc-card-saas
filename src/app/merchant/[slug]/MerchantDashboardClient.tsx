@@ -9,7 +9,8 @@ import {
   Eye, EyeOff, Info, ArrowUp, ArrowDown, Percent, Calculator,
   Sliders, ToggleLeft, ToggleRight, AlertCircle, CheckCircle2,
   Mail, Smartphone, Play, Pause, Edit3, ChevronDown,
-  TrendingDown, Repeat, BarChart, PieChart, Layers
+  TrendingDown, Repeat, BarChart, PieChart, Layers,
+  Camera, QrCode, ShieldCheck
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
@@ -427,6 +428,547 @@ function ROICalculator({ storeName }: { storeName: string }) {
           Ces estimations supposent une hausse de {frequencyBoost}% de la fréquence de visite grâce au programme fidélité.
           Les résultats réels peuvent varier.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── CUSTOMER QR SCANNER MODAL ────────────────────────────────────────────────
+
+interface CustomerQrScannerModalProps {
+  profileId: string;
+  storeName: string;
+  targetStamps: number;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function CustomerQrScannerModal({
+  profileId,
+  storeName,
+  targetStamps,
+  onClose,
+  onSuccess,
+}: CustomerQrScannerModalProps) {
+  const [step, setStep] = useState<'SCANNING' | 'CUSTOMER_FOUND' | 'SUCCESS'>('SCANNING');
+  const [scannedCustomer, setScannedCustomer] = useState<{
+    id?: string;
+    phone: string;
+    customerName?: string | null;
+    stampsCount: number;
+    rewardsEarned: number;
+    lastStampAt?: string | null;
+    isRewardReady?: boolean;
+    isNew?: boolean;
+  } | null>(null);
+
+  const [loadingCustomer, setLoadingCustomer] = useState(false);
+  const [submittingStamp, setSubmittingStamp] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [manualPhone, setManualPhone] = useState('');
+  const [lastStampResult, setLastStampResult] = useState<{
+    stampsCount: number;
+    rewardsEarned: number;
+    isRewardReady: boolean;
+  } | null>(null);
+
+  const scannerRef = useRef<any>(null);
+  const isMountedRef = useRef(true);
+
+  // Helper normalizer
+  const normalizeScannedPhone = (raw: string): string => {
+    let cleaned = raw
+      .replace(/[٠-٩]/g, d => (d.charCodeAt(0) - 1632).toString())
+      .replace(/[۰-۹]/g, d => (d.charCodeAt(0) - 1776).toString())
+      .replace(/[\s\-\.\(\)]/g, '')
+      .trim();
+
+    if (cleaned.startsWith('+212')) cleaned = '0' + cleaned.slice(4);
+    else if (cleaned.startsWith('00212')) cleaned = '0' + cleaned.slice(5);
+    else if (cleaned.startsWith('212') && cleaned.length >= 11) cleaned = '0' + cleaned.slice(3);
+    else if (/^[5-7]\d{8}$/.test(cleaned)) cleaned = '0' + cleaned;
+    return cleaned;
+  };
+
+  const lookupAndSelectCustomer = async (phone: string, fallbackName?: string) => {
+    setLoadingCustomer(true);
+    setScanError(null);
+    try {
+      const res = await fetch(`/api/profiles/${profileId}/loyalty/merchant/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'GET_HISTORY', phone }),
+      });
+      const data = await res.json();
+      if (res.ok && data.customer) {
+        setScannedCustomer({
+          ...data.customer,
+          isRewardReady: data.customer.stampsCount >= targetStamps,
+        });
+        setStep('CUSTOMER_FOUND');
+      } else {
+        // Customer not yet registered in database: treat as new customer ready for 1st stamp
+        setScannedCustomer({
+          phone,
+          customerName: fallbackName || null,
+          stampsCount: 0,
+          rewardsEarned: 0,
+          isRewardReady: false,
+          isNew: true,
+        });
+        setStep('CUSTOMER_FOUND');
+      }
+    } catch {
+      setScanError('Erreur lors de la récupération des données du client');
+    } finally {
+      setLoadingCustomer(false);
+    }
+  };
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        if (scannerRef.current.isScanning) {
+          await scannerRef.current.stop();
+        }
+        await scannerRef.current.clear();
+      } catch (e) {
+        console.error('Error stopping scanner:', e);
+      }
+      scannerRef.current = null;
+    }
+  };
+
+  const startScanner = async () => {
+    setCameraError(null);
+    setScanError(null);
+
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      
+      const elem = document.getElementById('qr-reader-container');
+      if (!elem) return;
+
+      if (scannerRef.current) {
+        await stopScanner();
+      }
+
+      const html5QrCode = new Html5Qrcode('qr-reader-container');
+      scannerRef.current = html5QrCode;
+
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 240, height: 240 },
+          aspectRatio: 1.0,
+        },
+        async (decodedText: string) => {
+          if (!isMountedRef.current) return;
+
+          let detectedPhone = '';
+          let detectedName = '';
+
+          try {
+            const parsed = JSON.parse(decodedText);
+            // Strict Profile Scoping check
+            if (parsed.profileId && parsed.profileId !== profileId) {
+              setScanError("Ce QR code appartient à un autre commerce !");
+              return;
+            }
+            if (parsed.phone) {
+              detectedPhone = parsed.phone;
+            }
+            if (parsed.name) {
+              detectedName = parsed.name;
+            }
+          } catch {
+            if (decodedText.includes('phone=')) {
+              try {
+                const url = new URL(decodedText);
+                detectedPhone = url.searchParams.get('phone') || '';
+              } catch {}
+            }
+            if (!detectedPhone) {
+              detectedPhone = decodedText;
+            }
+          }
+
+          const cleaned = normalizeScannedPhone(detectedPhone);
+          if (cleaned.length >= 6) {
+            await stopScanner();
+            lookupAndSelectCustomer(cleaned, detectedName);
+          } else {
+            setScanError('Format de QR code client non reconnu.');
+          }
+        },
+        () => {}
+      );
+    } catch (err: any) {
+      console.warn('Camera start error:', err);
+      setCameraError(
+        err?.message?.includes('Permission') || err?.name === 'NotAllowedError'
+          ? "L'accès à la caméra a été refusé. Saisissez le numéro manuellement."
+          : "Caméra indisponible sur cet appareil. Saisissez le numéro ci-dessous."
+      );
+    }
+  };
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    if (step === 'SCANNING') {
+      const timer = setTimeout(() => {
+        startScanner();
+      }, 150);
+      return () => {
+        clearTimeout(timer);
+        stopScanner();
+      };
+    }
+    return () => {
+      isMountedRef.current = false;
+      stopScanner();
+    };
+  }, [step]);
+
+  const handleAddStamp = async () => {
+    if (!scannedCustomer || submittingStamp) return;
+    setSubmittingStamp(true);
+    setScanError(null);
+
+    try {
+      const res = await fetch(`/api/profiles/${profileId}/loyalty/merchant/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ADD_STAMP',
+          phone: scannedCustomer.phone,
+          customerName: scannedCustomer.customerName || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([100, 50, 100]);
+        }
+        setLastStampResult({
+          stampsCount: data.customer.stampsCount,
+          rewardsEarned: data.customer.rewardsEarned,
+          isRewardReady: data.customer.isRewardReady,
+        });
+        setStep('SUCCESS');
+        onSuccess();
+      } else {
+        setScanError(data.error || 'Erreur lors de l\'ajout du tampon');
+      }
+    } catch {
+      setScanError('Erreur de connexion au serveur');
+    } finally {
+      setSubmittingStamp(false);
+    }
+  };
+
+  const handleRedeemReward = async () => {
+    if (!scannedCustomer || submittingStamp) return;
+    setSubmittingStamp(true);
+    setScanError(null);
+
+    try {
+      const res = await fetch(`/api/profiles/${profileId}/loyalty/merchant/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REDEEM_REWARD',
+          phone: scannedCustomer.phone,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate([150, 100, 150]);
+        }
+        setLastStampResult({
+          stampsCount: data.customer.stampsCount,
+          rewardsEarned: data.customer.rewardsEarned,
+          isRewardReady: data.customer.isRewardReady,
+        });
+        setStep('SUCCESS');
+        onSuccess();
+      } else {
+        setScanError(data.error || 'Erreur lors de la validation de la récompense');
+      }
+    } catch {
+      setScanError('Erreur de connexion');
+    } finally {
+      setSubmittingStamp(false);
+    }
+  };
+
+  const handleRestartScan = () => {
+    setScannedCustomer(null);
+    setLastStampResult(null);
+    setScanError(null);
+    setCameraError(null);
+    setStep('SCANNING');
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleaned = normalizeScannedPhone(manualPhone);
+    if (cleaned.length >= 6) {
+      stopScanner();
+      lookupAndSelectCustomer(cleaned);
+    } else {
+      setScanError('Veuillez entrer un numéro de téléphone valide');
+    }
+  };
+
+  const currentStamps = scannedCustomer?.stampsCount || 0;
+  const pct = Math.min(100, Math.round((currentStamps / targetStamps) * 100));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-gradient-to-br from-[#1b082e] via-[#140524] to-[#0d0317] border border-purple-500/40 rounded-3xl p-6 shadow-2xl text-white space-y-4 max-h-[92vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-2 border-b border-purple-800/40">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
+              <Camera size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white">Scanner QR Client</h3>
+              <p className="text-xs text-purple-400">{storeName}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-purple-300 hover:text-white transition-all cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Scan Error notification */}
+        {scanError && (
+          <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs text-center font-semibold">
+            {scanError}
+          </div>
+        )}
+
+        {/* ── STEP 1: SCANNING ── */}
+        {step === 'SCANNING' && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-xs text-purple-300 mb-3">
+                Pointez la caméra vers le QR code fidélité du client
+              </p>
+
+              {/* Camera Container */}
+              <div className="relative mx-auto w-full max-w-[270px] aspect-square rounded-2xl overflow-hidden bg-slate-950 border-2 border-purple-500/50 shadow-inner flex items-center justify-center">
+                <div id="qr-reader-container" className="w-full h-full" />
+                
+                {/* Visual Scanner HUD Overlay */}
+                {!cameraError && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <div className="w-44 h-44 border-2 border-purple-400/80 rounded-2xl relative animate-pulse">
+                      <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-purple-400 rounded-tl-lg" />
+                      <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-purple-400 rounded-tr-lg" />
+                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-purple-400 rounded-bl-lg" />
+                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-purple-400 rounded-br-lg" />
+                    </div>
+                  </div>
+                )}
+
+                {cameraError && (
+                  <div className="p-4 text-center space-y-2">
+                    <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
+                    <p className="text-xs text-purple-200">{cameraError}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Manual Entry Option */}
+            <div className="pt-2 border-t border-purple-800/30">
+              <form onSubmit={handleManualSubmit} className="space-y-2">
+                <label className="text-[11px] font-semibold text-purple-300 block">
+                  Ou saisie rapide du numéro :
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    value={manualPhone}
+                    onChange={(e) => setManualPhone(e.target.value)}
+                    placeholder="0612345678"
+                    className="flex-1 bg-purple-950/60 border border-purple-700/50 rounded-xl px-3 py-2 text-xs text-white placeholder-purple-600 outline-none focus:border-purple-400"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer"
+                  >
+                    Identifier
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 2: CUSTOMER IDENTIFIED ── */}
+        {step === 'CUSTOMER_FOUND' && scannedCustomer && (
+          <div className="space-y-4 animate-fade-in">
+            {/* Customer Header card */}
+            <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
+                  <User size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="text-sm font-bold text-white truncate">
+                      {scannedCustomer.customerName || 'Client Fidélité'}
+                    </h4>
+                    {scannedCustomer.isNew && (
+                      <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        Nouveau
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-emerald-400 font-mono text-sm font-semibold tracking-wide">
+                    {scannedCustomer.phone}
+                  </div>
+                </div>
+              </div>
+
+              {/* Stamp progress bar */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-purple-300 font-medium">Solde actuel</span>
+                  <span className="text-white font-black text-sm">
+                    {currentStamps} / {targetStamps} tampons
+                  </span>
+                </div>
+                <div className="h-2.5 bg-purple-950/80 rounded-full overflow-hidden border border-purple-800/40">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-amber-400 rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Status announcement */}
+              {scannedCustomer.isRewardReady ? (
+                <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold flex items-center gap-2">
+                  <Gift size={16} className="text-amber-400 shrink-0" />
+                  <span>🎁 Récompense prête ! Le client a complété sa carte.</span>
+                </div>
+              ) : (
+                <div className="text-[11px] text-purple-400 flex items-center gap-1">
+                  <Target size={13} className="text-purple-400" />
+                  <span>
+                    Encore {Math.max(1, targetStamps - currentStamps)} tampon(s) pour la récompense
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={handleAddStamp}
+                disabled={submittingStamp}
+                className="w-full py-3.5 px-4 rounded-2xl font-black text-sm text-white shadow-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #9333EA 100%)',
+                }}
+              >
+                {submittingStamp ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5" />
+                    <span>Ajouter un Tampon (+1)</span>
+                  </>
+                )}
+              </button>
+
+              {scannedCustomer.isRewardReady && (
+                <button
+                  type="button"
+                  onClick={handleRedeemReward}
+                  disabled={submittingStamp}
+                  className="w-full py-3 px-4 rounded-2xl font-black text-sm text-slate-950 bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-400 shadow-lg hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Gift className="w-4 h-4" />
+                  <span>Valider la Récompense</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleRestartScan}
+                disabled={submittingStamp}
+                className="w-full py-2.5 text-xs text-purple-400 hover:text-white transition-colors cursor-pointer"
+              >
+                ← Scanner un autre client
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 3: SUCCESS CONFIRMATION ── */}
+        {step === 'SUCCESS' && (
+          <div className="text-center space-y-4 py-3 animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg animate-bounce">
+              <CheckCircle2 size={36} />
+            </div>
+
+            <div>
+              <h4 className="text-lg font-black text-white">Opération réussie ! 🎉</h4>
+              <p className="text-xs text-purple-300 mt-1">
+                Le compte de <span className="font-bold text-white">{scannedCustomer?.customerName || scannedCustomer?.phone}</span> a été mis à jour.
+              </p>
+            </div>
+
+            <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 inline-block w-full text-center">
+              <span className="text-xs text-purple-400 block mb-1">Nouveau solde</span>
+              <span className="text-2xl font-black text-amber-400">
+                {lastStampResult?.stampsCount} / {targetStamps}
+              </span>
+              <span className="text-xs text-purple-300 ml-1.5">tampons</span>
+
+              {lastStampResult?.isRewardReady && (
+                <div className="mt-2 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 py-1.5 px-3 rounded-xl">
+                  🎁 Récompense débloquée pour ce client !
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={handleRestartScan}
+                className="w-full py-3 px-4 rounded-2xl font-black text-sm text-white bg-purple-600 hover:bg-purple-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+              >
+                <Camera size={16} />
+                <span>Scanner le client suivant</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2.5 text-xs text-purple-400 hover:text-white transition-colors cursor-pointer"
+              >
+                Terminer & Fermer
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -958,6 +1500,7 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showScanner, setShowScanner] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -1059,6 +1602,17 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
           storeName={data.settings.storeName} onClose={() => setSelectedCustomer(null)} onRefresh={() => refresh(true)} />
       )}
 
+      {/* Customer QR Scanner Modal */}
+      {showScanner && (
+        <CustomerQrScannerModal
+          profileId={profileId}
+          storeName={data.settings.storeName}
+          targetStamps={data.settings.targetStamps}
+          onClose={() => setShowScanner(false)}
+          onSuccess={() => refresh(true)}
+        />
+      )}
+
       {/* Header */}
       <div className="sticky top-0 z-30 bg-purple-950/90 backdrop-blur-xl border-b border-purple-800/30">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -1073,6 +1627,17 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Quick QR Scanner Button */}
+            <button
+              type="button"
+              onClick={() => setShowScanner(true)}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+              title="Scanner le QR code d'un client"
+            >
+              <Camera size={15} />
+              <span className="hidden sm:inline">Scanner QR</span>
+            </button>
+
             {/* Notifications */}
             <div className="relative" ref={notifRef}>
               <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) setUnreadCount(0); }}
@@ -1106,7 +1671,40 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
 
             {/* Cashier form */}
             <div className="bg-purple-900/20 rounded-2xl border border-purple-700/30 p-5">
-              <h2 className="text-white font-bold mb-4 flex items-center gap-2"><ShoppingBag size={18} className="text-purple-400" />Mode Caisse</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-white font-bold flex items-center gap-2">
+                  <ShoppingBag size={18} className="text-purple-400" />Mode Caisse
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow transition-all cursor-pointer"
+                >
+                  <Camera size={14} />
+                  <span>Scanner QR</span>
+                </button>
+              </div>
+
+              {/* Quick Scanner Banner */}
+              <div className="bg-gradient-to-r from-purple-900/60 via-purple-800/40 to-indigo-900/60 border border-purple-600/40 rounded-2xl p-3.5 mb-4 flex items-center justify-between gap-3 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0">
+                    <QrCode size={22} />
+                  </div>
+                  <div>
+                    <div className="text-white font-bold text-xs sm:text-sm">Scanner QR Client (Sans PIN)</div>
+                    <div className="text-purple-300 text-[11px]">Attribuez un tampon instantanément avec la caméra</div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  className="bg-white hover:bg-purple-50 text-purple-950 font-black text-xs px-3.5 py-2 rounded-xl shadow active:scale-95 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <Camera size={14} />
+                  <span>Ouvrir</span>
+                </button>
+              </div>
               <div className="space-y-3">
                 <div>
                   <label className="text-purple-400 text-xs font-medium block mb-1.5">Numéro de téléphone *</label>

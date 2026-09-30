@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Coffee, Star, Gift, Scissors, Heart, Utensils, 
   CheckCircle2, Sparkles, Lock, ArrowRight, Phone, RefreshCw, X, ShieldCheck,
-  ChevronRight, Smartphone, User, Crown, Check, Edit3
+  ChevronRight, Smartphone, User, Crown, Check, Edit3, QrCode, Eye, EyeOff
 } from 'lucide-react';
+import QRCode from 'qrcode';
 
 interface LoyaltyCardViewProps {
   profile: any;
@@ -60,6 +61,10 @@ export default function LoyaltyCardView({
   // Save to phone modal / hint
   const [showSaveModal, setShowSaveModal] = useState(false);
 
+  // Customer Personal QR Code & PIN visibility
+  const [customerQrUrl, setCustomerQrUrl] = useState<string | null>(null);
+  const [showPin, setShowPin] = useState(false);
+
   const storageKey = `brandxper_loyalty_${profile.id}`;
 
   const fetchLoyalty = async (phoneToQuery?: string) => {
@@ -91,6 +96,32 @@ export default function LoyaltyCardView({
       fetchLoyalty();
     }
   }, [profile.id]);
+
+  useEffect(() => {
+    const activePhone = data?.customer?.phone || savedPhone;
+    if (activePhone && profile?.id) {
+      const payload = JSON.stringify({
+        type: 'bx_loyalty_customer',
+        profileId: profile.id,
+        slug: profile.slug,
+        phone: activePhone,
+        name: data?.customer?.customerName || undefined,
+      });
+
+      QRCode.toDataURL(payload, {
+        width: 320,
+        margin: 1.5,
+        color: {
+          dark: '#3B0764',
+          light: '#FFFFFF',
+        },
+      })
+        .then(setCustomerQrUrl)
+        .catch(console.error);
+    } else {
+      setCustomerQrUrl(null);
+    }
+  }, [data?.customer?.phone, data?.customer?.customerName, savedPhone, profile?.id, profile?.slug]);
 
   // Handle phone submission (Only phone is required)
   const handleEnrollPhone = async (e: React.FormEvent) => {
@@ -614,6 +645,40 @@ export default function LoyaltyCardView({
                   </button>
                 )}
 
+                {/* ── Mon QR Code Fidélité (Scan Rapide en Caisse) ── */}
+                <div className="rounded-2xl border border-purple-100 bg-gradient-to-b from-purple-50/70 to-white p-3.5 text-center space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-black text-purple-950">
+                      <QrCode className="w-4 h-4 text-purple-600" />
+                      <span>{isArabic ? 'رمز QR الخاص بك' : 'Mon QR Code Fidélité'}</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-full border border-purple-200/50">
+                      {isArabic ? 'مسح سريع' : 'Sans code PIN'}
+                    </span>
+                  </div>
+
+                  {customerQrUrl ? (
+                    <div className="flex flex-col items-center justify-center pt-0.5">
+                      <div className="p-2 bg-white rounded-2xl border border-purple-200/70 shadow-sm inline-block">
+                        <img
+                          src={customerQrUrl}
+                          alt="QR Fidélité Client"
+                          className="w-32 h-32 mx-auto rounded-xl object-contain"
+                        />
+                      </div>
+                      <p className="text-[11px] font-semibold text-slate-600 mt-1.5 max-w-[260px] leading-tight">
+                        {isArabic
+                          ? 'أظهر هذا الرمز للكاشير لمسحه والحصول على طابعك فوراً'
+                          : 'Présentez ce QR code en caisse pour recevoir votre tampon instantanément'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="py-3 text-xs text-purple-400">
+                      {isArabic ? 'جاري تحضير الرمز...' : 'Génération du QR...'}
+                    </div>
+                  )}
+                </div>
+
                 {/* Active Phone & Customer Name Display */}
                 <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold px-1 pt-1 border-t border-purple-100">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -711,18 +776,37 @@ export default function LoyaltyCardView({
 
             {/* PIN Form */}
             <form onSubmit={handleVerifyPin} className="space-y-4">
-              <div className="flex justify-center">
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  autoFocus
-                  placeholder="••••"
-                  value={pinInput}
-                  onChange={(e) => setPinInput(e.target.value)}
-                  className="w-44 text-center tracking-[0.4em] text-2xl font-black py-2.5 px-3 rounded-2xl border bg-black/50 border-purple-500/50 text-white outline-none focus:ring-2 focus:ring-purple-400"
-                />
+              <div className="flex flex-col items-center justify-center gap-2">
+                <div className="relative">
+                  <input
+                    type={showPin ? 'text' : 'password'}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    autoFocus
+                    placeholder="••••"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    className="w-52 text-center tracking-[0.4em] text-3xl font-black py-3 px-4 rounded-2xl border-2 bg-slate-950 border-purple-400 text-white placeholder-slate-500 caret-white outline-none focus:ring-4 focus:ring-purple-500/40 focus:border-purple-300 shadow-2xl transition-all"
+                    style={{
+                      color: '#ffffff',
+                      WebkitTextFillColor: '#ffffff',
+                      backgroundColor: '#09090b',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {showPin 
+                    ? (isArabic ? 'الأرقام ظاهرة' : 'Code visible') 
+                    : (isArabic ? 'انقر على العين لإظهار الأرقام' : 'Cliquez sur l\'œil pour voir les chiffres')}
+                </span>
               </div>
 
               {pinError && (
