@@ -9,6 +9,7 @@ import {
   Share2, ArrowUpRight, Award, Compass, HeartHandshake, Send
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import MainNavbar from '@/components/MainNavbar';
 
 // ═══════════════════════════════════════════════════════════
 // BILINGUAL CONTENT MATRIX — BRANDXPERE IDENTITY
@@ -20,6 +21,7 @@ const CONTENT = {
       pillars: 'Creative Pillars',
       agency: 'Agency Studio',
       nfc: 'Smart NFC Cards',
+      loyalty: 'Loyalty Card',
       contact: 'Contact',
       quote: 'Get a Quote',
       signIn: 'Sign In',
@@ -137,6 +139,7 @@ const CONTENT = {
       pillars: 'أركان الهوية',
       agency: 'استوديو الوكالة',
       nfc: 'بطاقات NFC الذكية',
+      loyalty: 'بطاقة الولاء',
       contact: 'تواصل معنا',
       quote: 'طلب عرض سعر',
       signIn: 'دخول',
@@ -285,87 +288,13 @@ export default function MarketingPage() {
       dir={dir}
     >
 
-      {/* ═══════════════════════════════════════
-          HEADER / NAVBAR (eSoft Clean Style - Freestanding Logo)
-      ═══════════════════════════════════════ */}
-      <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 transition-all shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          
-          {/* Logo - Freestanding & Professional without Box Background */}
-          <Link href="/" className="flex items-center gap-2.5 hover:opacity-95 transition-opacity group">
-            <img
-              src="/brandxpere-icon.png"
-              alt="brandxpere logo"
-              className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
-            />
-            <span className="text-2xl font-black tracking-tight font-sans text-[#301739] leading-none">
-              <span>brand</span>
-              <span className="text-[#844D98] font-black">x</span>
-              <span>pere</span>
-            </span>
-          </Link>
-
-          {/* Nav Links */}
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-700">
-            <a href="#about" className="hover:text-[#844D98] transition-colors">
-              {t.nav.about}
-            </a>
-            <a href="#pillars" className="hover:text-[#844D98] transition-colors">
-              {t.nav.pillars}
-            </a>
-            <Link 
-              href="/agency" 
-              className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FAF7FC] border border-[#DACBE3]/60 text-[#844D98] hover:bg-white transition-all font-bold shadow-xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#844D98]" />
-              <span>{t.nav.agency}</span>
-            </Link>
-            <a href="#nfc" className="hover:text-[#844D98] transition-colors">
-              {t.nav.nfc}
-            </a>
-            <Link href="/contact" className="hover:text-[#844D98] transition-colors">
-              {t.nav.contact}
-            </Link>
-          </nav>
-
-          {/* Right Action Tools */}
-          <div className="flex items-center gap-3.5">
-            
-            {/* Language Switcher Button */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#DACBE3]/60 bg-[#FAF7FC] hover:bg-white text-xs font-bold text-slate-700 transition-all shadow-xs"
-              title={isArabic ? 'Switch to English' : 'التحويل إلى العربية'}
-            >
-              <Languages className="w-3.5 h-3.5 text-[#844D98]" />
-              <span className={!isArabic ? 'text-[#844D98] font-black' : 'text-slate-500'}>EN</span>
-              <span className="text-slate-300">|</span>
-              <span className={isArabic ? 'text-[#844D98] font-black' : 'text-slate-500'}>عربي</span>
-            </button>
-
-            <Link 
-              href="/agency#quote"
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#DACBE3]/60 bg-[#FAF7FC] hover:bg-white text-xs font-bold text-[#844D98] transition-all shadow-xs"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>{t.nav.quote}</span>
-            </Link>
-
-            <Link 
-              href="/auth/register" 
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#844D98] hover:bg-[#6F2E82] text-xs sm:text-sm font-bold text-white shadow-md shadow-[#844D98]/25 hover:shadow-lg hover:shadow-[#844D98]/30 hover:scale-[1.02] active:scale-95 transition-all"
-            >
-              <span>{t.nav.startFree}</span>
-              <ChevronRight className={`w-4 h-4 ${isArabic ? 'rotate-180' : ''}`} />
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Main Website Header / Navbar */}
+      <MainNavbar variant="light" />
 
       {/* ═══════════════════════════════════════
           HERO SECTION (eSoft CLEAN WHITE STYLE)
       ═══════════════════════════════════════ */}
-      <section className="relative pt-32 pb-20 overflow-hidden bg-gradient-to-b from-white via-[#FAF7FC] to-white">
+      <section className="relative pt-12 sm:pt-16 lg:pt-20 pb-20 overflow-hidden bg-gradient-to-b from-white via-[#FAF7FC] to-white">
         
         {/* Soft Ambient Floating Motion Graphic Blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">

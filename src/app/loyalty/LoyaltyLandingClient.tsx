@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import BrandLogo from '@/components/BrandLogo';
+import MainNavbar from '@/components/MainNavbar';
 import {
   Sparkles,
   Smartphone,
@@ -72,60 +73,7 @@ export default function LoyaltyLandingClient() {
         </a>
       </div>
 
-      <nav className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-purple-900/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Logo with Loyalty Badge */}
-          <div className="flex items-center gap-3">
-            <BrandLogo href="/" showText={true} iconSize={36} textClassName="text-white text-xl" />
-            <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              LOYALTY
-            </span>
-          </div>
-
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-300">
-            <a href="#how-it-works" className="hover:text-white transition-colors">
-              Comment ça marche
-            </a>
-            <a href="#card" className="hover:text-white transition-colors">
-              Carte Digitale
-            </a>
-            <a href="#two-methods" className="hover:text-white transition-colors">
-              Double Validation
-            </a>
-            <a href="#rewards" className="hover:text-white transition-colors">
-              Récompenses
-            </a>
-            <a href="#dashboard" className="hover:text-white transition-colors">
-              Espace Commerçant
-            </a>
-            <a href="#benefits" className="hover:text-white transition-colors">
-              Avantages
-            </a>
-            <a href="#faq" className="hover:text-white transition-colors">
-              FAQ
-            </a>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex items-center gap-3">
-            <Link
-              href="/merchant/login"
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-purple-200 hover:text-white bg-purple-950/50 hover:bg-purple-900/50 border border-purple-800/50 transition-all"
-            >
-              <Store className="w-4 h-4 text-purple-400" />
-              <span>Espace Commerçant</span>
-            </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#844D98] via-[#602773] to-[#7C3AED] hover:opacity-95 shadow-lg shadow-purple-900/30 transition-all hover:scale-[1.02]"
-            >
-              <span>Démarrer</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <MainNavbar variant="dark" />
 
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* 2. HERO — MAIN MESSAGE & VALUE PROPOSITION                  */}
