@@ -15,12 +15,14 @@ interface LoyaltyCardViewProps {
 
 interface LoyaltyData {
   enabled: boolean;
+  componentId?: string;
   title: string;
   targetStamps: number;
   rewardText: string;
   stampIcon: string;
   cooldownMinutes: number;
   customer: {
+    id?: string;
     phone: string;
     customerName: string | null;
     stampsCount: number;
@@ -100,12 +102,16 @@ export default function LoyaltyCardView({
   useEffect(() => {
     const activePhone = data?.customer?.phone || savedPhone;
     if (activePhone && profile?.id) {
+      const fallbackCompId = profile?.components?.find?.((c: any) => 
+        ['loyalty', 'fidelite', 'carte_fidelite'].includes(c.type?.toLowerCase())
+      )?.id;
+
       const payload = JSON.stringify({
         type: 'bx_loyalty_customer',
-        profileId: profile.id,
-        slug: profile.slug,
+        customer_id: data?.customer?.id || undefined,
+        merchant_id: profile.id,
+        loyalty_program_id: data?.componentId || fallbackCompId || profile.id,
         phone: activePhone,
-        name: data?.customer?.customerName || undefined,
       });
 
       QRCode.toDataURL(payload, {
@@ -121,7 +127,7 @@ export default function LoyaltyCardView({
     } else {
       setCustomerQrUrl(null);
     }
-  }, [data?.customer?.phone, data?.customer?.customerName, savedPhone, profile?.id, profile?.slug]);
+  }, [data?.customer?.id, data?.customer?.phone, data?.componentId, savedPhone, profile?.id, profile?.slug]);
 
   // Handle phone submission (Only phone is required)
   const handleEnrollPhone = async (e: React.FormEvent) => {
@@ -787,11 +793,12 @@ export default function LoyaltyCardView({
                     placeholder="••••"
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
-                    className="w-52 text-center tracking-[0.4em] text-3xl font-black py-3 px-4 rounded-2xl border-2 bg-slate-950 border-purple-400 text-white placeholder-slate-500 caret-white outline-none focus:ring-4 focus:ring-purple-500/40 focus:border-purple-300 shadow-2xl transition-all"
+                    className="w-52 text-center tracking-[0.4em] text-3xl font-black py-3 px-4 rounded-2xl border-2 bg-slate-950 border-purple-400 text-white placeholder-slate-400 caret-white outline-none focus:ring-4 focus:ring-purple-500/40 focus:border-purple-300 shadow-2xl transition-all"
                     style={{
                       color: '#ffffff',
                       WebkitTextFillColor: '#ffffff',
                       backgroundColor: '#09090b',
+                      caretColor: '#ffffff',
                     }}
                   />
                   <button

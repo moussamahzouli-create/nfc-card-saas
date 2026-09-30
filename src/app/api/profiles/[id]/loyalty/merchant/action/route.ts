@@ -41,25 +41,39 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const body = await req.json();
     const action = body?.action; // 'ADD_STAMP' | 'REDEEM_REWARD' | 'RESET' | 'UPDATE_NAME' | 'DELETE_CUSTOMER' | 'GET_HISTORY'
+    const customerId = body?.customerId;
     const rawPhone = body?.phone;
     const phone = cleanPhone(rawPhone);
 
-    if (!phone) {
-      return NextResponse.json({ error: 'Numéro de téléphone requis' }, { status: 400 });
+    if (!phone && !customerId) {
+      return NextResponse.json({ error: 'Numéro de téléphone ou identifiant client requis' }, { status: 400 });
     }
 
     const { settings } = auth;
     const targetStamps = Number(settings?.targetStamps) || 10;
 
-    // Find customer for this profile
-    let customer = await db.loyaltyCustomer.findUnique({
-      where: {
-        profileId_phone: {
-          profileId: id,
-          phone,
+    // Find customer for this profile (scoped strictly by profileId)
+    let customer = customerId
+      ? await db.loyaltyCustomer.findFirst({
+          where: {
+            id: customerId,
+            profileId: id,
+          },
+        })
+      : null;
+
+    if (!customer && phone) {
+      customer = await db.loyaltyCustomer.findUnique({
+        where: {
+          profileId_phone: {
+            profileId: id,
+            phone,
+          },
         },
-      },
-    });
+      });
+    }
+
+    const activePhone = customer?.phone || phone;
 
     // Handle GET_HISTORY action
     if (action === 'GET_HISTORY') {
@@ -70,7 +84,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       const logs = await db.loyaltyLog.findMany({
         where: {
           profileId: id,
-          phone,
+          phone: activePhone,
         },
         orderBy: { createdAt: 'desc' },
         take: 100,
@@ -127,7 +141,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           data: {
             profileId: id,
             customerId: c.id,
-            phone,
+            phone: activePhone,
             action: 'STAMP_ADDED',
             stampsCount: updatedStamps,
           },
@@ -175,7 +189,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           data: {
             profileId: id,
             customerId: c.id,
-            phone,
+            phone: activePhone,
             action: 'REWARD_REDEEMED',
             stampsCount: remainingStamps,
           },

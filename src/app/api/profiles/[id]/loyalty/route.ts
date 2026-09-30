@@ -93,6 +93,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
       if (customer) {
         customerData = {
+          id: customer.id,
           phone: customer.phone,
           customerName: customer.customerName,
           stampsCount: customer.stampsCount,
@@ -192,6 +193,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({
       success: true,
       customer: {
+        id: customer.id,
         phone: customer.phone,
         customerName: customer.customerName,
         stampsCount: customer.stampsCount,

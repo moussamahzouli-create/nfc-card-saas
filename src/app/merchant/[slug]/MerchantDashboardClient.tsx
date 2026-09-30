@@ -439,6 +439,7 @@ interface CustomerQrScannerModalProps {
   profileId: string;
   storeName: string;
   targetStamps: number;
+  rewardText?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -447,6 +448,7 @@ function CustomerQrScannerModal({
   profileId,
   storeName,
   targetStamps,
+  rewardText,
   onClose,
   onSuccess,
 }: CustomerQrScannerModalProps) {
@@ -491,14 +493,18 @@ function CustomerQrScannerModal({
     return cleaned;
   };
 
-  const lookupAndSelectCustomer = async (phone: string, fallbackName?: string) => {
+  const lookupAndSelectCustomer = async (params: { customerId?: string; phone?: string; fallbackName?: string }) => {
     setLoadingCustomer(true);
     setScanError(null);
     try {
       const res = await fetch(`/api/profiles/${profileId}/loyalty/merchant/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'GET_HISTORY', phone }),
+        body: JSON.stringify({
+          action: 'GET_HISTORY',
+          customerId: params.customerId,
+          phone: params.phone,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.customer) {
@@ -507,20 +513,25 @@ function CustomerQrScannerModal({
           isRewardReady: data.customer.stampsCount >= targetStamps,
         });
         setStep('CUSTOMER_FOUND');
-      } else {
+      } else if (params.phone) {
         // Customer not yet registered in database: treat as new customer ready for 1st stamp
         setScannedCustomer({
-          phone,
-          customerName: fallbackName || null,
+          id: params.customerId,
+          phone: params.phone,
+          customerName: params.fallbackName || null,
           stampsCount: 0,
           rewardsEarned: 0,
           isRewardReady: false,
           isNew: true,
         });
         setStep('CUSTOMER_FOUND');
+      } else {
+        setScanError('Client introuvable ou QR code non valide.');
+        setStep('SCANNING');
       }
     } catch {
       setScanError('Erreur lors de la récupération des données du client');
+      setStep('SCANNING');
     } finally {
       setLoadingCustomer(false);
     }
@@ -567,23 +578,29 @@ function CustomerQrScannerModal({
         async (decodedText: string) => {
           if (!isMountedRef.current) return;
 
-          let detectedPhone = '';
-          let detectedName = '';
-
           try {
             const parsed = JSON.parse(decodedText);
-            // Strict Profile Scoping check
-            if (parsed.profileId && parsed.profileId !== profileId) {
-              setScanError("Ce QR code appartient à un autre commerce !");
+            const scannedMerchant = parsed.merchant_id || parsed.profileId;
+            const scannedCustomer = parsed.customer_id || parsed.customerId;
+            const scannedPhone = parsed.phone ? normalizeScannedPhone(parsed.phone) : undefined;
+
+            // Security Validation: merchant_id must match current profileId
+            if (scannedMerchant && scannedMerchant !== profileId) {
+              setScanError("Accès refusé : Ce QR code appartient à un autre commerce !");
               return;
             }
-            if (parsed.phone) {
-              detectedPhone = parsed.phone;
-            }
-            if (parsed.name) {
-              detectedName = parsed.name;
+
+            if (scannedCustomer || scannedPhone) {
+              await stopScanner();
+              lookupAndSelectCustomer({
+                customerId: scannedCustomer,
+                phone: scannedPhone,
+                fallbackName: parsed.name,
+              });
+              return;
             }
           } catch {
+            let detectedPhone = '';
             if (decodedText.includes('phone=')) {
               try {
                 const url = new URL(decodedText);
@@ -593,15 +610,16 @@ function CustomerQrScannerModal({
             if (!detectedPhone) {
               detectedPhone = decodedText;
             }
+
+            const cleaned = normalizeScannedPhone(detectedPhone);
+            if (cleaned.length >= 6) {
+              await stopScanner();
+              lookupAndSelectCustomer({ phone: cleaned });
+              return;
+            }
           }
 
-          const cleaned = normalizeScannedPhone(detectedPhone);
-          if (cleaned.length >= 6) {
-            await stopScanner();
-            lookupAndSelectCustomer(cleaned, detectedName);
-          } else {
-            setScanError('Format de QR code client non reconnu.');
-          }
+          setScanError('Format de QR code client non reconnu.');
         },
         () => {}
       );
@@ -720,7 +738,7 @@ function CustomerQrScannerModal({
     const cleaned = normalizeScannedPhone(manualPhone);
     if (cleaned.length >= 6) {
       stopScanner();
-      lookupAndSelectCustomer(cleaned);
+      lookupAndSelectCustomer({ phone: cleaned });
     } else {
       setScanError('Veuillez entrer un numéro de téléphone valide');
     }
@@ -819,62 +837,59 @@ function CustomerQrScannerModal({
           </div>
         )}
 
-        {/* ── STEP 2: CUSTOMER IDENTIFIED ── */}
+        {/* ── STEP 2: CUSTOMER CONFIRMATION ── */}
         {step === 'CUSTOMER_FOUND' && scannedCustomer && (
           <div className="space-y-4 animate-fade-in">
-            {/* Customer Header card */}
-            <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md">
-                  <User size={22} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="text-sm font-bold text-white truncate">
-                      {scannedCustomer.customerName || 'Client Fidélité'}
-                    </h4>
-                    {scannedCustomer.isNew && (
-                      <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                        Nouveau
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-emerald-400 font-mono text-sm font-semibold tracking-wide">
-                    {scannedCustomer.phone}
-                  </div>
-                </div>
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                <CheckCircle2 size={16} className="text-emerald-400" />
+                Customer Found
+              </span>
+              {scannedCustomer.isNew && (
+                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full">
+                  Nouveau Client
+                </span>
+              )}
+            </div>
+
+            {/* Confirmation Details Card */}
+            <div className="bg-purple-900/30 border border-purple-600/40 rounded-2xl p-4 space-y-3 shadow-inner">
+              <div>
+                <span className="text-[11px] font-semibold text-purple-400 block">Name:</span>
+                <span className="text-sm font-bold text-white">
+                  {scannedCustomer.customerName || 'Client sans nom'}
+                </span>
               </div>
 
-              {/* Stamp progress bar */}
-              <div className="space-y-1.5 pt-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-purple-300 font-medium">Solde actuel</span>
-                  <span className="text-white font-black text-sm">
-                    {currentStamps} / {targetStamps} tampons
+              <div>
+                <span className="text-[11px] font-semibold text-purple-400 block">Phone:</span>
+                <span className="text-sm font-mono font-bold text-emerald-400">
+                  {scannedCustomer.phone}
+                </span>
+              </div>
+
+              <div className="pt-1 border-t border-purple-800/40">
+                <div className="flex justify-between items-center text-xs mb-1.5">
+                  <span className="text-[11px] font-semibold text-purple-400">Current Stamps:</span>
+                  <span className="text-sm font-black text-white">
+                    {currentStamps} / {targetStamps}
                   </span>
                 </div>
-                <div className="h-2.5 bg-purple-950/80 rounded-full overflow-hidden border border-purple-800/40">
+                <div className="h-2 bg-purple-950/80 rounded-full overflow-hidden border border-purple-800/50">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-amber-400 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-purple-500 to-amber-400 rounded-full transition-all duration-300"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
               </div>
 
-              {/* Status announcement */}
-              {scannedCustomer.isRewardReady ? (
-                <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold flex items-center gap-2">
-                  <Gift size={16} className="text-amber-400 shrink-0" />
-                  <span>🎁 Récompense prête ! Le client a complété sa carte.</span>
-                </div>
-              ) : (
-                <div className="text-[11px] text-purple-400 flex items-center gap-1">
-                  <Target size={13} className="text-purple-400" />
-                  <span>
-                    Encore {Math.max(1, targetStamps - currentStamps)} tampon(s) pour la récompense
-                  </span>
-                </div>
-              )}
+              <div className="pt-1 border-t border-purple-800/40">
+                <span className="text-[11px] font-semibold text-purple-400 block">Next Reward:</span>
+                <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5 mt-0.5">
+                  <Gift size={14} className="text-amber-400 shrink-0" />
+                  <span>{rewardText || 'Cadeau ou réduction exclusive'}</span>
+                </span>
+              </div>
             </div>
 
             {/* Actions */}
@@ -893,7 +908,7 @@ function CustomerQrScannerModal({
                 ) : (
                   <>
                     <Plus className="w-5 h-5" />
-                    <span>Ajouter un Tampon (+1)</span>
+                    <span>Add Stamp</span>
                   </>
                 )}
               </button>
@@ -914,9 +929,9 @@ function CustomerQrScannerModal({
                 type="button"
                 onClick={handleRestartScan}
                 disabled={submittingStamp}
-                className="w-full py-2.5 text-xs text-purple-400 hover:text-white transition-colors cursor-pointer"
+                className="w-full py-2.5 text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
-                ← Scanner un autre client
+                Cancel
               </button>
             </div>
           </div>
@@ -924,28 +939,36 @@ function CustomerQrScannerModal({
 
         {/* ── STEP 3: SUCCESS CONFIRMATION ── */}
         {step === 'SUCCESS' && (
-          <div className="text-center space-y-4 py-3 animate-fade-in">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg animate-bounce">
+          <div className="text-center space-y-4 py-2 animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-lg">
               <CheckCircle2 size={36} />
             </div>
 
             <div>
-              <h4 className="text-lg font-black text-white">Opération réussie ! 🎉</h4>
+              <h4 className="text-lg font-black text-white">✓ Stamp Added</h4>
               <p className="text-xs text-purple-300 mt-1">
-                Le compte de <span className="font-bold text-white">{scannedCustomer?.customerName || scannedCustomer?.phone}</span> a été mis à jour.
+                Tampon créé avec succès
               </p>
             </div>
 
-            <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 inline-block w-full text-center">
-              <span className="text-xs text-purple-400 block mb-1">Nouveau solde</span>
-              <span className="text-2xl font-black text-amber-400">
-                {lastStampResult?.stampsCount} / {targetStamps}
-              </span>
-              <span className="text-xs text-purple-300 ml-1.5">tampons</span>
+            <div className="bg-purple-900/30 border border-purple-700/40 rounded-2xl p-4 w-full text-left space-y-2">
+              <div>
+                <span className="text-xs text-purple-400 block font-medium">Customer:</span>
+                <span className="text-sm font-bold text-white">
+                  {scannedCustomer?.customerName || scannedCustomer?.phone}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-purple-400 block font-medium">Progress:</span>
+                <span className="text-base font-black text-amber-400">
+                  {lastStampResult?.stampsCount} / {targetStamps}
+                </span>
+              </div>
 
               {lastStampResult?.isRewardReady && (
-                <div className="mt-2 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 py-1.5 px-3 rounded-xl">
-                  🎁 Récompense débloquée pour ce client !
+                <div className="mt-2 text-xs font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 py-1.5 px-3 rounded-xl flex items-center gap-1.5">
+                  <Gift size={14} className="text-amber-400 shrink-0" />
+                  <span>🎁 Récompense débloquée pour ce client !</span>
                 </div>
               )}
             </div>
@@ -957,14 +980,14 @@ function CustomerQrScannerModal({
                 className="w-full py-3 px-4 rounded-2xl font-black text-sm text-white bg-purple-600 hover:bg-purple-500 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
               >
                 <Camera size={16} />
-                <span>Scanner le client suivant</span>
+                <span>Scan Next Customer</span>
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="w-full py-2.5 text-xs text-purple-400 hover:text-white transition-colors cursor-pointer"
               >
-                Terminer & Fermer
+                Fermer
               </button>
             </div>
           </div>
@@ -1608,6 +1631,7 @@ export default function MerchantDashboardClient({ profileId, slug, initialData }
           profileId={profileId}
           storeName={data.settings.storeName}
           targetStamps={data.settings.targetStamps}
+          rewardText={data.settings.rewardText}
           onClose={() => setShowScanner(false)}
           onSuccess={() => refresh(true)}
         />
