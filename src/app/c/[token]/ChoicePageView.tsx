@@ -18,8 +18,11 @@ interface ChoicePageViewProps {
 }
 
 export default function ChoicePageView({ profile, token }: ChoicePageViewProps) {
-  const businessName = (profile.company || profile.name || 'Brand Xpere Business').trim();
-  const initial = businessName.charAt(0).toUpperCase() || 'B';
+  const cardholderName = (profile.name || profile.company || 'Brand Xpere Business').trim();
+  const companyName = profile.company && profile.name && profile.company.trim().toLowerCase() !== profile.name.trim().toLowerCase()
+    ? profile.company.trim()
+    : null;
+  const initial = cardholderName.charAt(0).toUpperCase() || 'B';
   const encodedToken = encodeURIComponent(token);
 
   // Destinations preserving the NFC token context
@@ -58,12 +61,12 @@ export default function ChoicePageView({ profile, token }: ChoicePageViewProps) 
       {/* ── Main Centered Selection Area ── */}
       <main className="w-full max-w-[420px] flex-1 flex flex-col items-center justify-center my-auto relative z-10 py-4">
         {/* Business Branding (Dynamic Logo or Monogram) */}
-        <div className="relative mb-4 flex flex-col items-center">
+        <div className="relative mb-3 flex flex-col items-center">
           {profile.photoUrl ? (
             <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-3xl overflow-hidden shadow-[0_12px_28px_-6px_rgba(48,23,57,0.18)] border-2 border-white ring-4 ring-[#844D98]/15 bg-white flex items-center justify-center">
               <img
                 src={profile.photoUrl}
-                alt={businessName}
+                alt={cardholderName}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -80,16 +83,22 @@ export default function ChoicePageView({ profile, token }: ChoicePageViewProps) 
           </div>
         </div>
 
-        {/* Business Name Badge */}
-        <h2 className="text-base sm:text-lg font-bold text-[#301739] tracking-tight text-center max-w-[340px] truncate mb-0.5">
-          {businessName}
-        </h2>
-
-        {/* Main Heading & Subtitle */}
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1B0C21] text-center mt-2 mb-2">
-          Welcome
+        {/* Main Title: Cardholder's Name (Dominant & Larger than Welcome) */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-[#1B0C21] text-center max-w-[360px] leading-tight mt-1 mb-1">
+          {cardholderName}
         </h1>
-        <p className="text-sm font-medium text-slate-500 text-center max-w-[320px] mb-7 leading-snug">
+
+        {companyName && (
+          <p className="text-xs sm:text-sm font-semibold text-[#844D98] text-center mb-1">
+            {companyName}
+          </p>
+        )}
+
+        {/* Welcome Greeting (Smaller than the Cardholder Name) */}
+        <h2 className="text-sm sm:text-base font-bold text-slate-600 text-center mt-1 mb-1 tracking-wide">
+          Welcome
+        </h2>
+        <p className="text-xs sm:text-sm font-medium text-slate-400 text-center max-w-[320px] mb-6 leading-snug">
           What would you like to access?
         </p>
 
