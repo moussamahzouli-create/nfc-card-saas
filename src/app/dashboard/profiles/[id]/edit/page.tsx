@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Save, Eye, Smartphone, Monitor, Tablet,
@@ -556,6 +556,7 @@ function LiveCardPreview({ profile, appearance, deviceView, components }: any) {
 export default function PremiumVisualBuilder() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // State
   const [profile, setProfile] = useState<any>(null);
@@ -578,7 +579,17 @@ export default function PremiumVisualBuilder() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   // Controls
-  const [activeTab, setActiveTab] = useState<EditorTab>('info');
+  const [activeTab, setActiveTab] = useState<EditorTab>(() => {
+    const tab = searchParams?.get('tab') as EditorTab;
+    return tab && ['info', 'loyalty', 'contact', 'social', 'design', 'components'].includes(tab) ? tab : 'info';
+  });
+
+  useEffect(() => {
+    const tab = searchParams?.get('tab') as EditorTab;
+    if (tab && ['info', 'loyalty', 'contact', 'social', 'design', 'components'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
   const [deviceView, setDeviceView] = useState<DeviceView>('mobile');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -973,12 +984,12 @@ export default function PremiumVisualBuilder() {
           {/* Tabs */}
           <div className="flex border-b border-slate-200 overflow-x-auto shrink-0 scrollbar-none">
             {([
-              ['info',       'Info',      User],
-              ...((draft.type || profile?.type) === 'LOYALTY' ? [['loyalty', 'Fidélité 👑', Award]] : []),
-              ['contact',    'Contact',   Phone],
-              ['social',     'Social',    Globe],
-              ['design',     'Design',    Palette],
-              ['components', 'Blocks',    Layers],
+              ['info',       'Info',        User],
+              ['loyalty',    'Fidélité 👑', Award],
+              ['contact',    'Contact',     Phone],
+              ['social',     'Social',      Globe],
+              ['design',     'Design',      Palette],
+              ['components', 'Blocks',      Layers],
             ] as [EditorTab, string, any][]).map(([t, label, Icon]) => (
               <button key={t} onClick={() => setActiveTab(t)}
                 className={`flex flex-col items-center gap-1 px-2.5 py-2.5 text-[9px] font-extrabold border-b-2 transition-all flex-1 whitespace-nowrap cursor-pointer ${
@@ -1372,6 +1383,7 @@ export default function PremiumVisualBuilder() {
             {/* 1.5 LOYALTY TAB */}
             {activeTab === 'loyalty' && (() => {
               const loyaltyComp = components.find(c => c.type?.toLowerCase() === 'loyalty');
+              const isLoyaltyEnabled = Boolean(loyaltyComp && loyaltyComp.isVisible !== false);
               let s: any = {};
               if (loyaltyComp?.settingsJson) {
                 try { s = JSON.parse(loyaltyComp.settingsJson); } catch {}
@@ -1382,12 +1394,50 @@ export default function PremiumVisualBuilder() {
               const stampIcon = s.stampIcon || 'coffee';
               const cooldownMinutes = s.cooldownMinutes !== undefined ? Number(s.cooldownMinutes) : 5;
 
+              const handleToggleLoyalty = async () => {
+                const nextState = !isLoyaltyEnabled;
+                if (nextState) {
+                  if (loyaltyComp) {
+                    setComponents(prev => prev.map(c => c.id === loyaltyComp.id ? { ...c, isVisible: true } : c));
+                    updateComponent(loyaltyComp.id, { isVisible: true });
+                  } else {
+                    const defaultSettings = JSON.stringify({
+                      targetStamps: 10,
+                      rewardText: 'Cadeau ou réduction exclusive',
+                      merchantPin: '1234',
+                      stampIcon: 'coffee',
+                      cooldownMinutes: 5,
+                    });
+                    const res = await fetch(`/api/profiles/${id}/components`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        type: 'Loyalty',
+                        title: 'Carte de Fidélité VIP',
+                        settingsJson: defaultSettings,
+                        isVisible: true,
+                        order: 0,
+                      }),
+                    });
+                    if (res.ok) {
+                      const newComp = await res.json();
+                      setComponents(prev => [newComp, ...prev]);
+                    }
+                  }
+                } else {
+                  if (loyaltyComp) {
+                    setComponents(prev => prev.map(c => c.id === loyaltyComp.id ? { ...c, isVisible: false } : c));
+                    updateComponent(loyaltyComp.id, { isVisible: false });
+                  }
+                }
+              };
+
               const updateLoyaltySettings = (newFields: any) => {
                 const merged = { ...s, ...newFields };
                 const jsonStr = JSON.stringify(merged);
                 if (loyaltyComp) {
-                  setComponents(prev => prev.map(c => c.id === loyaltyComp.id ? { ...c, settingsJson: jsonStr } : c));
-                  updateComponent(loyaltyComp.id, { settingsJson: jsonStr });
+                  setComponents(prev => prev.map(c => c.id === loyaltyComp.id ? { ...c, settingsJson: jsonStr, isVisible: true } : c));
+                  updateComponent(loyaltyComp.id, { settingsJson: jsonStr, isVisible: true });
                 } else {
                   fetch(`/api/profiles/${id}/components`, {
                     method: 'POST',
@@ -1407,6 +1457,70 @@ export default function PremiumVisualBuilder() {
 
               return (
                 <div className="space-y-4">
+                  {/* Master Toggle Card */}
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-xs text-slate-900">برنامج بطاقة الولاء</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${isLoyaltyEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                          {isLoyaltyEnabled ? 'مفعل (Actif)' : 'معطل (Inactif)'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                        {isLoyaltyEnabled
+                          ? 'البطاقة مفعّلة لمتجرك وتظهر للزبائن عند مسح بطاقة NFC أو QR Code.'
+                          : 'البطاقة معطلة حالياً، وسيتم توجيه الزبائن إلى ملفك الشخصي مباشرة.'}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleToggleLoyalty}
+                      className={`w-13 h-7 rounded-full transition-colors relative cursor-pointer shrink-0 ${isLoyaltyEnabled ? 'bg-purple-600' : 'bg-slate-300'}`}
+                      title={isLoyaltyEnabled ? 'Désactiver' : 'Activer'}
+                    >
+                      <div className={`w-5.5 h-5.5 rounded-full bg-white shadow-md transition-all absolute top-0.75 ${isLoyaltyEnabled ? 'right-1' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {/* Direct Link to full Loyalty Dashboard (https://www.brandxpere.com/dashboard/loyalty/[id]) */}
+                  {isLoyaltyEnabled && (
+                    <div className="p-3.5 bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-50 border border-purple-200/80 rounded-2xl flex items-center justify-between gap-2 shadow-xs">
+                      <div>
+                        <span className="text-xs font-black text-purple-950 block">لوحة تحكم الزبائن والنقاط 📊</span>
+                        <span className="text-[10px] text-purple-700 block">إحصائيات الكاسة، الزبائن، والمسح اليومي</span>
+                      </div>
+                      <Link
+                        href={`/dashboard/loyalty/${profile?.id || id}`}
+                        target="_blank"
+                        className="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-[11px] font-bold shadow-xs flex items-center gap-1.5 transition-all shrink-0"
+                      >
+                        <span>فتح اللوحة</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  )}
+
+                  {!isLoyaltyEnabled ? (
+                    <div className="p-6 text-center space-y-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                      <div className="w-12 h-12 mx-auto rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center">
+                        <Crown className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h4 className="text-xs font-black text-slate-800">برنامج بطاقة الولاء غير مفعّل</h4>
+                      <p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
+                        قم بتشغيل المفتاح أعلاه لتفعيل بطاقة الولاء الرقمية، وتخصيص عدد الطوابع والجوائز، واستقبال الزبائن.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleToggleLoyalty}
+                        className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>تشغيل وتفعيل برنامج الولاء الآن</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
                   {/* VIP Header Banner */}
                   <div className="p-4 rounded-2xl bg-gradient-to-br from-[#3B0764] via-[#4A1D96] to-[#6B21A8] text-white shadow-md relative overflow-hidden">
                     <div className="relative z-10">
@@ -1583,6 +1697,8 @@ export default function PremiumVisualBuilder() {
                       <ExternalLink className="w-3 h-3" /> فتح البطاقة
                     </a>
                   </div>
+                    </>
+                  )}
                 </div>
               );
             })()}
@@ -1718,11 +1834,29 @@ export default function PremiumVisualBuilder() {
 
             {/* 5. BLOCKS & COMPONENTS */}
             {activeTab === 'components' && (<>
+              <div className="p-3 bg-purple-50/90 border border-purple-200/80 rounded-2xl flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-extrabold text-purple-950 text-xs block truncate">بطاقة الولاء (Carte de Fidélité)</span>
+                    <span className="text-[10px] text-purple-700 block truncate">متاحة الآن كقسم مستقل مع زر التشغيل/الإيقاف</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('loyalty')}
+                  className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-[11px] shadow-xs transition-all cursor-pointer shrink-0"
+                >
+                  إدارة الولاء 👑
+                </button>
+              </div>
+
               <div className="space-y-3">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Add Custom Blocks</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { type: 'Loyalty', title: 'Carte de Fidélité (بطاقة الوفاء)' },
                     { type: 'Menu', title: 'Menu (قائمة طعام / خدمات)' },
                     { type: 'Phone', title: 'Phone Call' },
                     { type: 'WhatsApp', title: 'WhatsApp' },
@@ -1744,11 +1878,11 @@ export default function PremiumVisualBuilder() {
 
               <div className="space-y-2 pt-3 border-t border-slate-100">
                 <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Active Blocks</label>
-                {components.length === 0 ? (
+                {components.filter(c => c.type?.toLowerCase() !== 'loyalty').length === 0 ? (
                   <p className="text-[10px] text-slate-400 text-center py-6">No custom blocks added yet</p>
                 ) : (
                   <div className="space-y-2">
-                    {components.map((comp, idx) => (
+                    {components.filter(c => c.type?.toLowerCase() !== 'loyalty').map((comp, idx) => (
                       <div key={comp.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
                         <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
                           <div className="flex items-center gap-1.5 min-w-0">

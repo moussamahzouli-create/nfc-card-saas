@@ -46,6 +46,10 @@ export async function GET(req: NextRequest) {
           where: { unassignedAt: null },
           include: { card: true }
         },
+        components: {
+          where: { type: { in: ['Loyalty', 'loyalty', 'LOYALTY'] } },
+          select: { id: true, type: true, isVisible: true, title: true, settingsJson: true }
+        },
         _count: {
           select: { components: true, reviews: true }
         }

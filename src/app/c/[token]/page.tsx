@@ -1236,9 +1236,31 @@ export default async function PublicTokenPage({ params, searchParams }: TokenPag
             </div>
           )}
 
-          {/* Core Feature 3: Carte de Fidélité (Loyalty Stamp Card) */}
+          {/* Core Feature 3: Carte de Fidélité VIP (Direct Access to the Full Loyalty Card) */}
           {shouldShowLoyalty && (
-            <div className="w-full mt-5">
+            <div className="w-full mt-5 space-y-3">
+              <Link
+                href={`/c/${encodeURIComponent(token)}?view=loyalty`}
+                className="w-full p-4 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#4A1D96] via-[#301739] to-[#602773] text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-between group border border-white/20 active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div className="text-left rtl:text-right">
+                    <span className="text-sm font-black tracking-wide block text-white leading-tight">
+                      {isArabic ? 'بطاقة الولاء الرقمية VIP 👑' : 'Carte de Fidélité VIP 👑'}
+                    </span>
+                    <span className="text-[11px] text-purple-200/90 block mt-0.5">
+                      {isArabic ? 'اضغط لفتح بطاقتك وجمع الطوابع والمكافآت' : 'Accédez à votre carte VIP, points et récompenses'}
+                    </span>
+                  </div>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center shrink-0 transition-all">
+                  <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                </div>
+              </Link>
+
               <LoyaltyWidget
                 profileId={profile.id}
                 profileName={profile.name}

@@ -8,7 +8,7 @@ import {
   User, Phone, Globe, Palette, Plus, Trash2, Check,
   AlertCircle, RefreshCw, Mail, MapPin, Briefcase,
   ChevronUp, ChevronDown, GripVertical, Settings,
-  Camera, Layers, Search, Zap, ExternalLink
+  Camera, Layers, Search, Zap, ExternalLink, Award, Crown
 } from 'lucide-react';
 import { INDUSTRY_TEMPLATES, type IndustryTemplate, templateToCssVars } from '@/lib/templates/industry-templates';
 import { compressImage } from '@/lib/image-compression';
@@ -17,7 +17,7 @@ import { compressImage } from '@/lib/image-compression';
    TYPES
 ═══════════════════════════════ */
 type DeviceView = 'mobile' | 'tablet' | 'desktop';
-type EditorTab = 'info' | 'contact' | 'social' | 'design' | 'components';
+type EditorTab = 'info' | 'loyalty' | 'contact' | 'social' | 'design' | 'components';
 
 const SOCIALS = [
   { id: 'linkedin',      label: 'LinkedIn',         color: '#0A66C2', letter: 'in' },
@@ -576,11 +576,12 @@ export default function ProfileEditor() {
           {/* Tab bar */}
           <div className="flex border-b border-slate-200 overflow-x-auto shrink-0">
             {([
-              ['info',       'Info',      User],
-              ['contact',    'Contact',   Phone],
-              ['social',     'Social',    Globe],
-              ['design',     'Design',    Palette],
-              ['components', 'Blocks',    Layers],
+              ['info',       'Info',        User],
+              ['loyalty',    'Fidélité 👑', Award],
+              ['contact',    'Contact',     Phone],
+              ['social',     'Social',      Globe],
+              ['design',     'Design',      Palette],
+              ['components', 'Blocks',      Layers],
             ] as [EditorTab, string, any][]).map(([t, label, Icon]) => (
               <button key={t} onClick={() => setActiveTab(t)}
                 className={`flex flex-col items-center gap-0.5 px-3 py-2.5 text-[10px] font-bold border-b-2 transition-all flex-1 whitespace-nowrap ${
@@ -683,6 +684,35 @@ export default function ProfileEditor() {
                 />
               </div>
             </>)}
+
+            {/* LOYALTY TAB */}
+            {activeTab === 'loyalty' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#3B0764] via-[#4A1D96] to-[#6B21A8] text-white shadow-md">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Crown className="w-5 h-5 text-amber-300 drop-shadow" />
+                    <h3 className="font-extrabold text-sm">برنامج بطاقة الولاء VIP</h3>
+                  </div>
+                  <p className="text-xs text-purple-200/90 leading-relaxed">
+                    قم بإدارة برنامج بطاقة الولاء وتفعيلها أو إيقافها، وتحديد عدد الطوابع والجوائز.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+                  <h4 className="text-xs font-bold text-slate-800">إعدادات بطاقة الولاء والتشغيل</h4>
+                  <p className="text-[11px] text-slate-500">
+                    يمكنك تشغيل أو إيقاف برنامج الولاء، وتخصيص كود الكاشير، والجوائز عبر لوحة التحكم الكاملة.
+                  </p>
+                  <Link
+                    href={`/dashboard/profiles/${id}/edit?tab=loyalty`}
+                    className="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-xs"
+                  >
+                    <span>فتح إعدادات الولاء والتشغيل</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* CONTACT TAB */}
             {activeTab === 'contact' && (<>
