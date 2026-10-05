@@ -14,6 +14,7 @@ import LoyaltyCardView from './LoyaltyCardView';
 import LocationMapWidget from './LocationMapWidget';
 import ShareModal from './ShareModal';
 import CardImage from './CardImage';
+import ChoicePageView from './ChoicePageView';
 import { INDUSTRY_TEMPLATES } from '@/lib/templates/industry-templates';
 import { resolveAndParseMapsInput } from '@/lib/maps';
 
@@ -23,6 +24,11 @@ export const revalidate = 0;
 interface TokenPageProps {
   params: Promise<{
     token: string;
+  }>;
+  searchParams?: Promise<{
+    view?: string;
+    lang?: string;
+    [key: string]: string | string[] | undefined;
   }>;
 }
 
@@ -455,8 +461,10 @@ function getSocialInfo(platform: string) {
   };
 }
 
-export default async function PublicTokenPage({ params }: TokenPageProps) {
+export default async function PublicTokenPage({ params, searchParams }: TokenPageProps) {
   const { token } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const view = (typeof resolvedSearchParams.view === 'string' ? resolvedSearchParams.view : '').toLowerCase().trim();
   const { profile: initialProfile, card: initialCard } = await getProfileByToken(token);
   let profile = initialProfile;
   let card = initialCard;
@@ -894,8 +902,23 @@ export default async function PublicTokenPage({ params }: TokenPageProps) {
       : undefined,
   };
 
-  // Dedicated Digital Bank-style Loyalty Card Layout
-  if (profile.type === 'LOYALTY') {
+  const hasLoyaltyProgram = profile.type === 'LOYALTY' || shouldShowLoyalty;
+
+  // NFC / QR Choice Flow & Direct Views Resolution
+  if (view === 'choice') {
+    return <ChoicePageView profile={profile} token={token} />;
+  }
+
+  if (view === 'loyalty') {
+    return <LoyaltyCardView profile={profile} isArabic={isArabic} />;
+  }
+
+  if (view === 'profile') {
+    // Explicit direct profile link: bypass full-screen loyalty card even if profile.type === 'LOYALTY'
+  } else if (hasLoyaltyProgram) {
+    // Default arrival from NFC tap or QR scan: show intermediate Choice Page
+    return <ChoicePageView profile={profile} token={token} />;
+  } else if (profile.type === 'LOYALTY') {
     return <LoyaltyCardView profile={profile} isArabic={isArabic} />;
   }
 
