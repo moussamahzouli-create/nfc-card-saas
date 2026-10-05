@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, CreditCard, User, BarChart3, Settings, LogOut, Layers, ShoppingBag, Receipt, QrCode, HelpCircle, ShieldCheck, Smartphone, Crown } from 'lucide-react';
+import { LayoutDashboard, CreditCard, User, BarChart3, Settings, LogOut, Layers, ShoppingBag, Receipt, QrCode, HelpCircle, ShieldCheck, Smartphone, Crown, Link2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -139,6 +139,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span>مولد QR للروابط</span>
             </div>
             <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold">جديد</span>
+          </Link>
+          <Link href="/dashboard/links" className="flex items-center justify-between px-4 py-3 rounded-xl text-[#844D98] dark:text-purple-300 bg-[#844D98]/10 hover:bg-[#844D98]/20 font-bold text-sm transition-all border border-[#844D98]/20">
+            <div className="flex items-center gap-3">
+              <Link2 className="w-5 h-5 text-[#844D98] dark:text-purple-400" />
+              <span>مختصر روابط NFC & QR</span>
+            </div>
+            <span className="text-[10px] bg-[#844D98] text-white px-2 py-0.5 rounded-full font-bold">NFC 🔗</span>
           </Link>
           <Link href="/dashboard/nfc-tool" className="flex items-center justify-between px-4 py-3 rounded-xl text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 font-bold text-sm transition-all">
             <div className="flex items-center gap-3">

@@ -38,6 +38,7 @@ model User {
   auditLogs       AuditLog[]
   apiKeys         ApiKey[]
   notifications   Notification[]
+  shortLinks      ShortLink[]
 
   @@index([email])
 }
@@ -578,4 +579,21 @@ model MerchantNotification {
 
   @@index([profileId])
   @@index([isRead])
+}
+
+model ShortLink {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  originalUrl   String    @db.Text
+  title         String?
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clicks        Int       @default(0)
+  lastScannedAt DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([code])
+  @@index([userId])
 }
